@@ -1,4 +1,4 @@
-# p4-srv6_INT
+# p4-srv6-INT
 Fork of project (netgroup/p4-srv6) found at https://github.com/netgroup/p4-srv6 that implements SRv6 in Mininet environment where the switches use P4.
 This repository aims to adapt that solution to add INT into it, like it's implemented on the project (ruimmpires/P4INT_Mininet) found at https://github.com/ruimmpires/P4INT_Mininet 
 
