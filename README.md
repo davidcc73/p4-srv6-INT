@@ -1,3 +1,9 @@
+# p4-srv6_INT
+Fork of project (netgroup/p4-srv6) found at https://github.com/netgroup/p4-srv6 that implements SRv6 in Mininet environment where the switches use P4.
+This repository aims to adapt that solution to add INT into it, like it's implemented on the project (ruimmpires/P4INT_Mininet) found at https://github.com/ruimmpires/P4INT_Mininet 
+
+
+
 # IPv6 Segment Routing SRv6 <br/>
 SRv6 is a network architecture that encodes a list of instructions in the IPv6 packet header to define a network wide packet processing program. <br/>
 Each instruction defines a node to process the packet and the behavior to be applied to that packet by that node.<br/>

@@ -86,7 +86,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     // TODO: implement ecmp with ipv6.src+ipv6.dst+ipv6.flow_label
-    action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ecmp_selector;
+    //action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ecmp_selector;
     direct_counter(CounterType.packets_and_bytes) routing_v6_counter;
     table routing_v6 {
 	    key = {
@@ -100,7 +100,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        set_next_hop;
         }
         counters = routing_v6_counter;
-        implementation = ip6_ecmp_selector;
+        //implementation = ip6_ecmp_selector;
     }
 
     // TODO calc checksum

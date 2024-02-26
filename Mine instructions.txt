@@ -1,0 +1,27 @@
+sudo make deps 
+sudo make start
+
+sudo make app-build
+sudo make app-reload
+sudo make netcfg
+
+
+#--------------------at ONOS cli (sudo make onos-cli)
+source /config/routing_tables.txt
+source /config/ua_config.txT
+
+#---srv6_insert.txt (go and return from h1->h2)
+#--use case1: Insert the uSID routing directive to the the two end routers
+srv6-insert device:r1 fcbb:bb00:8:7:2:fd00:: 2001:1:2::1
+srv6-insert device:r2 fcbb:bb00:7:8:1:fd00:: 2001:1:1::1
+
+#--use case 2 (only go to h2, on the back path the packet will vary route)
+srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2::1
+
+
+
+#--------------------at mininet cli (sudo make mn-cli)
+h1 ping h2
+h2 ping h1
+
+

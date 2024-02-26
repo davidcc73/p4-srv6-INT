@@ -365,7 +365,6 @@ public class Ipv6RoutingComponent {
                             // Action param value.
                             nextHopMac.toBytes()))
                     .build();
-
          flowRuleService.applyFlowRules(Utils
                  .buildFlowRule(routerId, appId, tableId, match, action));
        

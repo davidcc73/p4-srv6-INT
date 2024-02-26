@@ -35,22 +35,22 @@ deps: _docker_pull_all
 start:
 	$(info *** Starting ONOS and Mininet (${NGSDN_TOPO_PY})... )
 	@mkdir -p tmp/onos
-	docker-compose up -d
+	docker compose up -d
 
 
 stop:
 	$(info *** Stopping ONOS and Mininet...)
-	docker-compose down
+	docker compose down
 
 restart: reset start
 
 onos-cli:
 	$(info *** Connecting to the ONOS CLI... password: rocks)
-	$(info *** Top exit press Ctrl-D)
-	@ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -o LogLevel=ERROR -p 8101 onos@localhost
+	$(info *** Top exit press Ctrl-D   WARNING: NON SECURE CONNECTION, ADDED -o HostKeyAlgorithms=ssh-rsa TO AVOID ERROR***)
+	@ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -o HostKeyAlgorithms=ssh-rsa -o LogLevel=ERROR -p 8101 onos@localhost
 
 onos-log:
-	docker-compose logs -f onos
+	docker compose logs -f onos
 
 onos-ui:
 	open ${onos_url}/ui
@@ -58,7 +58,7 @@ onos-ui:
 mn-cli:
 	$(info *** Attaching to Mininet CLI...)
 	$(info *** To detach press Ctrl-D (Mininet will keep running))
-	-@docker attach --detach-keys "ctrl-d" $(shell docker-compose ps -q mininet) || echo "*** Detached from Mininet CLI"
+	-@docker attach --detach-keys "ctrl-d" $(shell docker compose ps -q mininet) || echo "*** Detached from Mininet CLI"
 
 mn-log:
 	docker logs -f mininet
