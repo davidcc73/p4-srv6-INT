@@ -122,6 +122,29 @@ class TutorialTopo(Topo):
         self.addLink(h1, r1)
         self.addLink(h2, r2)
 
+        #create the collector
+        h_collector = self.addHost('h_collector', cls=IPv6Host, mac="00:00:00:00:00:05",
+                                   ipv6='2001:1:1::2/64')   #TODO: define a gateway (may not be needed)
+        self.addLink(h_collector, r1, port2=2)              #port 2 of r1, points to the collector
+
+    def run_cli_commands(net):
+        switches = net.switches
+        for switch in switches:
+            switch_name = switch.name
+            command_file_name = f"INT/Tables/{switch_name}.txt"
+
+            try:
+                with open(command_file_name, 'r') as file:
+                    commands = file.readlines()
+
+                print(f"Running commands for {switch_name} from {command_file_name}")
+                for command in commands:
+                    # Execute the command on the switch
+                    switch.cmd(command.strip())
+
+            except FileNotFoundError:
+                print(f"Command file not found for {switch_name}")
+
 
 def main():
     topo = TutorialTopo()
@@ -131,6 +154,9 @@ def main():
     net.addController(controller)
 
     net.start()
+
+    run_cli_commands(net)
+
     CLI(net)
     net.stop()
 

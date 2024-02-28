@@ -1,0 +1,17 @@
+//SINK
+
+//set up switch ID
+table_set_default process_int_transit.tb_int_insert init_metadata 1
+
+//set up process_int_source_sink
+table_add process_int_source_sink.tb_set_sink int_set_sink 1 => 
+
+
+//-----------INT metadata report setup----------------
+
+//creates a mirroring ID 500 to output port specified, port 2 always points to the INT collector as defined at network.py
+mirroring_add 500 2
+
+//INT report setup towards the INT collector, the values of origin are dummy values
+table_add process_int_report.tb_generate_report do_report_encapsulation 0 => 00:00:00:00:00:01 00:00:00:00:00:05 2001:1:1::1 2001:1:1::2 1234
+

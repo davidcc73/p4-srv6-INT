@@ -21,9 +21,21 @@
 #include "include/parser.p4"
 #include "include/checksum.p4"
 
+//new includes for the INT usage
+#include "include/defines.p4"
+#include "include/int_headers.p4"
+#include "include/int_source.p4"
+#include "include/int_transit.p4"
+#include "include/int_sink.p4"
+
+
 #define CPU_CLONE_SESSION_ID 99
 #define UN_BLOCK_MASK     0xffffffff000000000000000000000000
 
+
+/*************************************************************************
+****************  I N G R E S S   P R O C E S S I N G   ****************** (SOURCE NODE)
+*************************************************************************/
 
 control IngressPipeImpl (inout parsed_headers_t hdr,
                          inout local_metadata_t local_metadata,
@@ -465,10 +477,38 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        }	
 	    }
 
-        acl.apply();
-    
+        //The order of the implementations from here onward on this file may need to be adjusted
+        if (hdr.arp.isValid()){
+            arpreply.apply(hdr, local_metadata, standard_metadata);
+        }
+        else if(hdr.ipv6.isValid()) {  //FOR TESTING COMMENT ALL INT OPERATIONS
+            acl.apply();              //regular forwarding
+
+            if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
+                process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
+            }
+            
+            if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
+                process_int_source.apply(hdr, local_metadata);
+            } 
+
+            if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
+                // clone packet for Telemetry Report
+                // clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID,standard_metadata);
+                // clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
+                local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
+                local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
+                local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
+                local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
+                clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
+            }
+        }    
     }
 }
+
+/*************************************************************************
+****************  E G R E S S   P R O C E S S I N G   ******************** (TRANSIT AND SINK NODE)
+*************************************************************************/
 
 control EgressPipeImpl (inout parsed_headers_t hdr,
                         inout local_metadata_t local_metadata,
@@ -482,6 +522,26 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.is_multicast == true
              && standard_metadata.ingress_port == standard_metadata.egress_port) {
             mark_to_drop(standard_metadata);
+        }
+
+        //---------------------------------INT Portion---------------------------------
+        if(hdr.int_header.isValid()) {
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+                standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
+                standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;
+                standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
+                standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
+            }
+            process_int_transit.apply(hdr, local_metadata, standard_metadata);   //(transit) INFO ADDED TO PACKET AT DEPARSER
+
+            if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+                /* send int report */
+                process_int_report.apply(hdr, local_metadata, standard_metadata);
+            }
+
+            if (local_metadata.int_meta.sink == true && standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+                process_int_sink.apply(hdr, local_metadata, standard_metadata);
+            }
         }
     }
 }

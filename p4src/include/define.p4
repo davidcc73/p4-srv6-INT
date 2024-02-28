@@ -43,4 +43,45 @@ const mac_addr_t IPV6_MCAST_01 = 0x33_33_00_00_00_01;
 const bit<32> NDP_FLAG_ROUTER = 0x80000000;
 const bit<32> NDP_FLAG_SOLICITED = 0x40000000;
 const bit<32> NDP_FLAG_OVERRIDE = 0x20000000;
+
+
+//------------------------------INT Definitions (duplicated and unecessary values are possible)---------------------------
+
+// Protocol type IPv6
+#define IP_VERSION_6 4w6
+#define IPV6_HDR_LEN 40w8  // IPv6 header length in 8-byte units
+#define MAX_PORTS 511
+
+//packet type
+#define PKT_INSTANCE_TYPE_NORMAL 0
+#define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
+#define PKT_INSTANCE_TYPE_EGRESS_CLONE 2
+#define PKT_INSTANCE_TYPE_COALESCED 3
+#define PKT_INSTANCE_TYPE_INGRESS_RECIRC 4
+#define PKT_INSTANCE_TYPE_REPLICATION 5
+#define PKT_INSTANCE_TYPE_RESUBMIT 6
+
+typedef bit<9>  port_t;
+typedef bit<16> next_hop_id_t;
+const port_t CPU_PORT = 255;
+
+/* indicate INT by DSCP value */
+const bit<6> DSCP_INT = 0x17;
+//const bit<6> DSCP_INT = 0x06;
+const bit<6> DSCP_MASK = 0x3F;
+
+typedef bit<48> timestamp_t;
+typedef bit<32> switch_id_t;
+
+const bit<8> INT_SHIM_HEADER_WORD = 1;
+const bit<8> INT_HEADER_WORD = 3;
+const bit<8> INT_TOTAL_HEADER_WORD = 4;
+
+const bit<8> CPU_MIRROR_SESSION_ID = 250;
+const bit<32> REPORT_MIRROR_SESSION_ID = 500;
+const bit<6> HW_ID = 1;
+const bit<8> REPORT_HDR_HOP_LIMIT = 64;//const bit<8> REPORT_HDR_TTL = 64;
+
+
+
 #endif
