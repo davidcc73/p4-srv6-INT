@@ -39,7 +39,6 @@ control ComputeChecksumImpl(inout parsed_headers_t hdr,
             hdr.icmpv6.checksum,
             HashAlgorithm.csum16
         );
-
         update_checksum(meta.ipv4_update, 
             {
                 hdr.ipv4.version,
@@ -59,7 +58,6 @@ control ComputeChecksumImpl(inout parsed_headers_t hdr,
             hdr.ipv4.hdr_checksum, 
             HashAlgorithm.csum16
         );
-
     }
 }
 

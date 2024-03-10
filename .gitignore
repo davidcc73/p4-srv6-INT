@@ -4,3 +4,7 @@
 *.pyc
 **/tmp
 *.class
+/app/target
+/app/src/main/resources
+
+

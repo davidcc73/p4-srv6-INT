@@ -200,10 +200,11 @@ struct local_metadata_t {
     bit<8> icmp_type;
     l4_port_t l4_src_port;
     l4_port_t l4_dst_port;
+    bool ipv4_update;
     int_metadata_t int_meta;                    //used by INT
     preserving_metadata_t perserv_meta;         //used by INT
     preserving_metadata_CPU_t perserv_CPU_meta; //to migrate from clone3() to clone_preserving() in the clone_to_CPU scenario
-    //digest_t              mac_learn_digest; //ARP used for the original project with ipv4 packets
+    //digest_t              mac_learn_digest; //ARP used for the original project with ipv4 INT packets
 }
 
 
