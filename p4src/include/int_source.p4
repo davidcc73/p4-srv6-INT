@@ -1,6 +1,6 @@
 /* -*- P4_16 -*- */
 control process_int_source_sink (
-    inout headers hdr,
+    inout parsed_headers_t hdr,
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
@@ -44,7 +44,7 @@ control process_int_source_sink (
 
 // Insert INT header to the packet
 control process_int_source (
-    inout headers hdr,
+    inout parsed_headers_t hdr,
     inout local_metadata_t local_metadata) {
 
     action int_source(bit<5> hop_metadata_len, bit<8> remaining_hop_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
@@ -53,7 +53,7 @@ control process_int_source (
         hdr.intl4_shim.int_type = 1;                            // int_type: Hop-by-hop type (1) , destination type (2), MX-type (3)
         hdr.intl4_shim.npt = 0;                                 // next protocol type: 0
         hdr.intl4_shim.len = INT_HEADER_WORD;                   // This is 3 from 0xC (INT_TOTAL_HEADER_SIZE >> 2)
-        hdr.intl4_shim.udp_ip_dscp = hdr.ipv6.dscp;             // although should be first 6 bits of the second byte
+        hdr.intl4_shim.udp_ip_dscp = hdr.ipv6.dscp;             // although should be first 6 bits of the second byte, BACKUP THE ORIGINAL DSCP VALUE AT THE INT INSTRUCTION HEADER
         hdr.intl4_shim.udp_ip = 0;                              // although should be first 6 bits of the second byte
         //hdr.intl4_shim.tcp_ip_dscp = hdr.ipv4.dscp;             // TCP
         //hdr.intl4_shim.tcp_ip = 0;                              // TCP

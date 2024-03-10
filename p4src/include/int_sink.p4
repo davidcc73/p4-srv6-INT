@@ -1,7 +1,7 @@
 /* -*- P4_16 -*- */
 
 control process_int_sink (
-    inout headers hdr,
+    inout parsed_headers_t hdr,
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
@@ -41,7 +41,7 @@ control process_int_sink (
 }
 
 control process_int_report (
-    inout headers hdr,
+    inout parsed_headers_t hdr,
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
@@ -55,10 +55,10 @@ control process_int_report (
         seq_number.write(0, tmp);
     }
 
-    action do_report_encapsulation( mac_t src_mac, 
-                                    mac_t mon_mac, 
-                                    ip_address_t src_ip,
-                                    ip_address_t mon_ip, 
+    action do_report_encapsulation( mac_addr_t src_mac, 
+                                    mac_addr_t mon_mac, 
+                                    ipv6_addr_t src_ip,
+                                    ipv6_addr_t mon_ip, 
                                     l4_port_t mon_port) {
 
         // INT Raport structure

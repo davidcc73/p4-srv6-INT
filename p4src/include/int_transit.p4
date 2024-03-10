@@ -1,5 +1,5 @@
 control process_int_transit (
-    inout headers hdr,
+    inout parsed_headers_t hdr,
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 

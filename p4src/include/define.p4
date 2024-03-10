@@ -48,6 +48,7 @@ const bit<32> NDP_FLAG_OVERRIDE = 0x20000000;
 //------------------------------INT Definitions (duplicated and unecessary values are possible)---------------------------
 
 // Protocol type IPv6
+#define ETH_TYPE_IPV6 0x86DD
 #define IP_VERSION_6 4w6
 #define IPV6_HDR_LEN 40w8  // IPv6 header length in 8-byte units
 #define MAX_PORTS 511
@@ -63,7 +64,10 @@ const bit<32> NDP_FLAG_OVERRIDE = 0x20000000;
 
 typedef bit<9>  port_t;
 typedef bit<16> next_hop_id_t;
-const port_t CPU_PORT = 255;
+//const port_t CPU_PORT = 255;
+#define CPU_PORT 255                //the previous line caused compiler error for some reasson
+
+
 
 /* indicate INT by DSCP value */
 const bit<6> DSCP_INT = 0x17;

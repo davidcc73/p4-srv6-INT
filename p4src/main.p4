@@ -22,11 +22,10 @@
 #include "include/checksum.p4"
 
 //new includes for the INT usage
-#include "include/defines.p4"
-#include "include/int_headers.p4"
-#include "include/int_source.p4"
-#include "include/int_transit.p4"
-#include "include/int_sink.p4"
+//#include "include/define.p4"
+//#include "include/int_source.p4"
+//#include "include/int_transit.p4"
+//#include "include/int_sink.p4"
 
 
 #define CPU_CLONE_SESSION_ID 99
@@ -150,7 +149,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ndp_option.type = NDP_OPT_TARGET_LL_ADDR;
         hdr.ndp_option.length = 1;
         hdr.ndp_option.value = target_mac;
-        hdr.ipv6.next_hdr = PROTO_ICMPV6;
+        hdr.ipv6.next_header = PROTO_ICMPV6;
         standard_metadata.egress_spec = standard_metadata.ingress_port;
         local_metadata.skip_l2 = true;
     }
@@ -188,10 +187,11 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
     action srv6_end_dx6() {
         hdr.ipv6.version = hdr.ipv6_inner.version;
-        hdr.ipv6.traffic_class = hdr.ipv6_inner.traffic_class;
+        hdr.ipv6.dscp = hdr.ipv6_inner.dscp;
+        hdr.ipv6.ecn = hdr.ipv6_inner.ecn;
         hdr.ipv6.flow_label = hdr.ipv6_inner.flow_label;
         hdr.ipv6.payload_len = hdr.ipv6_inner.payload_len;
-        hdr.ipv6.next_hdr = hdr.ipv6_inner.next_hdr;
+        hdr.ipv6.next_header = hdr.ipv6_inner.next_header;
         hdr.ipv6.hop_limit = hdr.ipv6_inner.hop_limit;
         hdr.ipv6.src_addr = hdr.ipv6_inner.src_addr;
         hdr.ipv6.dst_addr = hdr.ipv6_inner.dst_addr;
@@ -250,16 +250,17 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6_inner.setValid();
 
         hdr.ipv6_inner.version = 6;
-        hdr.ipv6_inner.traffic_class = hdr.ipv6.traffic_class;
+        hdr.ipv6_inner.ecn = hdr.ipv6.ecn;
+        hdr.ipv6_inner.dscp = hdr.ipv6.dscp;
         hdr.ipv6_inner.flow_label = hdr.ipv6.flow_label;
         hdr.ipv6_inner.payload_len = hdr.ipv6.payload_len;
-        hdr.ipv6_inner.next_hdr = hdr.ipv6.next_hdr;
+        hdr.ipv6_inner.next_header = hdr.ipv6.next_header;
         hdr.ipv6_inner.hop_limit = hdr.ipv6.hop_limit;
         hdr.ipv6_inner.src_addr = hdr.ipv6.src_addr;
         hdr.ipv6_inner.dst_addr = hdr.ipv6.dst_addr;
 
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + 40;
-        hdr.ipv6.next_hdr = PROTO_IPV6;
+        hdr.ipv6.next_header = PROTO_IPV6;
         hdr.ipv6.src_addr = src_addr;
         hdr.ipv6.dst_addr = s1;
     }
@@ -268,21 +269,22 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6_inner.setValid();
 
         hdr.ipv6_inner.version = 6;
-        hdr.ipv6_inner.traffic_class = hdr.ipv6.traffic_class;
+        hdr.ipv6_inner.ecn = hdr.ipv6.ecn;
+        hdr.ipv6_inner.dscp = hdr.ipv6.dscp;
         hdr.ipv6_inner.flow_label = hdr.ipv6.flow_label;
         hdr.ipv6_inner.payload_len = hdr.ipv6.payload_len;
-        hdr.ipv6_inner.next_hdr = hdr.ipv6.next_hdr;
+        hdr.ipv6_inner.next_header = hdr.ipv6.next_header;
         hdr.ipv6_inner.hop_limit = hdr.ipv6.hop_limit;
         hdr.ipv6_inner.src_addr = hdr.ipv6.src_addr;
         hdr.ipv6_inner.dst_addr = hdr.ipv6.dst_addr;
 
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + 40 + 24;
-        hdr.ipv6.next_hdr = PROTO_SRV6;
+        hdr.ipv6.next_header = PROTO_SRV6;
         hdr.ipv6.src_addr = src_addr;
         hdr.ipv6.dst_addr = s1;
 
         hdr.srv6h.setValid();
-        hdr.srv6h.next_hdr = PROTO_IPV6;
+        hdr.srv6h.next_header = PROTO_IPV6;
         hdr.srv6h.hdr_ext_len = 0x2;
         hdr.srv6h.routing_type = 0x4;
         hdr.srv6h.segment_left = 0;
@@ -312,7 +314,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.setValid();
 
         hdr.ipv6.version = 6;
-        hdr.ipv6.traffic_class = hdr.ipv4.dscp ++ hdr.ipv4.ecn; 
+        hdr.ipv6.dscp = hdr.ipv6.dscp; 
+        hdr.ipv6.ecn = hdr.ipv6.ecn; 
         hash(hdr.ipv6.flow_label, 
                 HashAlgorithm.crc32, 
                 (bit<20>) 0, 
@@ -325,7 +328,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 },
                 (bit<20>) 1048575);
         hdr.ipv6.payload_len = hdr.ipv4.total_len;
-        hdr.ipv6.next_hdr = PROTO_IP_IN_IP;
+        hdr.ipv6.next_header = PROTO_IP_IN_IP;
         hdr.ipv6.hop_limit = hdr.ipv4.ttl;
         hdr.ipv6.src_addr = src_addr;
         hdr.ipv6.dst_addr = s1;
@@ -337,7 +340,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.setValid();
 
         hdr.ipv6.version = 6;
-        hdr.ipv6.traffic_class = hdr.ipv4.dscp ++ hdr.ipv4.ecn; 
+        hdr.ipv6_inner.ecn = hdr.ipv6.ecn;
+        hdr.ipv6_inner.dscp = hdr.ipv6.dscp;
         hash(hdr.ipv6.flow_label, 
                 HashAlgorithm.crc32, 
                 (bit<20>) 0, 
@@ -350,13 +354,13 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 },
                 (bit<20>) 1048575);        
         hdr.ipv6.payload_len = hdr.ipv4.total_len + 24;
-        hdr.ipv6.next_hdr = PROTO_SRV6;
+        hdr.ipv6.next_header = PROTO_SRV6;
         hdr.ipv6.hop_limit = hdr.ipv4.ttl;
         hdr.ipv6.src_addr = src_addr;
         hdr.ipv6.dst_addr = s1;
 
         hdr.srv6h.setValid();
-        hdr.srv6h.next_hdr = PROTO_IP_IN_IP;
+        hdr.srv6h.next_header = PROTO_IP_IN_IP;
         hdr.srv6h.hdr_ext_len = 0x2;
         hdr.srv6h.routing_type = 0x4;
         hdr.srv6h.segment_left = 0;
@@ -401,7 +405,18 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
      */
 
     action clone_to_cpu() {
-        clone3(CloneType.I2E, CPU_CLONE_SESSION_ID, standard_metadata);
+        clone3(CloneType.I2E, CPU_CLONE_SESSION_ID, standard_metadata); //DEPRACTED
+/*
+        //THIS PORTION STILL NEEDS TO BE TESTED
+        //----------------------PORTION COPIED FROM PROJECT (P4INT_Mininet) THE END OF INGRESS PIPELINE TO REPLACE CLONE3 AT PREVIOUS LINE
+        // clone packet for Telemetry Report
+        // clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID,standard_metadata);
+        local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;    
+        local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
+        local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
+        local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
+        clone_preserving_field_list(CloneType.I2E, CPU_CLONE_SESSION_ID, CLONE_FL_1);
+*/
     }
 
     direct_counter(CounterType.packets_and_bytes) acl_counter;
@@ -476,13 +491,14 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
        	      	multicast.apply();
 	        }	
 	    }
+        
+        acl.apply();              //regular forwarding at P4INT project
 
         //The order of the implementations from here onward on this file may need to be adjusted
-        if (hdr.arp.isValid()){
+        /*if (hdr.arp.isValid()){
             arpreply.apply(hdr, local_metadata, standard_metadata);
         }
-        else if(hdr.ipv6.isValid()) {  //FOR TESTING COMMENT ALL INT OPERATIONS
-            acl.apply();              //regular forwarding
+        else*/ /*if(hdr.ipv6.isValid()) {  //FOR TESTING COMMENT ALL INT OPERATIONS
 
             if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
                 process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
@@ -502,7 +518,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
                 clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
             }
-        }    
+        }*/    
     }
 }
 
@@ -523,7 +539,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
              && standard_metadata.ingress_port == standard_metadata.egress_port) {
             mark_to_drop(standard_metadata);
         }
-
+/*
         //---------------------------------INT Portion---------------------------------
         if(hdr.int_header.isValid()) {
             if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
@@ -535,14 +551,14 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
             process_int_transit.apply(hdr, local_metadata, standard_metadata);   //(transit) INFO ADDED TO PACKET AT DEPARSER
 
             if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
-                /* send int report */
+                // send int report 
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
             }
 
             if (local_metadata.int_meta.sink == true && standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 process_int_sink.apply(hdr, local_metadata, standard_metadata);
             }
-        }
+        }*/
     }
 }
 

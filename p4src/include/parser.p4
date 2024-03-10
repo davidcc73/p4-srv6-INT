@@ -48,8 +48,8 @@ parser ParserImpl (packet_in packet,
 
     state parse_ipv6 {
         packet.extract(hdr.ipv6);
-        local_metadata.ip_proto = hdr.ipv6.next_hdr;
-        transition select(hdr.ipv6.next_hdr) {
+        local_metadata.ip_proto = hdr.ipv6.next_header;
+        transition select(hdr.ipv6.next_header) {
             PROTO_TCP: parse_tcp;
             PROTO_UDP: parse_udp;
             PROTO_ICMPV6: parse_icmpv6;
@@ -88,7 +88,7 @@ parser ParserImpl (packet_in packet,
         }
     }
     state parse_srv6_next_hdr {
-        transition select(hdr.srv6h.next_hdr) {
+        transition select(hdr.srv6h.next_header) {
             PROTO_TCP: parse_tcp;
             PROTO_UDP: parse_udp;
             PROTO_ICMPV6: parse_icmpv6;
@@ -113,7 +113,7 @@ parser ParserImpl (packet_in packet,
     state parse_ipv6_inner {
         packet.extract(hdr.ipv6_inner);
 
-        transition select(hdr.ipv6_inner.next_hdr) {
+        transition select(hdr.ipv6_inner.next_header) {
             PROTO_TCP: parse_tcp;
             PROTO_UDP: parse_udp;
             PROTO_ICMPV6: parse_icmpv6;
@@ -174,7 +174,7 @@ parser ParserImpl (packet_in packet,
         transition accept;
     }
 
-        state parse_intl4_shim {
+    state parse_intl4_shim {
         packet.extract(hdr.intl4_shim);
         local_metadata.int_meta.intl4_shim_len = hdr.intl4_shim.len;
         transition parse_int_header;
