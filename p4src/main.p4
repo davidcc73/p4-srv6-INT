@@ -404,9 +404,9 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
      * Clone the packet to the CPU (PacketIn) or drop.
      */
     action clone_to_cpu() {
-        //clone3(CloneType.I2E, CPU_CLONE_SESSION_ID, standard_metadata); //DEPRACTED need OG project compiler
         local_metadata.perserv_CPU_meta.ingress_port = standard_metadata.ingress_port;
         local_metadata.perserv_CPU_meta.egress_port = CPU_PORT;                         //the packet only gets the egress right before egress, so we use CPU_PORT value
+        local_metadata.perserv_CPU_meta.to_CPU = true;
         clone_preserving_field_list(CloneType.I2E, CPU_CLONE_SESSION_ID, CLONE_FL_clone3);
     }
 
@@ -483,13 +483,11 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        }	
 	    }
         
-        acl.apply();              //regular forwarding at P4INT project
+        acl.apply();              //decide if clone to CPU from p4-SRv6 project
 
+        //-----------------INT processing portion
         //The order of the implementations from here onward on this file may need to be adjusted
-        /*if (hdr.arp.isValid()){
-            arpreply.apply(hdr, local_metadata, standard_metadata);
-        }
-        else*/ /*if(hdr.ipv6.isValid()) {  //FOR TESTING COMMENT ALL INT OPERATIONS
+        /*if(hdr.ipv6.isValid()) {  //FOR TESTING COMMENT ALL INT OPERATIONS
 
             if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
                 process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
@@ -500,13 +498,12 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             } 
 
             if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
-                // clone packet for Telemetry Report
-                // clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID,standard_metadata);
-                // clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
+                // clone packet for Telemetry Report Collector
                 local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
                 local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
                 local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
                 local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
+                //local_metadata.perserv_meta.to_CPU = false;      //already 0 by default, the change wol not register anyway (CLONE_FL_1)
                 clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
             }
         }*/    
@@ -521,17 +518,20 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                         inout local_metadata_t local_metadata,
                         inout standard_metadata_t standard_metadata) {
     apply {
-        if (standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE) {
+        //-----------------Restore packet standard_metadata (only for ingress clone packets that are sent to CPU)
+        if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE && local_metadata.perserv_CPU_meta.to_CPU == true) {
             // restore the standard_metadata values that were perserved by the clone_preserving_field_list
             standard_metadata.egress_port = local_metadata.perserv_CPU_meta.egress_port;
             standard_metadata.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
-        } else if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_NORMAL) || (standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_REPLICATION))  {
-            // nothing needs to be done
+        } else if ((standard_metadata.instance_type == PKT_INSTANCE_TYPE_NORMAL) || (standard_metadata.instance_type == PKT_INSTANCE_TYPE_REPLICATION))  {
+            // nothing needs to be done for these instance types
         } else {
             // Not clear to me whether you need any further branches to handle other
             // cases of the value of instance_type, but if. we call log()
             log_msg("Unexpected instance_type in EgressPipeImpl: ", { standard_metadata.instance_type });
         }
+
+        //-----------------Standard packet forwarding
         if (standard_metadata.egress_port == CPU_PORT) {
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;		
@@ -539,10 +539,11 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.is_multicast == true && standard_metadata.ingress_port == standard_metadata.egress_port) {
             mark_to_drop(standard_metadata);
         }
-/*
-        //---------------------------------INT Portion---------------------------------
+    /*
+        //-----------------INT processing portion
         if(hdr.int_header.isValid()) {
-            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+            // if the packet is a clone, not sent to the CPU, then it's a transit packet
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE  && local_metadata.perserv_CPU_meta.to_CPU == false) {
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
                 standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;

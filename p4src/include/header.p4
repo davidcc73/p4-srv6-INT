@@ -153,6 +153,7 @@ struct int_metadata_t {
 
 
 const bit<8> CLONE_FL_1  = 1;
+const bit<8> CLONE_FL_clone3  = 3;
 
 struct preserving_metadata_t {
     @field_list(CLONE_FL_1)
@@ -180,13 +181,14 @@ struct preserving_metadata_t {
     bit<1> checksum_error;
     bit<32> recirculate_flag;
 }
-
-const bit<8> CLONE_FL_clone3  = 3; 
+ 
 struct preserving_metadata_CPU_t {
     @field_list(CLONE_FL_clone3)
     bit<9> ingress_port;
     @field_list(CLONE_FL_clone3)
     bit<9> egress_port;
+    @field_list(CLONE_FL_clone3)
+    bool to_CPU;                 //true when the packet is cloned to CPU/Controller, default is false, so non-CPU cloned packets will still have see the correct value (false)
 }
 
 //Custom metadata definition
@@ -201,6 +203,7 @@ struct local_metadata_t {
     l4_port_t l4_src_port;
     l4_port_t l4_dst_port;
     bool ipv4_update;
+
     int_metadata_t int_meta;                    //used by INT
     preserving_metadata_t perserv_meta;         //used by INT
     preserving_metadata_CPU_t perserv_CPU_meta; //to migrate from clone3() to clone_preserving() in the clone_to_CPU scenario
