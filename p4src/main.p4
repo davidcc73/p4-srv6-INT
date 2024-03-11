@@ -22,10 +22,10 @@
 #include "include/checksum.p4"
 
 //new includes for the INT usage
-//#include "include/define.p4"
-//#include "include/int_source.p4"
-//#include "include/int_transit.p4"
-//#include "include/int_sink.p4"
+#include "include/define.p4"
+#include "include/int_source.p4"
+#include "include/int_transit.p4"
+#include "include/int_sink.p4"
 
 
 #define CPU_CLONE_SESSION_ID 99
@@ -403,7 +403,6 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
      * ACL table  and actions.
      * Clone the packet to the CPU (PacketIn) or drop.
      */
-
     action clone_to_cpu() {
         //clone3(CloneType.I2E, CPU_CLONE_SESSION_ID, standard_metadata); //DEPRACTED need OG project compiler
         local_metadata.perserv_CPU_meta.ingress_port = standard_metadata.ingress_port;
@@ -523,32 +522,22 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                         inout standard_metadata_t standard_metadata) {
     apply {
         if (standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE) {
-            // write code here that works the same was as the original, except it uses
-            // only metadata field values that you have explicitly preserved.
-            if (local_metadata.perserv_CPU_meta.egress_port == CPU_PORT) { //packets for the controller, being a cloned packet we look at the struct
-                hdr.packet_in.setValid();
-                hdr.packet_in.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
-            }
-            if (local_metadata.is_multicast == true && local_metadata.perserv_CPU_meta.ingress_port == local_metadata.perserv_CPU_meta.egress_port) {
-                mark_to_drop(standard_metadata);
-            }
+            // restore the standard_metadata values that were perserved by the clone_preserving_field_list
+            standard_metadata.egress_port = local_metadata.perserv_CPU_meta.egress_port;
+            standard_metadata.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
         } else if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_NORMAL) || (standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_REPLICATION))  {
-            // Put a copy of the original egress code here, which seems to have been
-            // written assuming that all standard_metadata fields were preserved, which
-            // should be the case for NORMAL packets.
-            if (standard_metadata.egress_port == CPU_PORT) {
-                hdr.packet_in.setValid();
-                hdr.packet_in.ingress_port = standard_metadata.ingress_port;		
-            }
-            if (local_metadata.is_multicast == true && standard_metadata.ingress_port == standard_metadata.egress_port) {
-                mark_to_drop(standard_metadata);
-            }
+            // nothing needs to be done
         } else {
             // Not clear to me whether you need any further branches to handle other
-            // cases of the value of instance_type, but if. you want to be cautious
-            // I would put a log_msg() extern call here that prints a special message
-            // you can easily 'grep' for in the log files to see if this ever happens.
+            // cases of the value of instance_type, but if. we call log()
             log_msg("Unexpected instance_type in EgressPipeImpl: ", { standard_metadata.instance_type });
+        }
+        if (standard_metadata.egress_port == CPU_PORT) {
+            hdr.packet_in.setValid();
+            hdr.packet_in.ingress_port = standard_metadata.ingress_port;		
+        }
+        if (local_metadata.is_multicast == true && standard_metadata.ingress_port == standard_metadata.egress_port) {
+            mark_to_drop(standard_metadata);
         }
 /*
         //---------------------------------INT Portion---------------------------------
