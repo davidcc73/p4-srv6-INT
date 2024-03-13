@@ -539,8 +539,11 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.is_multicast == true && standard_metadata.ingress_port == standard_metadata.egress_port) {
             mark_to_drop(standard_metadata);
         }
-    /*
+        //THE PACKETS CLONED TO CPU DOESN'T NEED INT PROCESSING, AS SUCH THEY SHOULD NOT HAVE A VALID int_header, 
+        //BUT STILL GETS IN AND transit is changhing legit packets notcpu-clone
+        //IT MAY BE SOLVABLE BY CHANGING THE CONDITIO (TO_CPU) TO BE A AND AT THE OUTTER IF
         //-----------------INT processing portion
+        /*
         if(hdr.int_header.isValid()) {
             // if the packet is a clone, not sent to the CPU, then it's a transit packet
             if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE  && local_metadata.perserv_CPU_meta.to_CPU == false) {
@@ -559,7 +562,8 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
             if (local_metadata.int_meta.sink == true && standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 process_int_sink.apply(hdr, local_metadata, standard_metadata);
             }
-        }*/
+        }
+        */
     }
 }
 
