@@ -174,6 +174,16 @@
     }
   },
   "ports": {
+    "device:r1/2": {
+      "interfaces": [
+        {
+          "name": "r1/2",
+          "ips": [
+            "2001:1:2::ff/64"
+          ]
+        }
+      ]
+    },
     "device:r1/3": {
       "interfaces": [
         {
@@ -204,6 +214,11 @@
     "00:00:00:00:00:20/None": {
       "basic": {
         "name": "h2"
+      }
+    },
+    "00:00:00:00:00:05/None": {
+      "basic": {
+        "name": "h_collector"
       }
     }
   }

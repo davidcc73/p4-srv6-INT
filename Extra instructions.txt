@@ -1,3 +1,10 @@
+#--------------------mininet logs
+make mn-log
+
+#--------------------BMv2 logs
+tmp/switchID/stratum_bmv2.log
+
+#--------------------
 make stop
 make clean
 make deps 
@@ -10,7 +17,7 @@ make netcfg
 #--------------------at ONOS cli (make onos-cli)
 source /config/routing_tables.txt
 source /config/ua_config.txT
-
+source /config/INT_Transit_config.txT
 
 
 #--------------------at ONOS cli (make onos-cli)
@@ -25,8 +32,8 @@ srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2:
 
 
 #--------------------at mininet cli (make mn-cli)
-h1 ping h2
-h2 ping h1
+h1 ping -i 0.3 h2
+h2 ping -i 0.3 h1
 
 
 

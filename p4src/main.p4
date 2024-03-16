@@ -482,7 +482,6 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
        	      	multicast.apply();
 	        }	
 	    }
-        
         acl.apply();              //decide if clone to CPU from p4-SRv6 project
 
         //-----------------INT processing portion
@@ -539,31 +538,31 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.is_multicast == true && standard_metadata.ingress_port == standard_metadata.egress_port) {
             mark_to_drop(standard_metadata);
         }
-        //THE PACKETS CLONED TO CPU DOESN'T NEED INT PROCESSING, AS SUCH THEY SHOULD NOT HAVE A VALID int_header, 
-        //BUT STILL GETS IN AND transit is changhing legit packets notcpu-clone
-        //IT MAY BE SOLVABLE BY CHANGING THE CONDITIO (TO_CPU) TO BE A AND AT THE OUTTER IF
+
         //-----------------INT processing portion
-        /*
-        if(hdr.int_header.isValid()) {
-            // if the packet is a clone, not sent to the CPU, then it's a transit packet
-            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE  && local_metadata.perserv_CPU_meta.to_CPU == false) {
+        //just to be safe, and don't make any CPU cloned packet get INT processing, adeed condition (.to_CPU == false)
+        //only clone packets that are meant to be the INT report should get inside
+        if(hdr.int_header.isValid() && local_metadata.perserv_CPU_meta.to_CPU == false) {
+
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
                 standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
                 standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
             }
+
             process_int_transit.apply(hdr, local_metadata, standard_metadata);   //(transit) INFO ADDED TO PACKET AT DEPARSER
 
             if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
-                // send int report 
+                // create int report 
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
             }
 
             if (local_metadata.int_meta.sink == true && standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+                // restore packet to original state
                 process_int_sink.apply(hdr, local_metadata, standard_metadata);
             }
         }
-        */
     }
 }
 

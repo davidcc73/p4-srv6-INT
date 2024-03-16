@@ -50,22 +50,22 @@ class TutorialTopo(Topo):
         Topo.__init__(self, *args, **kwargs)
 
         # End routers
-        r1 = self.addSwitch('r1', cls=StratumBmv2Switch,cpuport=CPU_PORT)
-        r2 = self.addSwitch('r2', cls=StratumBmv2Switch,cpuport=CPU_PORT)
+        r1 = self.addSwitch('r1', cls=StratumBmv2Switch,cpuport=CPU_PORT, loglevel="info") #, loglevel="info"
+        r2 = self.addSwitch('r2', cls=StratumBmv2Switch,cpuport=CPU_PORT, loglevel="info")
 
         # Transit routers
-        r3 = self.addSwitch('r3', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r4 = self.addSwitch('r4', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r5 = self.addSwitch('r5', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r6 = self.addSwitch('r6', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r7 = self.addSwitch('r7', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r8 = self.addSwitch('r8', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r9 = self.addSwitch('r9', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r10 = self.addSwitch('r10', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r11 = self.addSwitch('r11', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r12 = self.addSwitch('r12', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r13 = self.addSwitch('r13', cls=StratumBmv2Switch, cpuport=CPU_PORT)
-        r14 = self.addSwitch('r14', cls=StratumBmv2Switch, cpuport=CPU_PORT)
+        r3 = self.addSwitch('r3', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r4 = self.addSwitch('r4', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r5 = self.addSwitch('r5', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r6 = self.addSwitch('r6', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r7 = self.addSwitch('r7', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r8 = self.addSwitch('r8', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r9 = self.addSwitch('r9', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r10 = self.addSwitch('r10', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r11 = self.addSwitch('r11', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r12 = self.addSwitch('r12', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r13 = self.addSwitch('r13', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
+        r14 = self.addSwitch('r14', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
         
 
         # Switch Links
@@ -119,14 +119,15 @@ class TutorialTopo(Topo):
         h2 = self.addHost('h2', cls=IPv6Host, mac="00:00:00:00:00:20",
                           ipv6='2001:1:2::1/64', ipv6_gw='2001:1:2::ff')
 
-        self.addLink(h1, r1)
-        self.addLink(h2, r2)
-'''
+        self.addLink(h1, r1) #, port2=3
+        self.addLink(h2, r2) #, port2=3
+
+        #---------------------INT POTION 
         #create the collector
-        h_collector = self.addHost('h_collector', cls=IPv6Host, mac="00:00:00:00:00:05",
-                                   ipv6='2001:1:1::2/64')   #TODO: define a gateway (may not be needed)
-        self.addLink(h_collector, r1, port2=2)              #port 2 of r1, points to the collector
-'''
+        #h_collector = self.addHost('h_collector', cls=IPv6Host, mac="00:00:00:00:00:05",
+        #                           ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")  
+        #self.addLink(h_collector, r1)              #port 2 of r1, points to the collector
+
 '''
     def run_cli_commands(net):
         switches = net.switches

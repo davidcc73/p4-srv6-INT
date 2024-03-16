@@ -323,7 +323,7 @@ control process_int_transit (
             int_set_header_0003_i14;
             int_set_header_0003_i15;
         }
-        
+        /*
         const entries = {
             (0x0) : int_set_header_0003_i0();
             (0x1) : int_set_header_0003_i1();
@@ -341,7 +341,7 @@ control process_int_transit (
             (0xD) : int_set_header_0003_i13();
             (0xE) : int_set_header_0003_i14();
             (0xF) : int_set_header_0003_i15();
-        }
+        }*/
     }
 
     /* Table to process instruction bits 4-7 */
@@ -367,7 +367,7 @@ control process_int_transit (
             int_set_header_0407_i14;
             int_set_header_0407_i15;
         }
-        
+        /*
         const entries = {
             (0x0) : int_set_header_0407_i0();
             (0x1) : int_set_header_0407_i1();
@@ -385,7 +385,7 @@ control process_int_transit (
             (0xD) : int_set_header_0407_i13();
             (0xE) : int_set_header_0407_i14();
             (0xF) : int_set_header_0407_i15();
-        }
+        }*/
     }
 
     apply {
