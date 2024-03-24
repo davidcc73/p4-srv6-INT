@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import argparse
 
 from mininet.cli import CLI
 from mininet.log import setLogLevel
@@ -128,25 +127,6 @@ class TutorialTopo(Topo):
         #                           ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")  
         #self.addLink(h_collector, r1)              #port 2 of r1, points to the collector
 
-'''
-    def run_cli_commands(net):
-        switches = net.switches
-        for switch in switches:
-            switch_name = switch.name
-            command_file_name = f"INT/Tables/{switch_name}.txt"
-
-            try:
-                with open(command_file_name, 'r') as file:
-                    commands = file.readlines()
-
-                print(f"Running commands for {switch_name} from {command_file_name}")
-                for command in commands:
-                    # Execute the command on the switch
-                    switch.cmd(command.strip())
-
-            except FileNotFoundError:
-                print(f"Command file not found for {switch_name}")
-'''
 
 def main():
     topo = TutorialTopo()
@@ -157,7 +137,6 @@ def main():
 
     net.start()
 
-    #run_cli_commands(net)
 
     CLI(net)
     net.stop()

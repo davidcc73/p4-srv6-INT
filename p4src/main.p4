@@ -486,15 +486,21 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         //-----------------INT processing portion
         //The order of the implementations from here onward on this file may need to be adjusted
-        /*if(hdr.ipv6.isValid()) {  //FOR TESTING COMMENT ALL INT OPERATIONS
-
-            if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
+        
+    //depois de passar os commands de serem recebidos pelo mininete, passarem pelo ONOS_CLI ao descomentar isto o 2º if deve ser ativado para o r1
+    //removed if ipv4 valid, I had already changed it into ipv6
+            //if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
                 process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
-            }
+            //}
             
             if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
+                log_msg("I am INT source");
                 process_int_source.apply(hdr, local_metadata);
-            } 
+            }
+            if(local_metadata.int_meta.source == false){       //
+                log_msg("CONFIRMAR!!! I am INT sink or transit, todos devem ativar o transit na egress, mas so alguns devem ativar o sink, CONDIRMAR SE TA A ACONTECER ISSO");
+            }
+
 
             if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
                 // clone packet for Telemetry Report Collector
@@ -505,7 +511,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 //local_metadata.perserv_meta.to_CPU = false;      //already 0 by default, the change wol not register anyway (CLONE_FL_1)
                 clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
             }
-        }*/    
+        
     }
 }
 
@@ -540,9 +546,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         }
 
         //-----------------INT processing portion
-        //just to be safe, and don't make any CPU cloned packet get INT processing, adeed condition (.to_CPU == false)
-        //only clone packets that are meant to be the INT report should get inside
-        if(hdr.int_header.isValid() && local_metadata.perserv_CPU_meta.to_CPU == false) {
+        if(hdr.int_header.isValid() ) {
 
             if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;

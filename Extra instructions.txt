@@ -17,8 +17,9 @@ make netcfg
 #--------------------at ONOS cli (make onos-cli)
 source /config/routing_tables.txt
 source /config/ua_config.txT
-source /config/INT_Transit_config.txT
-
+source /config/INT_Tables/INT_Transit_config.txT
+# will push all rules from files at config\INT_Tables and sub-direories to their respective switches, NO SPACES BEFORE THE COMMANDS
+INT_Role-set                    
 
 #--------------------at ONOS cli (make onos-cli)
 #---srv6_insert.txt (go and return from h1->h2)

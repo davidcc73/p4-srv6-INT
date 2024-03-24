@@ -292,6 +292,9 @@ control process_int_transit (
 
     // Default action used to set switch ID.
     table tb_int_insert {
+        key = {              
+            16w0 : exact;    //dummy key to trigger the action as a default action
+        }
         actions = {
             init_metadata;
             NoAction;
