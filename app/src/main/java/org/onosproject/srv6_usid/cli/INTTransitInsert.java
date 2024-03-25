@@ -76,7 +76,7 @@ public class INTTransitInsert extends AbstractShellCommand {
                                 continue;
                         }
 
-                        print("Installing route on device %s", uri);
+                        print("Installing rule on device %s", uri);
                         result = app.insertINT_Rule(device.id(), pipeline, control, table, action, 
                                                    intValue, null, 
                                                    cmp_field_on_p4, cmp_criteria);
