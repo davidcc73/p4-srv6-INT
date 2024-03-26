@@ -497,8 +497,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 log_msg("I am INT source");
                 process_int_source.apply(hdr, local_metadata);
             }
-            if(local_metadata.int_meta.source == false){       //
-                log_msg("CONFIRMAR!!! I am INT sink or transit, todos devem ativar o transit na egress, mas so alguns devem ativar o sink, CONDIRMAR SE TA A ACONTECER ISSO");
+            if(local_metadata.int_meta.source == false){       
+                log_msg("I am not INT source");
             }
 
 
