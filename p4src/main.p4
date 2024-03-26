@@ -523,11 +523,34 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                         inout local_metadata_t local_metadata,
                         inout standard_metadata_t standard_metadata) {
     apply {
-        //-----------------Restore packet standard_metadata (only for ingress clone packets that are sent to CPU)
+        //-----------------Restore packet standard_metadata (only for ingress clone packets that are sent to CPU), maybe the second condition alone would be enough
         if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE && local_metadata.perserv_CPU_meta.to_CPU == true) {
             // restore the standard_metadata values that were perserved by the clone_preserving_field_list
             standard_metadata.egress_port = local_metadata.perserv_CPU_meta.egress_port;
             standard_metadata.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
+
+            //-----------------a INT packet from another switch may be trigger to be sent to CPU, so we need to restore it
+            //it's a copy of the action (int_sink) since we can't invoke actions in the egress
+            //it may not be needed if the Controller can understand packet with the INT headers, but is here just to be safe
+            //there is a very low chance of this happening, but it's better to be safe than sorry
+            if(hdr.int_header.isValid()){
+                log_msg("A packet with INT header will be sent to CPU, restoring it to original state withouth INT header");
+                hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
+                bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) << 2) + INT_SHIM_HEADER_SIZE;
+                hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
+                if(hdr.udp.isValid()) { hdr.udp.length_ = hdr.udp.length_ - len_bytes; }
+                hdr.intl4_shim.setInvalid();
+                hdr.int_header.setInvalid();
+                hdr.int_switch_id.setInvalid();
+                hdr.int_level1_port_ids.setInvalid();
+                hdr.int_hop_latency.setInvalid();
+                hdr.int_q_occupancy.setInvalid();
+                hdr.int_ingress_tstamp.setInvalid();
+                hdr.int_egress_tstamp.setInvalid();
+                hdr.int_level2_port_ids.setInvalid();
+                hdr.int_egress_tx_util.setInvalid();
+                hdr.int_data.setInvalid();
+            }
         } else if ((standard_metadata.instance_type == PKT_INSTANCE_TYPE_NORMAL) || (standard_metadata.instance_type == PKT_INSTANCE_TYPE_REPLICATION))  {
             // nothing needs to be done for these instance types
         } else {

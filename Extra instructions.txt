@@ -1,7 +1,7 @@
 #--------------------mininet logs
 make mn-log
 
-#--------------------BMv2 logs
+#--------------------BMv2 logs, created on P4 by doing log_msg("") in the code
 tmp/switchID/stratum_bmv2.log
 
 #--------------------
