@@ -497,13 +497,14 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 log_msg("I am INT source");
                 process_int_source.apply(hdr, local_metadata);
             }
-            if(local_metadata.int_meta.source == false){       
-                log_msg("I am not INT source");
+            if(local_metadata.int_meta.sink == true){       
+                log_msg("I am INT sink");
             }
 
 
             if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
                 // clone packet for Telemetry Report Collector
+                log_msg("I am sink of this packet and i will clone it");
                 local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
                 local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
                 local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
@@ -582,11 +583,13 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
 
             if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 // create int report 
+                log_msg("creating INT report");
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
             }
 
             if (local_metadata.int_meta.sink == true && standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 // restore packet to original state
+                log_msg("restoring packet to original state");
                 process_int_sink.apply(hdr, local_metadata, standard_metadata);
             }
         }

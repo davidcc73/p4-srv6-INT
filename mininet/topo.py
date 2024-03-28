@@ -123,9 +123,11 @@ class TutorialTopo(Topo):
 
         #---------------------INT POTION 
         #create the collector
-        #h_coll = self.addHost('h_coll', cls=IPv6Host, mac="00:00:00:00:00:05",
-        #                           ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")  
-        #self.addLink(h_coll, r1, port2 = 3)              #port 2 of r1, points to the collector
+        coll = self.addHost('coll', cls=IPv6Host, mac="00:00:00:00:00:05",
+                                   ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")        
+        #port 900 of r1, points to the collector
+        self.addLink(coll, r1, port2 = 900)        
+        self.addLink(coll, r2, port2 = 900)              
 
 
 def main():
