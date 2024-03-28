@@ -123,14 +123,16 @@ class TutorialTopo(Topo):
 
         #---------------------INT POTION 
         #create the collector
-        #h_collector = self.addHost('h_collector', cls=IPv6Host, mac="00:00:00:00:00:05",
+        #h_coll = self.addHost('h_coll', cls=IPv6Host, mac="00:00:00:00:00:05",
         #                           ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")  
-        #self.addLink(h_collector, r1)              #port 2 of r1, points to the collector
+        #self.addLink(h_coll, r1, port2 = 3)              #port 2 of r1, points to the collector
 
 
 def main():
     topo = TutorialTopo()
     controller = RemoteController('c0', ip="127.0.0.1")
+
+    #remove_existing_interface_pairs()  # Remove existing interface pairs before starting Mininet
 
     net = Mininet(topo=topo, controller=None)
     net.addController(controller)

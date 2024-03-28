@@ -2,7 +2,7 @@
   "devices": {
     "device:r1": {
       "basic": {
-        "managementAddress": "grpc://mininet:50001?device_id=1",
+        "managementAddress": "grpc://localhost:50001?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -15,7 +15,7 @@
     },
     "device:r2": {
       "basic": {
-        "managementAddress": "grpc://mininet:50002?device_id=1",
+        "managementAddress": "grpc://localhost:50002?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -28,7 +28,7 @@
     },
     "device:r3": {
       "basic": {
-        "managementAddress": "grpc://mininet:50003?device_id=1",
+        "managementAddress": "grpc://localhost:50003?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -40,7 +40,7 @@
     },
     "device:r4": {
       "basic": {
-        "managementAddress": "grpc://mininet:50004?device_id=1",
+        "managementAddress": "grpc://localhost:50004?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -52,7 +52,7 @@
     },
     "device:r5": {
       "basic": {
-        "managementAddress": "grpc://mininet:50005?device_id=1",
+        "managementAddress": "grpc://localhost:50005?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -64,7 +64,7 @@
     },
     "device:r6": {
       "basic": {
-        "managementAddress": "grpc://mininet:50006?device_id=1",
+        "managementAddress": "grpc://localhost:50006?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -76,7 +76,7 @@
     },
     "device:r7": {
       "basic": {
-        "managementAddress": "grpc://mininet:50007?device_id=1",
+        "managementAddress": "grpc://localhost:50007?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -88,7 +88,7 @@
     },
     "device:r8": {
       "basic": {
-        "managementAddress": "grpc://mininet:50008?device_id=1",
+        "managementAddress": "grpc://localhost:50008?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -100,7 +100,7 @@
     },
     "device:r9": {
       "basic": {
-        "managementAddress": "grpc://mininet:50009?device_id=1",
+        "managementAddress": "grpc://localhost:50009?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -113,7 +113,7 @@
     },
     "device:r10": {
       "basic": {
-        "managementAddress": "grpc://mininet:50010?device_id=1",
+        "managementAddress": "grpc://localhost:50010?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -126,7 +126,7 @@
     },
     "device:r11": {
       "basic": {
-        "managementAddress": "grpc://mininet:50011?device_id=1",
+        "managementAddress": "grpc://localhost:50011?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -138,7 +138,7 @@
     },
     "device:r12": {
       "basic": {
-        "managementAddress": "grpc://mininet:50012?device_id=1",
+        "managementAddress": "grpc://localhost:50012?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -150,7 +150,7 @@
     },
     "device:r13": {
       "basic": {
-        "managementAddress": "grpc://mininet:50013?device_id=1",
+        "managementAddress": "grpc://localhost:50013?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },
@@ -162,7 +162,7 @@
     },
     "device:r14": {
       "basic": {
-        "managementAddress": "grpc://mininet:50014?device_id=1",
+        "managementAddress": "grpc://localhost:50014?device_id=1",
         "driver": "stratum-bmv2",
         "pipeconf": "org.p4.srv6_usid"
       },

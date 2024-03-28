@@ -5,7 +5,7 @@ make mn-log
 tmp/switchID/stratum_bmv2.log
 
 #--------------------
-make stop
+sudo make stop    #sudo is need to delete the old interfaces created by the mininet, or the new ones will be buggy
 make clean
 make deps 
 make start

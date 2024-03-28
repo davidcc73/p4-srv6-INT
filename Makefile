@@ -41,6 +41,8 @@ start:
 stop:
 	$(info *** Stopping ONOS and Mininet...)
 	docker compose down
+	$(info *** Deleting Virtual Interfacrd...)
+	mn -c
 
 restart: reset start
 
