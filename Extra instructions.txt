@@ -32,7 +32,7 @@ srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2:
 
 
 
-#--------------------at mininet cli (make mn-cli)
+#--------------------at mininet cli (make mn-cli) for the hosts be detected
 h1 ping -i 0.3 h2
 h2 ping -i 0.3 h1
 
@@ -41,14 +41,15 @@ h2 ping -i 0.3 h1
 
 #--------------------For INT
 # Run the following commands in another terminal
-sudo python collector_influxdb.py 
+sudo python INT/receive/collector_influxdb.py 
 
 
 # At a h1 terminal run:
-python receive/receive.py 
+python INT/send/send.py --ip 2001:db8::2 --l4 udp --port 443 --m INTH1 --c 1
 
 # At a h2 terminal run:
-python send/send.py --ip 2001:db8::2 --l4 udp --port 443 --m INTH1 --c 1
+python INT/receive/receive.py 
+
 
 
 #The generated telemetry should be visible in the grafana dashboard
