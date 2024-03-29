@@ -27,6 +27,7 @@ typedef bit<16>  l4_port_t;
 const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<16> ETHERTYPE_IPV6 = 0x86dd;
 const bit<16> ETHERTYPE_ARP  = 0x0806;
+//const bit<16> ETHERTYPE_LLDP = 0x88cc;
 
 const bit<8> PROTO_ICMP = 1;
 const bit<8> PROTO_TCP = 6;
@@ -48,7 +49,6 @@ const bit<32> NDP_FLAG_OVERRIDE = 0x20000000;
 //------------------------------INT Definitions (duplicated and unecessary values are possible)---------------------------
 
 // Protocol type IPv6
-#define ETH_TYPE_IPV6 0x86DD
 #define IP_VERSION_6 4w6
 #define IPV6_HDR_LEN 40w8  // IPv6 header length in 8-byte units
 #define MAX_PORTS 511

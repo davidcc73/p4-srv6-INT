@@ -68,7 +68,7 @@ control process_int_report (
         hdr.report_ethernet.setValid();
         hdr.report_ethernet.dst_addr = mon_mac;
         hdr.report_ethernet.src_addr = src_mac;
-        hdr.report_ethernet.ether_type = ETH_TYPE_IPV6;
+        hdr.report_ethernet.ether_type = ETHERTYPE_IPV6;
 
 
         //Report IPV6 Header

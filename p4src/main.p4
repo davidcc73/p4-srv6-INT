@@ -483,36 +483,30 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        }	
 	    }
         acl.apply();              //decide if clone to CPU from p4-SRv6 project
-
-        //-----------------INT processing portion
-        //The order of the implementations from here onward on this file may need to be adjusted
+           
+        //-----------------INT processing portion        
+        //removed if ipv4 valid, I had already changed it into ipv6, and it may not be needed at this point of Ingress   
+        //just track higer level connections
+        if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
+            process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
+        }
         
-    //depois de passar os commands de serem recebidos pelo mininete, passarem pelo ONOS_CLI ao descomentar isto o 2º if deve ser ativado para o r1
-    //removed if ipv4 valid, I had already changed it into ipv6
-            //if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or a sink to the packet
-                process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
-            //}
-            
-            if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
-                log_msg("I am INT source");
-                process_int_source.apply(hdr, local_metadata);
-            }
-            if(local_metadata.int_meta.sink == true){       
-                log_msg("I am INT sink");
-            }
+        if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
+            log_msg("I am INT source for this packet");
+            process_int_source.apply(hdr, local_metadata);
+        }
 
 
-            if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
-                // clone packet for Telemetry Report Collector
-                log_msg("I am sink of this packet and i will clone it");
-                local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
-                local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
-                local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
-                local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
-                //local_metadata.perserv_meta.to_CPU = false;      //already 0 by default, the change wol not register anyway (CLONE_FL_1)
-                clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
-            }
-        
+        if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
+            // clone packet for Telemetry Report Collector
+            log_msg("I am sink of this packet and i will clone it");
+            local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
+            local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
+            local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
+            local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
+            //local_metadata.perserv_meta.to_CPU = false;      //already 0 by default, the change wol not register anyway (CLONE_FL_1)
+            clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
+        }
     }
 }
 
