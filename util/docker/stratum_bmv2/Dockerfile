@@ -27,7 +27,7 @@ ENV BUILD_DEPS \
     git
 RUN install_packages $BUILD_DEPS
 
-RUN mkdir -p /ouput
+RUN mkdir -p /output
 
 ENV PIP_DEPS \
     scapy==2.4.3 \

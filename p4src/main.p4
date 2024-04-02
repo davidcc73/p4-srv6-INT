@@ -492,8 +492,14 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         }
         
         if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
-            log_msg("I am INT source for this packet");
+            log_msg("I am INT source for this packet origin, checking flow");
+            hdr.intl4_shim.setInvalid(); 
+
             process_int_source.apply(hdr, local_metadata);
+            
+            if(hdr.int_header.isValid()){
+                log_msg("packet flow monitored");
+            }
         }
 
 
@@ -565,14 +571,14 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
 
         //-----------------INT processing portion
         if(hdr.int_header.isValid() ) {
-
+            log_msg("at egress INT header detected");
             if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
                 standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
                 standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
             }
-
+            log_msg("adding my INT stats");
             process_int_transit.apply(hdr, local_metadata, standard_metadata);   //(transit) INFO ADDED TO PACKET AT DEPARSER
 
             if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {

@@ -4,10 +4,12 @@ make mn-log
 #--------------------BMv2 logs, created on P4 by doing log_msg("") in the code
 tmp/switchID/stratum_bmv2.log
 
+#--------------------At first execution
+make deps 
+
 #--------------------
 sudo make stop    #sudo is need to delete the old interfaces created by the mininet, or the new ones will be buggy
 make clean
-make deps 
 make start
 
 make app-build
@@ -44,8 +46,8 @@ h2 ping -i 0.3 h1
 sudo python INT/receive/collector_influxdb.py 
 
 
-# At a h1 terminal run:
-python INT/send/send.py --ip 2001:db8::2 --l4 udp --port 443 --m INTH1 --c 1
+# At a h1 terminal run (xterm h1 h2):
+python INT/send/send.py --ip 2001:1:2::1 --l4 udp --port 443 --m INTH1 --c 1
 
 # At a h2 terminal run:
 python INT/receive/receive.py 

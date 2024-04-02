@@ -134,7 +134,6 @@ def main():
     topo = TutorialTopo()
     controller = RemoteController('c0', ip="127.0.0.1")
 
-    #remove_existing_interface_pairs()  # Remove existing interface pairs before starting Mininet
 
     net = Mininet(topo=topo, controller=None)
     net.addController(controller)

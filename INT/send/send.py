@@ -25,7 +25,7 @@ def main(args):
     iface = get_if()
 
     print("sending on interface %s to %s" % (iface, str(addr)))
-    pkt = Ether(src=get_if_hwaddr(iface), dst='00:00:0a:00:03:02')     #i dont think the des_mac may be important
+    pkt = Ether(src=get_if_hwaddr(iface), dst='00:00:00:00:00:20')     #i dont think the des_mac may be important
 
     if args.l4 == 'tcp':
         pkt = pkt / IPv6(dst=addr) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m
