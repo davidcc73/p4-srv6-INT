@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 import argparse
 import sys
 import socket
@@ -20,8 +20,18 @@ def get_if():
         exit(1)
     return iface
 
+def get_ipv6_addr(hostname):
+    # Get IPv6 address using getaddrinfo
+    try:
+        info = socket.getaddrinfo(hostname, None, socket.AF_INET6)
+        ipv6_addr = [addr[4][0] for addr in info if addr[0] == socket.AF_INET6][0]
+        return ipv6_addr
+    except socket.gaierror as e:
+        print("Error getting IPv6 address:", e)
+        sys.exit(1)
+
 def main(args):
-    addr = socket.gethostbyname(args.ip)
+    addr = get_ipv6_addr(args.ip)  # Get IPv6 address
     iface = get_if()
 
     print("sending on interface %s to %s" % (iface, str(addr)))

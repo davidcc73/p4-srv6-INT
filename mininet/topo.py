@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #  Copyright 2019-present Open Networking Foundation
 #
@@ -125,9 +125,9 @@ class TutorialTopo(Topo):
         #create the collector
         coll = self.addHost('coll', cls=IPv6Host, mac="00:00:00:00:00:05",
                                    ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")        
-        #port 900 of r1, points to the collector
-        self.addLink(coll, r1, port2 = 900)        
-        self.addLink(coll, r2, port2 = 900)              
+        #port 100 of r1, points to the collector
+        self.addLink(coll, r1, port2 = 100)        
+        self.addLink(coll, r2, port2 = 100)              
 
 
 def main():

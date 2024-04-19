@@ -38,7 +38,7 @@ def main():
     print(influx_client)
 
     global stop_sniffing
-    ifaces = [i for i in os.listdir('/sys/class/net/') if i.endswith('900')]
+    ifaces = [i for i in os.listdir('/sys/class/net/') if i.endswith('100')]
 
     if ifaces:
         print("Sniffing on interfaces:", ifaces)
@@ -58,7 +58,7 @@ def main():
             print("\nCtrl+C detected. Terminating...")
             sys.exit(0)
     else:
-        print("No interfaces ending with '900' found.")
+        print("No interfaces ending with '100' found.")
 
 
 

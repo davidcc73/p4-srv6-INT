@@ -2,7 +2,8 @@ version: "3"
 
 services:
   mininet:
-    image: opennetworking/ngsdn-tutorial:stratum_bmv2
+    #image: opennetworking/ngsdn-tutorial:stratum_bmv2
+    image: davidcc73/ngsdn-tutorial:stratum_bmv2_modified
     hostname: mininet
     container_name: mininet
     privileged: true
@@ -10,13 +11,19 @@ services:
     stdin_open: true
     restart: always
     volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
       - ./tmp:/tmp
       - ./mininet:/mininet
+      - ./INT:/INT
+      
     entrypoint: "/mininet/topo.py"
     network_mode: "host"
-    
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XAUTHORITY=${XAUTHORITY}
+
   onos:
-    image: onosproject/onos:2.2.2
+    image: onosproject/onos:2.5.9
     hostname: onos
     container_name: onos
     network_mode: "host"

@@ -32,16 +32,19 @@ _docker_pull_all:
 
 deps: _docker_pull_all
 
+mn-host:
+	docker compose exec mininet m $@
+
 start:
-	$(info *** Starting ONOS and Mininet (${NGSDN_TOPO_PY})... )
+	$(info *** Starting ONOS and Mininet... )
 	@mkdir -p tmp/onos
 	docker compose up -d
 
 
 stop:
-	$(info *** Stopping ONOS and Mininet...)
+	$(info *** Stopping ONOS...)
 	docker compose down
-	$(info *** Deleting Virtual Interfacrd...)
+	$(info *** Deleting Virtual Interfaces...)
 	mn -c
 
 restart: reset start

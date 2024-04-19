@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 import sys
 import struct
 import os
@@ -6,7 +6,7 @@ import os
 from scapy.all import sniff, sendp, hexdump, get_if_list, get_if_hwaddr
 from scapy.all import Packet, IPOption
 from scapy.all import PacketListField, ShortField, IntField, LongField, BitField, FieldListField, FieldLenField
-from scapy.all import IPv4, IPv6, TCP, UDP, Raw
+from scapy.all import IPv6, TCP, UDP, Raw
 from scapy.layers.inet import _IPOption_HDR, TCP, bind_layers
 
 def get_if():
@@ -25,8 +25,6 @@ def handle_pkt(pkt):
     print("got a TCP/UDP packet")
     if IPv6 in pkt:
         print("got an IPv6 packet")
-    if IPv4 in pkt:
-        print("got an IPv4 packet")
 
     print("Original packet received:")
     pkt.show2()
