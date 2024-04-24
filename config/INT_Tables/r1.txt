@@ -4,17 +4,17 @@
 table_set_default EgressPipeImpl.process_int_transit.tb_int_insert init_metadata 1
 
 //set up process_int_source_sink
-table_add IngressPipeImpl.process_int_source_sink.tb_set_source int_set_source 1 => 
+table_add IngressPipeImpl.process_int_source_sink.tb_set_source int_set_source 3 => 
 
 
 //-----------INT activation rules, to set up the INT metadata. the original version had 1 last argument that was not used------------
 
 //port PostGreSQL 5432
-table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:db8::1&&&0xFFFFFFFF 2001:db8::2&&&0xFFFFFFFF 0x00&&&0x00 0x1538&&&0xFFFF => 11 10 0xF 0xF
+table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0001&&&0xFFFFFFFF 2001:0001:0002::0001&&&0xFFFFFFFF 0x00&&&0x00 0x1538&&&0xFFFF => 11 10 0xF 0xF
 
 //port HTTPS 443
-table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:db8::1&&&0xFFFFFFFF 2001:db8::2&&&0xFFFFFFFF 0x00&&&0x00 0x01BB&&&0xFFFF => 11 10 0xF 0xF
+table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0001&&&0xFFFFFFFF 2001:0001:0002::0001&&&0xFFFFFFFF 0x00&&&0x00 0x01BB&&&0xFFFF => 11 10 0xF 0xF
 
 //port HTTP 80
-table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:db8::1&&&0xFFFFFFFF 2001:db8::2&&&0xFFFFFFFF 0x00&&&0x00 0x0050&&&0xFFFF => 11 10 0xF 0xF
+table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0001&&&0xFFFFFFFF 2001:0001:0002::0001&&&0xFFFFFFFF 0x00&&&0x00 0x0050&&&0xFFFF => 11 10 0xF 0xF
 

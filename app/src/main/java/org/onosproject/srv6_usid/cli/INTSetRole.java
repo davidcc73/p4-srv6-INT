@@ -52,10 +52,10 @@ public class INTSetRole extends AbstractShellCommand{
                     if(line.startsWith("//") || line.trim().isEmpty()){continue;}   
                     parts = line.split(" ");
                     if (parts[0].equals("mirroring_add")) {
-                            int sessionID = Integer.parseInt(parts[1]);
-                            long port = Long.parseLong(parts[2]);
-                            print("Installing rule on device %s", uri);
-                            result = app.createMirroingSession(device.id(), sessionID,  port);
+                        int sessionID = Integer.parseInt(parts[1]);
+                        long port = Long.parseLong(parts[2]);
+                        print("Installing rule on device %s", uri);
+                        result = app.createMirroingSession(device.id(), sessionID,  port);
 
                     } else if (parts[0].equals("table_set_default")) {
                         tableParts = parts[1].split("\\.");
@@ -73,11 +73,7 @@ public class INTSetRole extends AbstractShellCommand{
                         control = tableParts[1];
                         table = tableParts[2];
                         action = parts[2];
-                        if(table.equals("tb_set_source")){ 
-                            key = Integer.parseInt(parts[3]);
-                            result = app.insertRule_process_int_source_sink(device.id(), pipeline, control, table, action, key);
-                        }
-                        else if(table.equals("tb_set_sink")){ 
+                        if(table.equals("tb_set_source") || table.equals("tb_set_sink")){ 
                             key = Integer.parseInt(parts[3]);
                             result = app.insertRule_process_int_source_sink(device.id(), pipeline, control, table, action, key);
                         }

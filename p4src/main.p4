@@ -471,7 +471,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
             
             if (!local_metadata.xconnect) {
-	            routing_v6.apply();
+                routing_v6.apply();
 	        } else {
                 xconnect_table.apply();
             }
@@ -479,8 +479,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         
 	    if (!local_metadata.skip_l2) {
             if (!unicast.apply().hit) {
-       	      	multicast.apply();
-	        }	
+                multicast.apply();
+	        }
 	    }
         acl.apply();              //decide if clone to CPU from p4-SRv6 project
            
@@ -494,23 +494,22 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
             log_msg("I am INT source for this packet origin, checking flow");
             hdr.intl4_shim.setInvalid(); 
-
-            process_int_source.apply(hdr, local_metadata);
             
+
+            process_int_source.apply(hdr, local_metadata);     
             if(hdr.int_header.isValid()){
                 log_msg("packet flow monitored");
             }
         }
 
-
         if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
             // clone packet for Telemetry Report Collector
             log_msg("I am sink of this packet and i will clone it");
             local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
-            local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;
+            //local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
             local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
             local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
-            //local_metadata.perserv_meta.to_CPU = false;      //already 0 by default, the change wol not register anyway (CLONE_FL_1)
+
             clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
         }
     }
@@ -524,41 +523,46 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                         inout local_metadata_t local_metadata,
                         inout standard_metadata_t standard_metadata) {
     apply {
-        //-----------------Restore packet standard_metadata (only for ingress clone packets that are sent to CPU), maybe the second condition alone would be enough
-        if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE && local_metadata.perserv_CPU_meta.to_CPU == true) {
-            // restore the standard_metadata values that were perserved by the clone_preserving_field_list
-            standard_metadata.egress_port = local_metadata.perserv_CPU_meta.egress_port;
-            standard_metadata.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
+        //-----------------Restore packet standard_metadata from clones
+        if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE){
+            if(local_metadata.perserv_CPU_meta.to_CPU == true) {
+                // restore the standard_metadata values that were perserved by the clone_preserving_field_list
+                standard_metadata.egress_port = local_metadata.perserv_CPU_meta.egress_port;
+                standard_metadata.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
 
-            //-----------------a INT packet from another switch may be trigger to be sent to CPU, so we need to restore it
-            //it's a copy of the action (int_sink) since we can't invoke actions in the egress
-            //it may not be needed if the Controller can understand packet with the INT headers, but is here just to be safe
-            //there is a very low chance of this happening, but it's better to be safe than sorry
-            if(hdr.int_header.isValid()){
-                log_msg("A packet with INT header will be sent to CPU, restoring it to original state withouth INT header");
-                hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
-                bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) << 2) + INT_SHIM_HEADER_SIZE;
-                hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
-                if(hdr.udp.isValid()) { hdr.udp.length_ = hdr.udp.length_ - len_bytes; }
-                hdr.intl4_shim.setInvalid();
-                hdr.int_header.setInvalid();
-                hdr.int_switch_id.setInvalid();
-                hdr.int_level1_port_ids.setInvalid();
-                hdr.int_hop_latency.setInvalid();
-                hdr.int_q_occupancy.setInvalid();
-                hdr.int_ingress_tstamp.setInvalid();
-                hdr.int_egress_tstamp.setInvalid();
-                hdr.int_level2_port_ids.setInvalid();
-                hdr.int_egress_tx_util.setInvalid();
-                hdr.int_data.setInvalid();
+                //-----------------a INT packet from another switch may be trigger to be sent to CPU, so we need to restore it
+                //it's a copy of the action (int_sink) since we can't invoke actions in the egress
+                //it may not be needed if the Controller can understand packet with the INT headers, but is here just to be safe
+                //there is a very low chance of this happening, but it's better to be safe than sorry
+                if(hdr.int_header.isValid()){
+                    log_msg("A packet with INT header will be sent to CPU, restoring it to original state withouth INT header");
+                    hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
+                    bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) << 2) + INT_SHIM_HEADER_SIZE;
+                    hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
+                    if(hdr.udp.isValid()) { hdr.udp.length_ = hdr.udp.length_ - len_bytes; }
+                    hdr.intl4_shim.setInvalid();
+                    hdr.int_header.setInvalid();
+                    hdr.int_switch_id.setInvalid();
+                    hdr.int_level1_port_ids.setInvalid();
+                    hdr.int_hop_latency.setInvalid();
+                    hdr.int_q_occupancy.setInvalid();
+                    hdr.int_ingress_tstamp.setInvalid();
+                    hdr.int_egress_tstamp.setInvalid();
+                    hdr.int_level2_port_ids.setInvalid();
+                    hdr.int_egress_tx_util.setInvalid();
+                    hdr.int_data.setInvalid();
+                }
+            }
+            else {
+                log_msg("Detected report clone");
+                standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;      //prepare info for report
+                //standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
+                standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
+                standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
             }
         } else if ((standard_metadata.instance_type == PKT_INSTANCE_TYPE_NORMAL) || (standard_metadata.instance_type == PKT_INSTANCE_TYPE_REPLICATION))  {
             // nothing needs to be done for these instance types
-        } else {
-            // Not clear to me whether you need any further branches to handle other
-            // cases of the value of instance_type, but if. we call log()
-            log_msg("Unexpected instance_type in EgressPipeImpl: ", { standard_metadata.instance_type });
-        }
+        } 
 
         //-----------------Standard packet forwarding
         if (standard_metadata.egress_port == CPU_PORT) {
@@ -570,7 +574,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         }
 
         //-----------------INT processing portion
-        if(hdr.int_header.isValid() ) {
+        if(hdr.int_header.isValid()) {
             log_msg("at egress INT header detected");
             if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
@@ -585,9 +589,8 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 // create int report 
                 log_msg("creating INT report");
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
-            }
 
-            if (local_metadata.int_meta.sink == true && standard_metadata.instance_type != PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+            }else if (local_metadata.int_meta.sink == true) {
                 // restore packet to original state
                 log_msg("restoring packet to original state");
                 process_int_sink.apply(hdr, local_metadata, standard_metadata);

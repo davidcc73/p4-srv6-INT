@@ -26,7 +26,7 @@ control process_int_source_sink (
 
     table tb_set_sink {
         key = {
-            standard_metadata.egress_port: exact;
+            standard_metadata.egress_spec: exact;    //it will be invoked at ingress, so egress_spec is the next hop, egress_port will be 0 until egress
         }
         actions = {
             int_set_sink;
@@ -78,10 +78,10 @@ control process_int_source (
 
         // add the header len (3 words) to total len
         //hdr.ipv4.len = hdr.ipv4.len + INT_TOTAL_HEADER_SIZE;         //len at IPv4 contains everything, including base IPv4 header
-        hdr.ipv6.payload_len = INT_TOTAL_HEADER_SIZE;  //payload_len at IPv6 contains everything, excluding base IPv6 header
+        hdr.ipv6.payload_len = hdr.ipv6.payload_len + INT_TOTAL_HEADER_SIZE;  //payload_len at IPv6 contains everything, excluding base IPv6 header
 
         if(hdr.udp.isValid()) {
-            hdr.udp.length_ = hdr.udp.length_ + INT_TOTAL_HEADER_SIZE;   //WAS NOT CHANGED MAY CAUSE PROLEMS WITH LENGTH
+            hdr.udp.length_ = hdr.udp.length_ + INT_TOTAL_HEADER_SIZE;   
         }
         
               

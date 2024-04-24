@@ -159,7 +159,6 @@ struct preserving_metadata_t {
     @field_list(CLONE_FL_1)
     bit<9> ingress_port;
     bit<9> egress_spec;
-    @field_list(CLONE_FL_1)
     bit<9> egress_port;
     bit<32> clone_spec;
     bit<32> instance_type;

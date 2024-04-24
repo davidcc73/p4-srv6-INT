@@ -3,7 +3,7 @@ version: "3"
 services:
   mininet:
     #image: opennetworking/ngsdn-tutorial:stratum_bmv2
-    image: davidcc73/ngsdn-tutorial:stratum_bmv2_modified
+    image: davidcc73/stratum_bmv2_x11_scapy_pip3:latest
     hostname: mininet
     container_name: mininet
     privileged: true

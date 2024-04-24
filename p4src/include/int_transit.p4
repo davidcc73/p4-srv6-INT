@@ -79,7 +79,7 @@ control process_int_transit (
    
     action add_4() {
         local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 4;
-       local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 16;
+        local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 16;
     }
 
     action add_5() {

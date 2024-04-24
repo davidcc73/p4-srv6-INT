@@ -4,7 +4,7 @@
 table_set_default EgressPipeImpl.process_int_transit.tb_int_insert init_metadata 2
 
 //set up process_int_source_sink
-table_add IngressPipeImpl.process_int_source_sink.tb_set_sink int_set_sink 1 => 
+table_add IngressPipeImpl.process_int_source_sink.tb_set_sink int_set_sink 3 => 
 
 
 //-----------INT metadata report setup----------------

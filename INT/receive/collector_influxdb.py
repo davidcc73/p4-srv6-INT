@@ -15,6 +15,7 @@ INFLUX_DB = 'int'
 
 def handle_pkt(pkt,c):   #individually triggered by each sniffed packet
     print("got a TCP/UDP packet")
+    pkt.show2()
     if INTREP in pkt :
         print("\n\n********* Receiving Telemetry Report ********")
         flow_info = c.parser_int_pkt(pkt)

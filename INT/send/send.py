@@ -7,6 +7,7 @@ from time import sleep
 
 from scapy.all import sendp, get_if_list, get_if_hwaddr
 from scapy.all import Ether, IPv6, UDP, TCP
+from scapy.all import srp, ICMPv6ND_NS
 
 def get_if():
     ifs = get_if_list()
@@ -20,6 +21,12 @@ def get_if():
         exit(1)
     return iface
 
+def get_dest_mac(ipv6_addr, iface):
+    ns_pkt = Ether(dst="ff:ff:ff:ff:ff:ff") / IPv6(dst=ipv6_addr) / ICMPv6ND_NS()
+    ans, _ = srp(ns_pkt, iface=iface, timeout=2, retry=2)
+    for _, rcv in ans:
+        return rcv[Ether].src
+    
 def get_ipv6_addr(hostname):
     # Get IPv6 address using getaddrinfo
     try:
@@ -35,7 +42,8 @@ def main(args):
     iface = get_if()
 
     print("sending on interface %s to %s" % (iface, str(addr)))
-    pkt = Ether(src=get_if_hwaddr(iface), dst='00:00:00:00:00:20')     #i dont think the des_mac may be important
+    dst_mac = get_dest_mac(addr, iface)
+    pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
     if args.l4 == 'tcp':
         pkt = pkt / IPv6(dst=addr) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m

@@ -1,0 +1,21 @@
+#Install Grafana with https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/#install-from-apt-repository
+sudo apt-get install -y apt-transport-https
+sudo apt-get install -y software-properties-common wget
+sudo wget -q -O /usr/share/keyrings/grafana.key https://apt.grafana.com/gpg.key
+echo "deb [signed-by=/usr/share/keyrings/grafana.key] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+sudo apt-get update
+sudo apt-get install grafana
+sudo systemctl start grafana-server #start grafana now
+
+#enable grafana-server to start on boot
+sudo systemctl enable grafana-server
+
+
+#web interface at "localhost:3000/" username/password: admin/admin
+go to Configuration > Data sources, select InfluxDB and use the default http://localhost:8086
+Select the database int
+Test and all is ok, you will see the message
+
+
+#Import the dashboard
+Go to Home > Dashboards > Import dashboard and upload the [Grafana dashboard json](INT/grafana/INT statistics.json)

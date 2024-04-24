@@ -242,7 +242,7 @@ public class INTComponent {
                 String cmp_field=null;
 
                       if(table.equals("tb_set_source")){ cmp_field="standard_metadata.ingress_port";}
-                else{ if(table.equals("tb_set_sink")){   cmp_field="standard_metadata.egress_port";}}
+                else{ if(table.equals("tb_set_sink")){   cmp_field="standard_metadata.egress_spec";}}
 
                 PiCriterion match = PiCriterion.builder()
                         .matchExact(PiMatchFieldId.of(cmp_field), key)
