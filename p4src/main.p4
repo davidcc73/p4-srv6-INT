@@ -284,7 +284,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.dst_addr = s1;
 
         hdr.srv6h.setValid();
-        hdr.srv6h.next_header = PROTO_IPV6;
+        hdr.srv6h.next_header = PROTO_IPV6;         //change to what ipv6 used to point as next
         hdr.srv6h.hdr_ext_len = 0x2;
         hdr.srv6h.routing_type = 0x4;
         hdr.srv6h.segment_left = 0;
@@ -360,7 +360,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.dst_addr = s1;
 
         hdr.srv6h.setValid();
-        hdr.srv6h.next_header = PROTO_IP_IN_IP;
+        hdr.srv6h.next_header = PROTO_IP_IN_IP;   //since is encapsulating ipv4 the next one is always IPv4
         hdr.srv6h.hdr_ext_len = 0x2;
         hdr.srv6h.routing_type = 0x4;
         hdr.srv6h.segment_left = 0;
@@ -430,6 +430,9 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     apply {
+        //INT sorce will need this OG values, but SRv6 (if active) will remove them, so backup them
+        local_metadata.src_IP_Pre_SRV6 = hdr.ipv6.src_addr;
+        local_metadata.dst_IP_Pre_SRV6 = hdr.ipv6.dst_addr;
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();

@@ -87,29 +87,6 @@ control process_int_report (
                               (bit<16>) UDP_HEADER_LEN +                                //se a lig for tcp é difernete
                               INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2);
 
-log_msg("size in bytes of the OG frame:{} Bytes",{                              
-                            (bit<16>) ETH_HEADER_LEN + 
-                            (bit<16>) IPV6_MIN_HEAD_LEN + 
-                            (bit<16>) UDP_HEADER_LEN +                                //se a lig for tcp é difernete
-                            INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2)});
-
-log_msg("size in bytes of the future packet with UDP header:{} Bytes",{ 
-                            (bit<16>) UDP_HEADER_LEN +
-                            (bit<16>) REPORT_GROUP_HEADER_LEN +
-                            (bit<16>) REPORT_INDIVIDUAL_HEADER_LEN +                             
-                            (bit<16>) ETH_HEADER_LEN + 
-                            (bit<16>) IPV6_MIN_HEAD_LEN + 
-                            (bit<16>) UDP_HEADER_LEN +                                //se a lig for tcp é difernete
-                            INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2)});
-
-log_msg("size in bytes of the future packet without UDP header:{} Bytes",{ 
-                            (bit<16>) REPORT_GROUP_HEADER_LEN +
-                            (bit<16>) REPORT_INDIVIDUAL_HEADER_LEN +                             
-                            (bit<16>) ETH_HEADER_LEN + 
-                            (bit<16>) IPV6_MIN_HEAD_LEN + 
-                            (bit<16>) UDP_HEADER_LEN +                                //se a lig for tcp é difernete
-                            INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2)});
-
         hdr.report_ipv6.next_header = 8w0x11;        // a 32-bit unsigned number with hex value 11 (UDP)
         hdr.report_ipv6.hop_limit = REPORT_HDR_HOP_LIMIT;
         hdr.report_ipv6.src_addr = src_ip;
