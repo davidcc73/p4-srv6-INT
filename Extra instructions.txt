@@ -71,5 +71,7 @@ srv6-insert device:r2 fcbb:bb00:7:8:1:fd00:: 2001:1:1::1
 srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2::1
 
 
-
-
+#--------python3 scrits to create ba chat like traffic between h1 and h2 using tcp, 
+#can not be used at mininet, server does not reply to the SYN packet, probably mininet is blocking it on how simulates hosts
+python3 /INT/h1_tcp.py
+python3 /INT/h2_tcp.py
