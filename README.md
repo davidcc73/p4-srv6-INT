@@ -2,10 +2,10 @@
 Fork of the project (netgroup/p4-srv6) found at https://github.com/netgroup/p4-srv6 implements SRv6 in Mininet environment where the switches use P4.
 This repository aims to adapt that solution to add INT into it like the implementation on the project (ruimmpires/P4INT_Mininet) found at https://github.com/ruimmpires/P4INT_Mininet 
 
-The used stratum image is a modification of stratrum version: 2022-06-30
-built from source by modifying the Dockerfile (see file Dockerfile) adding X11 and scapy to it
+The new stratum image is a modification of stratrum version: 2022-06-30
+built from source by modifying the Dockerfile (see file Dockerfile) adding X11, pip3 and scapy to it
 image compiled with name:
-davidcc73/ngsdn-tutorial:stratum_bmv2_modified
+davidcc73/stratum_bmv2_x11_scapy_pip3
 
 
 # IPv6 Segment Routing SRv6  Original README.md<br/>
