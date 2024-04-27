@@ -80,6 +80,7 @@ control process_int_report (
         hdr.report_ipv6.dscp = 6w0;
         hdr.report_ipv6.ecn = 2w0;
         hdr.report_ipv6.flow_label = 20w0;     //20w0 here is just a placeholder
+        
         // The same length but for ipv6, the base header length does not count for the payload length
         hdr.report_ipv6.payload_len = //(bit<16>)  IPV6_MIN_HEAD_LEN +   //self size does not count in IPv6
                               (bit<16>) UDP_HEADER_LEN + 
@@ -138,7 +139,7 @@ control process_int_report (
         hdr.report_individual_header.domain_specific_md_bits = 0;
         hdr.report_individual_header.domain_specific_md_status = 0;
 
-        truncate((bit<32>)hdr.report_ipv6.payload_len + (bit<32>) ETH_HEADER_LEN);
+        truncate((bit<32>)hdr.report_ipv6.payload_len + (bit<32>) IPV6_MIN_HEAD_LEN + (bit<32>) ETH_HEADER_LEN);   //cut out the OG packet body
     }
 
     table tb_generate_report {
