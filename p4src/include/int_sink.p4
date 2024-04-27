@@ -87,7 +87,7 @@ control process_int_report (
                               (bit<16>) REPORT_INDIVIDUAL_HEADER_LEN +
                               (bit<16>) ETH_HEADER_LEN + 
                               (bit<16>) IPV6_MIN_HEAD_LEN + 
-                              (bit<16>) used_protocol_len +                                //se a lig for tcp é difernete
+                              (bit<16>) used_protocol_len +                                //it will vary depending on the used protocol and options
                               INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2);
 
         hdr.report_ipv6.next_header = 8w0x11;        // a 32-bit unsigned number with hex value 11 (UDP)
