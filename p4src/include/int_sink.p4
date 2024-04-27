@@ -71,9 +71,9 @@ control process_int_report (
         hdr.report_ethernet.ether_type = ETHERTYPE_IPV6;
 
 
-        bit<16> used_protocol_len = 0;
-             if(hdr.udp.isValid){used_protocol_len = UDP_HEADER_LEN;}
-        else if(hdr.tcp.isValid){used_protocol_len = TCP_HEADER_MIN_LEN;}   //if option flags are used the size will vary
+        bit<8> used_protocol_len = 0;
+             if(hdr.udp.isValid()){used_protocol_len = UDP_HEADER_LEN;}
+        else if(hdr.tcp.isValid()){used_protocol_len = TCP_HEADER_MIN_LEN;}   //if option flags are used the size will vary
         //Report IPV6 Header
         hdr.report_ipv6.setValid();
         hdr.report_ipv6.version = IP_VERSION_6;
@@ -90,7 +90,7 @@ control process_int_report (
                               (bit<16>) used_protocol_len +                                //it will vary depending on the used protocol and options
                               INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2);
 
-        hdr.report_ipv6.next_header = 8w0x11;        // a 32-bit unsigned number with hex value 11 (UDP)
+        hdr.report_ipv6.next_header = PROTO_UDP;        // a 32-bit unsigned number with hex value 11 (UDP)
         hdr.report_ipv6.hop_limit = REPORT_HDR_HOP_LIMIT;
         hdr.report_ipv6.src_addr = src_ip;
         hdr.report_ipv6.dst_addr = mon_ip;
@@ -101,6 +101,7 @@ control process_int_report (
 
         //Report UDP Header
         hdr.report_udp.setValid();
+        hdr.report_udp.checksum = 1;            //placeholder value
         hdr.report_udp.src_port = 1234;
         hdr.report_udp.dst_port = mon_port;
         hdr.report_udp.length_ = (bit<16>) UDP_HEADER_LEN + 
