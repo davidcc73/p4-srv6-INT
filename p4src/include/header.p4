@@ -111,6 +111,7 @@ header udp_t {
     bit<16> length_;
     bit<16> checksum;
 }
+const bit<8> TCP_HEADER_MIN_LEN = 20;   //minimun length is 20 bytes
 const bit<8> UDP_HEADER_LEN = 8;
 
 header icmp_t {
