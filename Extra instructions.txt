@@ -12,7 +12,9 @@ make deps
 #influxdb, to install see the file "prepare inluxdb.txt"
 #grafana, to install see the file "prepare grafana.txt"
 
-#to help dissecting INT reports, install wirehsark plugin located at "util/P4INT_report.lua"
+#to help dissecting INT reports, install wirehsark plugin located at "util/wireshark/P4INT_report_IPV6.lua"
+#it's limited to a fixed certain number of hops, buts easy to modify it to a different number and new report's fields
+#some data is displeyed incorrectly
 
 #the used stratum image is a custom image of stratrum version: 2022-06-30 built from source by modifying the Dockerfile 
 (see file Dockerfile at util/stratum/Dockerfile) adding X11, pip3 at runtime and scapy to it, dropped at /tools/mininet/ to compile it,  

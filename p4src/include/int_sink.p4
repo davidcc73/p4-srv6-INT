@@ -139,7 +139,8 @@ control process_int_report (
         hdr.report_individual_header.domain_specific_md_bits = 0;
         hdr.report_individual_header.domain_specific_md_status = 0;
 
-        truncate((bit<32>)hdr.report_ipv6.payload_len + (bit<32>) IPV6_MIN_HEAD_LEN + (bit<32>) ETH_HEADER_LEN);   //cut out the OG packet body
+        //cut out the OG packet body, only the  headers remain
+        truncate((bit<32>)hdr.report_ipv6.payload_len + (bit<32>) IPV6_MIN_HEAD_LEN + (bit<32>) ETH_HEADER_LEN);   
     }
 
     table tb_generate_report {

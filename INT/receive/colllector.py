@@ -5,7 +5,7 @@ import time
 
 from scapy.all import Packet
 from scapy.all import BitField,ShortField
-from scapy.layers.inet import Ether,IP, TCP, UDP, bind_layers
+from scapy.layers.inet6 import Ether,IPv6, TCP, UDP, bind_layers
 
 class INTREP(Packet):
     name = "INT Report Header v2.0"
@@ -102,12 +102,12 @@ class FlowInfo():
         self.e_q_occupancy = None
 
     def show(self):
-        #print(time.time())
+						   
         metric_timestamp = int(time.time()*1000000000)
-        #print(time.time())
-        #print(time.time_ns())
-        #print(time.time_ns())
-        #print("metric_timestamp %s" %metric_timestamp)
+						   
+							  
+							  
+													   
         print("src_ip %s" % (self.src_ip))
         print("dst_ip %s" % (self.dst_ip))
         print("src_port %s" % (self.src_port))
@@ -154,7 +154,7 @@ class Collector():
     def parse_flow_info(self,flow_info,ip_pkt):
         flow_info.src_ip = ip_pkt.src
         flow_info.dst_ip = ip_pkt.dst
-        flow_info.ip_proto = ip_pkt.proto
+        flow_info.ip_proto = ip_pkt.nh
 
         if UDP in ip_pkt:
             flow_info.src_port = ip_pkt[UDP].sport
@@ -220,7 +220,7 @@ class Collector():
 
         flow_info = FlowInfo()
         # parse five tuple (src_ip,dst_ip,src_port,dst_port,ip_proto)
-        self.parse_flow_info(flow_info,int_rep_pkt[IP])
+        self.parse_flow_info(flow_info,int_rep_pkt[IPv6])
         # int metadata
         int_shim_pkt = INTShim(int_rep_pkt.load)
         self.parse_int_metadata(flow_info,int_shim_pkt)
@@ -237,7 +237,7 @@ class Collector():
             return
         
         metric_timestamp = int(time.time()*1000000000)
-        #print("metric_timestamp %s" %metric_timestamp)
+													   
         metrics = []
         if flow_info.flow_latency:
             metrics.append({
@@ -251,11 +251,11 @@ class Collector():
                     },
                     'time': metric_timestamp,
                     'fields': {
-                        #'value': int(flow_info.flow_latency/1000) #in ms
+																		 
                         'value': int(flow_info.flow_latency) #in ns
                     }
                 })
-            #print("\n********* appending flow_latency ********")
+																 
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.egress_tstamps) > 0 and len(flow_info.hop_latencies) > 0:
             for i in range(flow_info.hop_cnt):
@@ -264,13 +264,13 @@ class Collector():
                     'tags': {
                         'switch_id': flow_info.switch_ids[i]
                     },
-                    #'time': flow_info.egress_tstamps[i]*1000,
+															  
                     'time': metric_timestamp,
                     'fields': {
                         'value': flow_info.hop_latencies[i]
                     }
                 })
-                #print("\n********* appending switch_latency ********")
+																	   
 
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.queue_ids) > 0:
@@ -281,13 +281,13 @@ class Collector():
                         'switch_id': flow_info.switch_ids[i],
                         'queue_id': flow_info.queue_ids[i]
                     },
-                    #'time': flow_info.egress_tstamps[i]*10000,
+															   
                     'time': metric_timestamp,
                     'fields': {
                         'value': flow_info.queue_occups[i]
                     }
                 })
-                #print("\n********* appending queue_occupancy ********")
+																		
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.l1_egress_ports) > 0 and len(flow_info.l1_ingress_ports) > 0:
             for i in range(flow_info.hop_cnt - 1):
@@ -304,6 +304,6 @@ class Collector():
                         'value': abs(flow_info.egress_tstamps[i+1] - flow_info.ingress_tstamps[i])
                     }
                 })
-                #print("\n********* appending link_latency ********")
+																	 
         
         self.influx_client.write_points(points=metrics, protocol="json")
