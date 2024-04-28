@@ -562,10 +562,10 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 //standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
                 standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
+            
+
             }
-        } else if ((standard_metadata.instance_type == PKT_INSTANCE_TYPE_NORMAL) || (standard_metadata.instance_type == PKT_INSTANCE_TYPE_REPLICATION))  {
-            // nothing needs to be done for these instance types
-        } 
+        }
 
         //-----------------Standard packet forwarding
         if (standard_metadata.egress_port == CPU_PORT) {
@@ -592,7 +592,6 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 // create int report 
                 log_msg("creating INT report");
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
-
             }else if (local_metadata.int_meta.sink == true) {
                 // restore packet to original state
                 log_msg("restoring packet to original state");
