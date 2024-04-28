@@ -48,7 +48,7 @@ h2 ping h1
 
 #--------------------Start the INT collector
 Note: make sure the collector (THE SYSTEM RUNNING IT) is syncronized with an ntp or rather manually syn it
-sudo python INT/receive/collector_influxdb.py 
+sudo python3 INT/receive/collector_influxdb.py 
 
 
 

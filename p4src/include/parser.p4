@@ -22,8 +22,7 @@
 parser ParserImpl (packet_in packet,
                    out parsed_headers_t hdr,
                    inout local_metadata_t local_metadata,
-                   inout standard_metadata_t standard_metadata)
-{
+                   inout standard_metadata_t standard_metadata){
     state start {
         transition select(standard_metadata.ingress_port) {
             CPU_PORT: parse_packet_out;
