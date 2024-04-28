@@ -19,7 +19,7 @@
 
 #include "define.p4"
 
-#define MAX_HOPS 4
+#define MAX_HOPS 20
 
 @controller_header("packet_in")
 header packet_in_header_t {

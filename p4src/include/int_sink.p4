@@ -5,7 +5,7 @@ control process_int_sink (
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    action int_sink() {             //note: there is a section on main.p4 egress, that must always mirror this action, to remove the INT from the packets, meant to the CPU
+    action int_sink() {             //NOTE: there is a section on main.p4 egress, that must always mirror this action, to remove the INT from the packets, meant to the CPU
         // restore original headers
         //INT specification says that the Traffic classe field should be restored, FOR THE USE OF IPV6 (AND NOT DSCP), THE SIZE DIFFERENCE MAY CAUSE THE NEED OF SOME ADJUSTMENTS FOR RESTAURATION HERE AND EXTRACTION ON SOURCE
         hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
@@ -61,9 +61,8 @@ control process_int_report (
                                     ipv6_addr_t src_ip,
                                     ipv6_addr_t mon_ip, 
                                     l4_port_t mon_port) {
-                                                                     
         // INT Raport structure
-        // [Eth][IP][UDP][INT RAPORT HDR][ETH][IP][UDP/TCP][INT HDR][INT DATA]
+        // [Eth][IPv6][UDP][INT RAPORT HDR][ETH][IPv6][UDP/TCP][INT HDR][INT DATA]
         //Report Ethernet Header
         hdr.report_ethernet.setValid();
         hdr.report_ethernet.dst_addr = mon_mac;
@@ -83,13 +82,13 @@ control process_int_report (
         
         // The same length but for ipv6, the base header length does not count for the payload length
         hdr.report_ipv6.payload_len = //(bit<16>)  IPV6_MIN_HEAD_LEN +   //self size does not count in IPv6
-                              (bit<16>) UDP_HEADER_LEN + 
-                              (bit<16>) REPORT_GROUP_HEADER_LEN +
-                              (bit<16>) REPORT_INDIVIDUAL_HEADER_LEN +
-                              (bit<16>) ETH_HEADER_LEN + 
-                              (bit<16>) IPV6_MIN_HEAD_LEN + 
-                              (bit<16>) used_protocol_len +                                //it will vary depending on the used protocol and options
-                              INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2);
+                                        (bit<16>) UDP_HEADER_LEN + 
+                                        (bit<16>) REPORT_GROUP_HEADER_LEN +
+                                        (bit<16>) REPORT_INDIVIDUAL_HEADER_LEN +
+                                        (bit<16>) ETH_HEADER_LEN + 
+                                        (bit<16>) IPV6_MIN_HEAD_LEN + 
+                                        (bit<16>) used_protocol_len +                                //it will vary depending on the used protocol and options
+                                        INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len)<< 2);
 
         hdr.report_ipv6.next_header = PROTO_UDP;        // a 32-bit unsigned number with hex value 11 (UDP)
         hdr.report_ipv6.hop_limit = REPORT_HDR_HOP_LIMIT;
