@@ -82,7 +82,8 @@ const bit<8> INT_HEADER_WORD = 3;
 const bit<8> INT_TOTAL_HEADER_WORD = 4;
 
 const bit<8> CPU_MIRROR_SESSION_ID = 250;
-const bit<32> REPORT_MIRROR_SESSION_ID = 100;
+const bit<32> REPORT_MIRROR_SESSION_ID = 100;   //this ones will get to egress do nothing and go back to ingress so later they go to collector
+
 const bit<6> HW_ID = 1;
 const bit<8> REPORT_HDR_HOP_LIMIT = 64;//const bit<8> REPORT_HDR_TTL = 64;
 

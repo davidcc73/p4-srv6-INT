@@ -406,6 +406,9 @@ control process_int_transit (
         if (hdr.ipv6.isValid()) {
             hdr.ipv6.payload_len = hdr.ipv6.payload_len + local_metadata.int_meta.new_bytes;
         }
+        if(hdr.ipv6_inner.isValid()){   //SRv6 need the size of what encapsulates, soit removed correctly
+            hdr.ipv6_inner.payload_len = hdr.ipv6_inner.payload_len + local_metadata.int_meta.new_bytes;
+        }
         if (hdr.udp.isValid()) {
             hdr.udp.length_ = hdr.udp.length_ + local_metadata.int_meta.new_bytes;
         }

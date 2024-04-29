@@ -79,7 +79,9 @@ control process_int_source (
         // add the header len (3 words) to total len
         //hdr.ipv4.len = hdr.ipv4.len + INT_TOTAL_HEADER_SIZE;         //len at IPv4 contains everything, including base IPv4 header
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + INT_TOTAL_HEADER_SIZE;  //payload_len at IPv6 contains everything, excluding base IPv6 header
-
+        if(hdr.ipv6_inner.isValid()){   //SRv6 need the size of what encapsulates, soit removed correctly
+            hdr.ipv6_inner.payload_len = hdr.ipv6_inner.payload_len + INT_TOTAL_HEADER_SIZE;
+        }
         if(hdr.udp.isValid()) {
             hdr.udp.length_ = hdr.udp.length_ + INT_TOTAL_HEADER_SIZE;   
         }

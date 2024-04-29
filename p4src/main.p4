@@ -185,12 +185,12 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         local_metadata.ua_next_hop = next_hop;
     }
 
-    action srv6_end_dx6() {
+    action srv6_end_dx6() {   //no more SRv6 steps, OG packet was IPv6
         hdr.ipv6.version = hdr.ipv6_inner.version;
         hdr.ipv6.dscp = hdr.ipv6_inner.dscp;
         hdr.ipv6.ecn = hdr.ipv6_inner.ecn;
         hdr.ipv6.flow_label = hdr.ipv6_inner.flow_label;
-        hdr.ipv6.payload_len = hdr.ipv6_inner.payload_len;
+        hdr.ipv6.payload_len = hdr.ipv6_inner.payload_len;    //restore packet size (containing INT if used, INT SORCE AND TRANSIT must keep it updated)
         hdr.ipv6.next_header = hdr.ipv6_inner.next_header;
         hdr.ipv6.hop_limit = hdr.ipv6_inner.hop_limit;
         hdr.ipv6.src_addr = hdr.ipv6_inner.src_addr;
@@ -201,7 +201,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.srv6_list[0].setInvalid();
     }
 
-    action srv6_end_dx4()  {
+    action srv6_end_dx4()  {   //no more SRv6 steps, OG packet was IPv4
         hdr.srv6_list[0].setInvalid();
         hdr.srv6h.setInvalid();
         hdr.ipv6.setInvalid();
@@ -447,8 +447,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        drop();
 	    }
 
-	    if (l2_firewall.apply().hit) {
-            switch(srv6_localsid_table.apply().action_run) {
+	    if (l2_firewall.apply().hit) {                      //just checks is hdr.ethernet.dst_addr is listed in the table
+            switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
                 srv6_end: {
                     // support for reduced SRH
                     if (hdr.srv6h.segment_left > 0) {
@@ -470,18 +470,18 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
             } else {
-                srv6_encap.apply();
+                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates or not
             }
             
-            if (!local_metadata.xconnect) {
-                routing_v6.apply();
-	        } else {
-                xconnect_table.apply();
+            if (!local_metadata.xconnect) { 
+                routing_v6.apply();              //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
+	        } else {                             //the value of local_metadata.ua_next_hop was changed
+                xconnect_table.apply();          //sets hdr.ethernet.dst_addr to it
             }
         }
         
 	    if (!local_metadata.skip_l2) {
-            if (!unicast.apply().hit) {
+            if (!unicast.apply().hit) {         //uses hdr.ethernet.dst_addr to set egress_spec
                 multicast.apply();
 	        }
 	    }

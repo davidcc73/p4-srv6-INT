@@ -7,17 +7,21 @@ control process_int_sink (
 
     action int_sink() {             //NOTE: there is a section on main.p4 egress, that must always mirror this action, to remove the INT from the packets, meant to the CPU
         // restore original headers
+       
         //INT specification says that the Traffic classe field should be restored, FOR THE USE OF IPV6 (AND NOT DSCP), THE SIZE DIFFERENCE MAY CAUSE THE NEED OF SOME ADJUSTMENTS FOR RESTAURATION HERE AND EXTRACTION ON SOURCE
         hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
+        
         // restore length fields of IPv6 header and UDP header
         bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) << 2) + INT_SHIM_HEADER_SIZE;
         hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
         if(hdr.udp.isValid()) {
             hdr.udp.length_ = hdr.udp.length_ - len_bytes;
         }
+
         // remove all the INT information from the packet
         hdr.intl4_shim.setInvalid();
         hdr.int_header.setInvalid();
+
         hdr.int_switch_id.setInvalid();
         hdr.int_level1_port_ids.setInvalid();
         hdr.int_hop_latency.setInvalid();
@@ -26,6 +30,7 @@ control process_int_sink (
         hdr.int_egress_tstamp.setInvalid();
         hdr.int_level2_port_ids.setInvalid();
         hdr.int_egress_tx_util.setInvalid();
+
         hdr.int_data.setInvalid();
     }
 
