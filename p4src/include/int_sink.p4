@@ -11,7 +11,7 @@ control process_int_sink (
         //INT specification says that the Traffic classe field should be restored, FOR THE USE OF IPV6 (AND NOT DSCP), THE SIZE DIFFERENCE MAY CAUSE THE NEED OF SOME ADJUSTMENTS FOR RESTAURATION HERE AND EXTRACTION ON SOURCE
         hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
         
-        // restore length fields of IPv6 header and UDP header
+        // restore length fields of IPv6 header and UDP header, remove INT shim, instruction, and data
         bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) << 2) + INT_SHIM_HEADER_SIZE;
         hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
         if(hdr.udp.isValid()) {

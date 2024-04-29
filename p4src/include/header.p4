@@ -160,6 +160,7 @@ struct preserving_metadata_t {
     @field_list(CLONE_FL_1)
     bit<9> ingress_port;
     bit<9> egress_spec;
+    @field_list(CLONE_FL_1)
     bit<9> egress_port;
     bit<32> clone_spec;
     bit<32> instance_type;
@@ -180,6 +181,8 @@ struct preserving_metadata_t {
     bit<16> egress_rid;
     bit<1> checksum_error;
     bit<32> recirculate_flag;
+    @field_list(CLONE_FL_1)
+    bool to_INT_REPORT;           //true, when the packet is cloned to become INT_REPORT and later on be recirculated
 }
  
 struct preserving_metadata_CPU_t {
@@ -210,6 +213,7 @@ struct local_metadata_t {
     preserving_metadata_t perserv_meta;         //used by INT
     preserving_metadata_CPU_t perserv_CPU_meta; //to migrate from clone3() to clone_preserving() in the clone_to_CPU scenario
     //digest_t              mac_learn_digest; //ARP used for the original project with ipv4 INT packets
+    bool finished_recirculation;  //true, when the packet has already gone to ingress for recirculation
 }
 
 
@@ -222,8 +226,8 @@ struct local_metadata_t {
 #ifndef __INT_HEADERS__
 #define __INT_HEADERS__
 
-// INT shim header for TCP/UDP  (contains addicional INT indormation??)
-header intl4_shim_t {
+// INT shim header for TCP/UDP  (contains addicional INT indormation)
+header intl4_shim_t {//32 bits -> 2 words
     bit<4> int_type;                // Type of INT Header
     bit<2> npt;                     // Next protocol type
     bit<2> rsvd;                    // Reserved
@@ -234,15 +238,15 @@ header intl4_shim_t {
 
 const bit<16> INT_SHIM_HEADER_SIZE = 4;
 
-// INT header (contains INT instructions??)
-header int_header_t {
+// INT header (contains INT instructions)
+header int_header_t { //(112 bits) -> 14 Bytes -> 7 words
     bit<4>   ver;                    // Version
     bit<1>   d;                      // Discard
     bit<1>  e;
     bit<1>  m;
     bit<12>  rsvd;
-    bit<5>  hop_metadata_len;
-    bit<8>  remaining_hop_cnt;
+    bit<5>  hop_metadata_len;        //not used for anything 
+    bit<8>  remaining_hop_cnt;       //trigger rule givex x number of hopes, they are decreased but the value is never used
     bit<4>  instruction_mask_0003; /* split the bits for lookup */
     bit<4>  instruction_mask_0407;
     bit<4>  instruction_mask_0811;
@@ -250,9 +254,11 @@ header int_header_t {
     bit<16>  domain_specific_id;     // Unique INT Domain ID
     bit<16>  ds_instruction;         // Instruction bitmap specific to the INT Domain identified by the Domain specific ID
     bit<16>  ds_flags;               // Domain specific flags
-}
+    //bit<16>  INT_data_length;        // Length of the INT Metadata stack in bytes
+}   
 
 const bit<16> INT_HEADER_SIZE = 12;
+const bit<8> INT_HEADER_WORD = 3;
 
 const bit<16> INT_TOTAL_HEADER_SIZE = INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
 

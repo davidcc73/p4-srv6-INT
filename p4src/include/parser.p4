@@ -175,17 +175,17 @@ parser ParserImpl (packet_in packet,
 
     state parse_intl4_shim {
         packet.extract(hdr.intl4_shim);
-        local_metadata.int_meta.intl4_shim_len = hdr.intl4_shim.len;
+        local_metadata.int_meta.intl4_shim_len = hdr.intl4_shim.len;  //all INT but shim not included
         transition parse_int_header;
     }
 
     state parse_int_header {
-        packet.extract(hdr.int_header);
+        packet.extract(hdr.int_header); //parse INT instructions
         transition parse_int_data;
     }
 
     state parse_int_data {
-        // Parse INT metadata stack
+        // Parse INT metadata stack, extract all before body
         packet.extract(hdr.int_data, ((bit<32>) (local_metadata.int_meta.intl4_shim_len - INT_HEADER_WORD)) << 5);
         transition accept;
     }
