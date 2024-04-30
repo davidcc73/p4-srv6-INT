@@ -11,7 +11,7 @@ sudo systemctl start grafana-server #start grafana now
 sudo systemctl enable grafana-server
 
 
-#web interface at "localhost:3000/" username/password: admin/admin
+#web interface at "http://localhost:3000/" username/password: admin/admin
 go to Configuration > Data sources, select InfluxDB and use the default http://localhost:8086
 Select the database int
 Test and all is ok, you will see the message

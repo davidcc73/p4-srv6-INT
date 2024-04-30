@@ -6,7 +6,7 @@ echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https
 sudo apt-get update && sudo apt-get install influxdb
 sudo systemctl unmask influxdb.service
 sudo systemctl start influxdb
-pip3 install influxdb
+sudo pip3 install influxdb
 
 #enable influxdb to start on boot
 sudo systemctl enable influxdb      

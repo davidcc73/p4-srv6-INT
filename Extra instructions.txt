@@ -7,14 +7,18 @@ tmp/switchID/stratum_bmv2.log
  * or log_msg("Value1 = {}, Value2 = {}",{value1, value2});
 
 #--------------------At first execution
-make deps 
+#install docker for ubuntu (ubuntu uses a diferent version) https://docs.docker.com/engine/install/ubuntu/
+sudo apt install python3-pip
+sudo pip3 install scapy
+sudo make deps 
 
 #influxdb, to install see the file "prepare inluxdb.txt"
-#grafana, to install see the file "prepare grafana.txt"
+#grafana, to install see the file "prepare grafana.txt"  url=http://localhost:3000/
 
 #to help dissecting INT reports, install wirehsark plugin located at "util/wireshark/P4INT_report_IPV6.lua"
+#into /usr/lib/x86_64-linux-gnu/wireshark/plugins/
 #it's limited to a fixed certain number of hops, buts easy to modify it to a different number and new report's fields
-#some data is displeyed incorrectly
+#some data is displeyed incorrectly, trust the one printed by the INT collector
 
 #the used stratum image is a custom image of stratrum version: 2022-06-30 built from source by modifying the Dockerfile 
 (see file Dockerfile at util/stratum/Dockerfile) adding X11, pip3 at runtime and scapy to it, dropped at /tools/mininet/ to compile it,  
@@ -27,8 +31,8 @@ sudo make stop    #sudo is need to delete the old interfaces created by the mini
 sudo mn -c
 make clean
 xhost +
-sudo make start
-make app-build      #only if P4 or ONOS code was modified or make clean was executed
+sudo make start          #WebUI at http://localhost:8181/onos/ui
+sudo make app-build      #only if P4 or ONOS code was modified or make clean was executed
 
 make app-reload
 make netcfg
