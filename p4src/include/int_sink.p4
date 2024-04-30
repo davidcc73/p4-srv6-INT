@@ -93,7 +93,7 @@ control process_int_report (
                                         (bit<16>) ETH_HEADER_LEN + 
                                         (bit<16>) IPV6_MIN_HEAD_LEN + 
                                         (bit<16>) used_protocol_len +                                //it will vary depending on the used protocol and options
-                                        INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len) * 4);
+                                        INT_SHIM_HEADER_SIZE + (((bit<16>) hdr.intl4_shim.len) * 4); //convert from word to bytes
 
         hdr.report_ipv6.next_header = PROTO_UDP;        // a 32-bit unsigned number with hex value 11 (UDP)
         hdr.report_ipv6.hop_limit = REPORT_HDR_HOP_LIMIT;

@@ -558,6 +558,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
             }
             else {
                 log_msg("Detected report clone");
+                // it may not be needed to restore all this information, just for the new data and the report
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;      //prepare info for report
                 //standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
