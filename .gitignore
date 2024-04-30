@@ -10,3 +10,5 @@
 
 /.vscode
 /app/.vscode
+*.key
+influxdata-archive_compat.key.1

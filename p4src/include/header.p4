@@ -19,7 +19,7 @@
 
 #include "define.p4"
 
-#define MAX_HOPS 20
+#define MAX_SRv6_HOPS 32
 
 @controller_header("packet_in")
 header packet_in_header_t {
@@ -293,9 +293,9 @@ header int_egress_port_tx_util_t {
 
 header int_data_t {
     // Maximum int metadata stack size in bits: each node adds roughly 44 bytes -> 342 bits of metadata
-    // 6840 bits allows for a maximum of 20 nodes in the INT stack
+    // 10260 bits allows for a maximum of 32 nodes in the INT stack
     // (0x3F - 3) * 4 * 8 (excluding INT shim header and INT header)
-    varbit<6840> data;
+    varbit<10944> data;
 }
 
 
@@ -346,7 +346,7 @@ struct parsed_headers_t {
     ipv6_t ipv6_inner;
     ipv4_t ipv4;
     srv6h_t srv6h;
-    srv6_list_t[MAX_HOPS] srv6_list;
+    srv6_list_t[MAX_SRv6_HOPS] srv6_list;
     arp_t arp;
     tcp_t tcp;
     udp_t udp;
