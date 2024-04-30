@@ -227,19 +227,18 @@ struct local_metadata_t {
 #define __INT_HEADERS__
 
 // INT shim header for TCP/UDP  (contains addicional INT indormation)
-header intl4_shim_t {//32 bits -> 2 words
+header intl4_shim_t {//32 bits -> 4 byte -> 1 words
     bit<4> int_type;                // Type of INT Header
     bit<2> npt;                     // Next protocol type
     bit<2> rsvd;                    // Reserved
-    bit<8> len;                     // Length of INT Metadata header and INT stack in 4-byte words, not including the shim header (1 word)
+    bit<8> len;                     // (word) Length of INT Metadata header and INT stack in 4-byte words, not including the shim header (1 word)
     bit<6> udp_ip_dscp;            // depends on npt field. either original dscp, ip protocol or udp dest port
     bit<10> udp_ip;                // depends on npt field. either original dscp, ip protocol or udp dest port
 }
-
-const bit<16> INT_SHIM_HEADER_SIZE = 4;
+const bit<16> INT_SHIM_HEADER_SIZE = 4;     //bytes
 
 // INT header (contains INT instructions)
-header int_header_t { //(112 bits) -> 14 Bytes -> 7 words
+header int_header_t { //(96 bits) -> 12 Bytes -> 3 words
     bit<4>   ver;                    // Version
     bit<1>   d;                      // Discard
     bit<1>  e;
@@ -254,16 +253,14 @@ header int_header_t { //(112 bits) -> 14 Bytes -> 7 words
     bit<16>  domain_specific_id;     // Unique INT Domain ID
     bit<16>  ds_instruction;         // Instruction bitmap specific to the INT Domain identified by the Domain specific ID
     bit<16>  ds_flags;               // Domain specific flags
-    //bit<16>  INT_data_length;        // Length of the INT Metadata stack in bytes
 }   
+const bit<16> INT_HEADER_SIZE = 12;    //bytes
+const bit<8> INT_HEADER_WORD = 3;      //words
 
-const bit<16> INT_HEADER_SIZE = 12;
-const bit<8> INT_HEADER_WORD = 3;
-
-const bit<16> INT_TOTAL_HEADER_SIZE = INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
+const bit<16> INT_TOTAL_HEADER_SIZE = INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;   //bytes
 
 
-// INT meta-value headers - different header for each value type
+// INT meta-value headers - different header for each value type 32 x 11 = 352 bits == 44 bytes == 11 words
 header int_switch_id_t {
     bit<32> switch_id;
 }
@@ -288,20 +285,17 @@ header int_level2_port_ids_t {
     bit<32> ingress_port_id;
     bit<32> egress_port_id;
 }
-
-// these two not implemented yet
+// these one not implemented yet, but is emited
 header int_egress_port_tx_util_t {
     bit<32> egress_port_tx_util;
 }
-header int_buffer_t {
-    bit<8> buffer_id;
-    bit<24> buffer_occupancy;
-}
+
 
 header int_data_t {
-    // Maximum int metadata stack size in bits:
+    // Maximum int metadata stack size in bits: each node adds roughly 44 bytes -> 342 bits of metadata
+    // 6840 bits allows for a maximum of 20 nodes in the INT stack
     // (0x3F - 3) * 4 * 8 (excluding INT shim header and INT header)
-    varbit<1920> data;
+    varbit<6840> data;
 }
 
 
@@ -381,7 +375,7 @@ struct parsed_headers_t {
     int_egress_tstamp_t         int_egress_tstamp;
     int_level2_port_ids_t       int_level2_port_ids;
     int_egress_port_tx_util_t   int_egress_tx_util;
-    int_data_t                  int_data;
+    int_data_t                  int_data;               //all the INT stack data from previous hopes
 
     //INT Report Headers
     report_group_header_t       report_group_header;

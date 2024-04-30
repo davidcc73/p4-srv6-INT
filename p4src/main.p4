@@ -540,7 +540,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 if(hdr.int_header.isValid()){
                     log_msg("A packet with INT header will be sent to CPU, restoring it to original state withouth INT header");
                     hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
-                    bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) << 2) + INT_SHIM_HEADER_SIZE;
+                    bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) * 4) + INT_SHIM_HEADER_SIZE;
                     hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
                     if(hdr.udp.isValid()) { hdr.udp.length_ = hdr.udp.length_ - len_bytes; }
                     hdr.intl4_shim.setInvalid();

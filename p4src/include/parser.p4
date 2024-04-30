@@ -185,8 +185,8 @@ parser ParserImpl (packet_in packet,
     }
 
     state parse_int_data {
-        // Parse INT metadata stack, extract all before body
-        packet.extract(hdr.int_data, ((bit<32>) (local_metadata.int_meta.intl4_shim_len - INT_HEADER_WORD)) << 5);
+        // Parse INT metadata stack, extract into int_data a certain amount bits (all before body), convertion from word to bits
+        packet.extract(hdr.int_data, ((bit<32>) (local_metadata.int_meta.intl4_shim_len - INT_HEADER_WORD)) * 32); 
         transition accept;
     }
 }
@@ -219,7 +219,7 @@ control DeparserImpl(packet_out packet, in parsed_headers_t hdr) {
         // int header
         packet.emit(hdr.intl4_shim);        //extra int data
         packet.emit(hdr.int_header);        //the instructions
-        // hop metadata                     //the generated INT statistics at the current hop
+        // hop metadata                     //the generated INT statistics at the current hop, captured at parser by hdr.int_data
         packet.emit(hdr.int_switch_id);
         packet.emit(hdr.int_level1_port_ids);
         packet.emit(hdr.int_hop_latency);
