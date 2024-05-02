@@ -160,7 +160,6 @@ struct preserving_metadata_t {
     @field_list(CLONE_FL_1)
     bit<9> ingress_port;
     bit<9> egress_spec;
-    @field_list(CLONE_FL_1)
     bit<9> egress_port;
     bit<32> clone_spec;
     bit<32> instance_type;
@@ -181,8 +180,6 @@ struct preserving_metadata_t {
     bit<16> egress_rid;
     bit<1> checksum_error;
     bit<32> recirculate_flag;
-    @field_list(CLONE_FL_1)
-    bool to_INT_REPORT;           //true, when the packet is cloned to become INT_REPORT and later on be recirculated
 }
  
 struct preserving_metadata_CPU_t {
