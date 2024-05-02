@@ -72,13 +72,13 @@ h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --c 1
 #defined at config\routing_tables.txt
 
 # use case 1
-# send packets from r1 destined to h2 to pass on r8
-# send packets from r2 destined to h1 to pass on r7
+# at r1 send packets destined to h2 to pass on r8
+# at r2 send packets destined to h1 to pass on r7
 srv6-insert device:r1 fcbb:bb00:8:7:2:fd00:: 2001:1:2::1
 srv6-insert device:r2 fcbb:bb00:7:8:1:fd00:: 2001:1:1::1
 
 # use case 2
-# send packets from r1 destined to h2 to pass on r9 and then r14
+# at r1 send packets destined to h2 to pass on r9 and then r14
 srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2::1
 
 
