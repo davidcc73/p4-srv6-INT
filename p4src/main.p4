@@ -246,7 +246,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = xconnect_table_counter;
     }
 
-    action usid_encap_1(ipv6_addr_t src_addr, ipv6_addr_t s1) {
+    action usid_encap_1(ipv6_addr_t src_addr, ipv6_addr_t s1) { //only one segment, so the SRH is not used (we change the IPv6 header), only the ipv6_inner to save the OG info
         hdr.ipv6_inner.setValid();
 
         hdr.ipv6_inner.version = 6;
@@ -265,7 +265,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.dst_addr = s1;
     }
 
-    action usid_encap_2(ipv6_addr_t src_addr, ipv6_addr_t s1, ipv6_addr_t s2) {
+    action usid_encap_2(ipv6_addr_t src_addr, ipv6_addr_t s1, ipv6_addr_t s2) { //two segments, so the SRH is used to store future ones
         hdr.ipv6_inner.setValid();
 
         hdr.ipv6_inner.version = 6;
@@ -297,7 +297,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     direct_counter(CounterType.packets_and_bytes) srv6_encap_table_counter;
-    table srv6_encap {
+    table srv6_encap {      //when the OG packet is IPv6
         key = {
            hdr.ipv6.dst_addr: lpm;       
         }
@@ -377,7 +377,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     // create one group 
     action_selector(HashAlgorithm.crc16, 32w64, 32w10) ecmp_selector;
     direct_counter(CounterType.packets_and_bytes) srv6_encap_v4_table_counter;
-    table srv6_encap_v4 {
+    table srv6_encap_v4 {          //when the OG packet is IPv4
         key = {
             hdr.ipv4.dscp: exact;
             hdr.ipv4.dst_addr: lpm;
