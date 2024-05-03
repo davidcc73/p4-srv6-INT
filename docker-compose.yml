@@ -15,8 +15,9 @@ services:
       - ./tmp:/tmp
       - ./mininet:/mininet
       - ./INT:/INT
-      
-    entrypoint: "/mininet/topo.py"
+
+    entrypoint: "/bin/bash -c 'while [ ! -f /mininet/topo.py ]; do sleep 1; done; python3 /mininet/topo.py'"
+
     network_mode: "host"
     environment:
       - DISPLAY=${DISPLAY}
@@ -29,6 +30,6 @@ services:
     network_mode: "host"
     volumes:
       - ./tmp/onos:/root/onos/apache-karaf-4.2.8/data/tmp
-      - ./config:/config 
+      - ./config:/config
     environment:
       - ONOS_APPS=gui2,drivers.bmv2,lldpprovider,hostprovider
