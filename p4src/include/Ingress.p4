@@ -479,7 +479,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 (no sure if it occurs)
-        else                             {local_metadata.OG_dscp = 0;}                          //default value
+        //default value is already 0
 
         set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
         log_msg("Packet priority set to:{}", {standard_metadata.priority});
