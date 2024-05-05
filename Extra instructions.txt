@@ -42,7 +42,7 @@ source /config/routing_tables.txt                   #Push routing rules to switc
 source /config/ua_config.txT
 source /config/INT_Tables/INT_Transit_config.txT    #Push INT instructions to switchs
 INT_Role-set                                        #Push INT roles at config\INT_Tables to switchs, 1 file peer device               
-
+Packet_Priority-set                                 #Push packet priority values to all switchs
 
 #--------------------at mininet cli (make mn-cli) for the hosts be detected in the ropology send a packet from them
 h1 ping h2
@@ -60,7 +60,7 @@ sudo python3 INT/receive/collector_influxdb.py
 python3 /INT/receive/receive.py 
 
 # At a h1 terminal run (xterm h1 h2):  
-h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --c 1
+h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --dscp 18 --c 1
 
 
 #The generated telemetry should be visible in the grafana dashboard

@@ -9,7 +9,7 @@
 #define UN_BLOCK_MASK     0xffffffff000000000000000000000000
 
 /*************************************************************************
-****************  I N G R E S S   P R O C E S S I N G   ****************** (SOURCE NODE)
+****************  I N G R E S S   P R O C E S S I N G   ****************** (SOURCE/SINK NODE)
 *************************************************************************/
 
 control IngressPipeImpl (inout parsed_headers_t hdr,
@@ -290,8 +290,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.setValid();
 
         hdr.ipv6.version = 6;
-        hdr.ipv6.dscp = hdr.ipv6.dscp; 
-        hdr.ipv6.ecn = hdr.ipv6.ecn; 
+        hdr.ipv6.dscp = hdr.ipv4.dscp; 
+        hdr.ipv6.ecn = hdr.ipv4.ecn; 
         hash(hdr.ipv6.flow_label, 
                 HashAlgorithm.crc32, 
                 (bit<20>) 0, 
@@ -316,8 +316,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.setValid();
 
         hdr.ipv6.version = 6;
-        hdr.ipv6_inner.ecn = hdr.ipv6.ecn;
-        hdr.ipv6_inner.dscp = hdr.ipv6.dscp;
+        hdr.ipv6_inner.ecn = hdr.ipv4.ecn;
+        hdr.ipv6_inner.dscp = hdr.ipv4.dscp;
         hash(hdr.ipv6.flow_label, 
                 HashAlgorithm.crc32, 
                 (bit<20>) 0, 
@@ -374,6 +374,20 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = srv6_encap_v4_table_counter;
     }
 
+    action set_priority_value(bit<3> value) {
+        standard_metadata.priority = value;
+    }
+    // compare the DSCP value to set the packet priority between 0-7 
+    table set_priority_from_dscp{
+        key = {
+            local_metadata.OG_dscp: exact;
+        }
+        actions = {
+            set_priority_value;
+            NoAction;
+        }
+    }
+
 
     /*
      * ACL table  and actions.
@@ -405,10 +419,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = acl_counter;
     }
 
-    apply {
-        //INT sorce will need this OG values, but SRv6 (if active) will remove them, so backup them
-        local_metadata.src_IP_Pre_SRV6 = hdr.ipv6.src_addr;
-        local_metadata.dst_IP_Pre_SRV6 = hdr.ipv6.dst_addr;
+    apply {        
+        //-----------------Forwarding
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
@@ -461,12 +473,22 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 multicast.apply();
 	        }
 	    }
-        acl.apply();              //decide if clone to CPU from p4-SRv6 project
+
+        //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
+        //encapsulated or not we can just look at the OG packet DSCP value 
+        if     (hdr.ipv4.isValid()){local_metadata.OG_dscp = hdr.ipv4.dscp;} 
+        else if(hdr.ipv6.isValid()){local_metadata.OG_dscp = hdr.ipv6.dscp;}
+        set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
+        log_msg("Packet priority set to:{}", {standard_metadata.priority});
+
+        //-----------------See if packet should be droped by it's priority, and the ingress queue of the switch (load)
+        //if yes, we can just mark to drop and do exit to terminate the packet processing
+
+        //-----------------Decide if packet must be clone to CPU
+        acl.apply();                                        
            
         //-----------------INT processing portion        
-        //removed if ipv4 valid, I had already changed it into ipv6, and it may not be needed at this point of Ingress   
-        //just track higer level connections
-        if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //set if current hop is source or sink to the packet
+        if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //just track higer level connections. set if current hop is source or sink to the packet
             process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
         }
         

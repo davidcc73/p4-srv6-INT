@@ -50,7 +50,7 @@ public class INTSetRole extends AbstractShellCommand{
             try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
                 while ((line = br.readLine()) != null) {
                     if(line.startsWith("//") || line.trim().isEmpty()){continue;}   
-                    parts = line.split(" ");
+                    parts = line.split("\\s+");
                     if (parts[0].equals("mirroring_add")) {
                         int sessionID = Integer.parseInt(parts[1]);
                         long port = Long.parseLong(parts[2]);
