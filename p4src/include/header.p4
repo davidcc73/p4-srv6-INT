@@ -204,8 +204,6 @@ struct local_metadata_t {
     l4_port_t l4_dst_port;
     bool ipv4_update;
 
-    ipv6_addr_t src_IP_Pre_SRV6;                //used by INT Source node
-    ipv6_addr_t dst_IP_Pre_SRV6;                //used by INT Source node
     int_metadata_t int_meta;                    //used by INT
     preserving_metadata_t perserv_meta;         //used by INT
     preserving_metadata_CPU_t perserv_CPU_meta; //to migrate from clone3() to clone_preserving() in the clone_to_CPU scenario
