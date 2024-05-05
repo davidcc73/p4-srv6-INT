@@ -316,8 +316,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         hdr.ipv6.setValid();
 
         hdr.ipv6.version = 6;
-        hdr.ipv6_inner.ecn = hdr.ipv4.ecn;
-        hdr.ipv6_inner.dscp = hdr.ipv4.dscp;
+        hdr.ipv6.ecn = hdr.ipv4.ecn;
+        hdr.ipv6.dscp = hdr.ipv4.dscp;
         hash(hdr.ipv6.flow_label, 
                 HashAlgorithm.crc32, 
                 (bit<20>) 0, 
@@ -475,9 +475,12 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	    }
 
         //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
-        //encapsulated or not we can just look at the OG packet DSCP value 
-        if     (hdr.ipv4.isValid()){local_metadata.OG_dscp = hdr.ipv4.dscp;} 
-        else if(hdr.ipv6.isValid()){local_metadata.OG_dscp = hdr.ipv6.dscp;}
+        if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
+        else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
+        else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
+        else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 (no sure if it occurs)
+        else                             {local_metadata.OG_dscp = 0;}                          //default value
+
         set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
         log_msg("Packet priority set to:{}", {standard_metadata.priority});
 
@@ -485,8 +488,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         //if yes, we can just mark to drop and do exit to terminate the packet processing
 
         //-----------------Decide if packet must be clone to CPU
-        acl.apply();                                        
-           
+        acl.apply();
+
         //-----------------INT processing portion        
         if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //just track higer level connections. set if current hop is source or sink to the packet
             process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
