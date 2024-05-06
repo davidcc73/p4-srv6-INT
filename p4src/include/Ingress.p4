@@ -424,7 +424,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
-        else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 (no sure if it occurs)
+        else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 
         //the value is 0 by default (best effort)
 
         set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
@@ -436,7 +436,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
 
 
-        
+
         //-----------------Forwarding
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
