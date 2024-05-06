@@ -430,10 +430,18 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
         log_msg("Packet priority set to:{}", {standard_metadata.priority});
 
-        //-----------------See if packet should be droped by it's priority, and the ingress queue of the switch (load)
+        //-----------------See if packet should be droped by it's priority and % of queue filled (current size/max size) 
         //if yes, we can just mark to drop and do exit to terminate the packet processing
-
-
+        /* THIS IS IMPLEMENTATION DEPENDENT, IN MININET IT IS USELESS
+        if      (standard_metadata.deq_qdepth/max > 0.95 && standard_metadata.priority < 7)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.90 && standard_metadata.priority < 6)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.85 && standard_metadata.priority < 5)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.80 && standard_metadata.priority < 4)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.75 && standard_metadata.priority < 3)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.70 && standard_metadata.priority < 2)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.65 && standard_metadata.priority == 0) {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        else if (standard_metadata.deq_qdepth/max > 0.60 && standard_metadata.priority == 1) {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
+        */
 
 
 
