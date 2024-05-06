@@ -420,6 +420,23 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     apply {        
+        //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
+        if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
+        else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
+        else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
+        else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 (no sure if it occurs)
+        //the value is 0 by default (best effort)
+
+        set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
+        log_msg("Packet priority set to:{}", {standard_metadata.priority});
+
+        //-----------------See if packet should be droped by it's priority, and the ingress queue of the switch (load)
+        //if yes, we can just mark to drop and do exit to terminate the packet processing
+
+
+
+
+        
         //-----------------Forwarding
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
@@ -473,19 +490,6 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 multicast.apply();
 	        }
 	    }
-
-        //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
-        if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
-        else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
-        else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
-        else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 (no sure if it occurs)
-        //the value is 0 by default (best effort)
-
-        set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
-        log_msg("Packet priority set to:{}", {standard_metadata.priority});
-
-        //-----------------See if packet should be droped by it's priority, and the ingress queue of the switch (load)
-        //if yes, we can just mark to drop and do exit to terminate the packet processing
 
         //-----------------Decide if packet must be clone to CPU
         acl.apply();
