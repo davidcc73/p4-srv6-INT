@@ -99,23 +99,23 @@ public class INTComponent {
 
         @Activate
         protected void activate() {
-        appId = mainComponent.getAppId();
+                appId = mainComponent.getAppId();
 
-        // linkService.addListener(linkListener);
-        // deviceService.addListener(deviceListener);
+                // linkService.addListener(linkListener);
+                // deviceService.addListener(deviceListener);
 
-        // Schedule set up for all devices.
-        // mainComponent.scheduleTask(this::setUpAllDevices, INITIAL_SETUP_DELAY);
+                // Schedule set up for all devices.
+                // mainComponent.scheduleTask(this::setUpAllDevices, INITIAL_SETUP_DELAY);
 
-        log.info("Started");
+                log.info("Started");
         }
 
         @Deactivate
         protected void deactivate() {
-        //linkService.removeListener(linkListener);
-        //deviceService.removeListener(deviceListener);
+                //linkService.removeListener(linkListener);
+                //deviceService.removeListener(deviceListener);
 
-        log.info("Stopped");
+                log.info("Stopped");
         }
 
 

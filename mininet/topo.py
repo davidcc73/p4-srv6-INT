@@ -20,12 +20,21 @@ from mininet.log import setLogLevel
 from mininet.net import Mininet
 from mininet.node import RemoteController
 from mininet.topo import Topo
+from mininet.link import TCLink
 
 from stratum import StratumBmv2Switch
 from host6 import IPv6Host
 
 CPU_PORT = 255
 
+BW_INFRA_INFRA = 900                 #Bandwith   (Mbps)              Glass Fiber cable, 10 km
+DL_INFRA_INFRA = 2                   #Delay      (ms) 
+
+BW_INFRA_VEHICULE = 700              #Bandwith   (Mbps)              5G cellular towers, 10 km
+DL_INFRA_VEHICULE = 20               #Delay      (ms)                (10-30 ms)
+
+BW_VEHICULE_VEHICULE = 700           #Bandwith   (Mbps)              5G between cars, max 100 meters
+DL_VEHICULE_VEHICULE = 7             #Delay      (ms)                (1-10 ms)
 
 class TutorialTopo(Topo):
     
@@ -68,48 +77,48 @@ class TutorialTopo(Topo):
         
 
         # Switch Links
-        self.addLink(r1, r4)
-        self.addLink(r1, r9)
+        self.addLink(r1, r4, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
+        self.addLink(r1, r9, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r2, r3)
-        self.addLink(r2, r14)
+        self.addLink(r2, r3, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
+        self.addLink(r2, r14, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r9, r4)
-        self.addLink(r9, r10)
-        self.addLink(r9, r13)
-        self.addLink(r9, r14)
+        self.addLink(r9, r4, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r9, r10, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r9, r13, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r9, r14, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
 
-        self.addLink(r14, r10)
-        self.addLink(r14, r3)
-        self.addLink(r14, r13)
+        self.addLink(r14, r10, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r14, r3, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r14, r13, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
 
-        self.addLink(r4, r5)
-        self.addLink(r4, r10)
+        self.addLink(r4, r5, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
+        self.addLink(r4, r10, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r3, r13)
-        self.addLink(r3, r6)
+        self.addLink(r3, r13, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r3, r6, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
 
-        self.addLink(r10, r5)
-        self.addLink(r10, r11)
-        self.addLink(r10, r12)
-        self.addLink(r10, r13)
+        self.addLink(r10, r5, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r10, r11, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r10, r12, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r10, r13, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
 
-        self.addLink(r13, r11)
-        self.addLink(r13, r12)
-        self.addLink(r13, r6)
+        self.addLink(r13, r11, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r13, r12, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r13, r6, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r5, r8)
-        self.addLink(r5, r11)
+        self.addLink(r5, r8, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
+        self.addLink(r5, r11, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r6, r7)
-        self.addLink(r6, r12)
+        self.addLink(r6, r7, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
+        self.addLink(r6, r12, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r11, r8)
-        self.addLink(r11, r12)
+        self.addLink(r11, r8, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r11, r12, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
 
-        self.addLink(r12, r7)
+        self.addLink(r12, r7, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r8, r7)
+        self.addLink(r8, r7, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
 
 
         # IPv6 hosts attached to leaf 1
@@ -129,6 +138,13 @@ class TutorialTopo(Topo):
         self.addLink(coll, r1, port2 = 100)        
         self.addLink(coll, r2, port2 = 100)              
 
+class ECMP_Calculator():
+    def calculate_ecmp_paths(selt, net):
+        switches = [s for s in net.switches if s.name.startswith('r')]  # Get all switches starting with 'r'
+        ecmp_paths = {}
+
+
+        print("ECMP paths: ", ecmp_paths)
 
 def main():
     topo = TutorialTopo()
@@ -137,6 +153,10 @@ def main():
 
     net = Mininet(topo=topo, controller=None)
     net.addController(controller)
+
+    # Create an instance of ECMP_Calculator and call the calculate_ecmp_paths method
+    ecmp_calculator = ECMP_Calculator()
+    ecmp_paths = ecmp_calculator.calculate_ecmp_paths(net)
 
     net.start()
 

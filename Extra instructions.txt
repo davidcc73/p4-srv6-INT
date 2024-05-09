@@ -27,23 +27,22 @@ the image was compiled with name:davidcc73/ngsdn-tutorial:stratum_bmv2_X11_scapy
 the image was published at docker hub, and is pulled from there, by doing make deps
 
 #--------------------Start ONOS and mininet. Execute this commands in groups, not all at once
-sudo make stop    #sudo is need to delete the old interfaces created by the mininet, or the new ones will be buggy
-sudo mn -c
-make clean
-xhost +
-sudo make start          #WebUI at http://localhost:8181/onos/ui
-sudo make app-build      #only if P4 or ONOS code was modified or make clean was executed
+sudo make stop                                      #Delete the mininet and ONOS containers
+sudo mn -c                                          #Delete virtual interfaces that mininet created
+make clean                                          #Delete P4 and ONOS compilations
+xhost +                                             #Enable X11 forwarding
+sudo make start                                     #Start ONOS and mininet containers
+sudo make app-build                                 #Recompile P4 code and ONOS apps
 
-make app-reload
-make netcfg
+make app-reload                                     #Push ONOS apps to ONOS
+make netcfg                                         #Push mininet topology to ONOS
 
 #--------------------at ONOS cli (make onos-cli)
-source /config/routing_tables.txt
+source /config/routing_tables.txt                   #Push routing rules to switchs
 source /config/ua_config.txT
-source /config/INT_Tables/INT_Transit_config.txT
-# will push all rules from files at config\INT_Tables and sub-direories to their respective switches, NO SPACES BEFORE COMMANDS
-INT_Role-set                    
-
+source /config/INT_Tables/INT_Transit_config.txT    #Push INT instructions to switchs
+INT_Role-set                                        #Push INT roles at config\INT_Tables to switchs, 1 file peer device               
+Packet_Priority-set                                 #Push packet priority values to all switchs
 
 #--------------------at mininet cli (make mn-cli) for the hosts be detected in the ropology send a packet from them
 h1 ping h2
@@ -61,7 +60,7 @@ sudo python3 INT/receive/collector_influxdb.py
 python3 /INT/receive/receive.py 
 
 # At a h1 terminal run (xterm h1 h2):  
-h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --c 1
+h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --dscp 18 --c 1
 
 
 #The generated telemetry should be visible in the grafana dashboard

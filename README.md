@@ -7,6 +7,7 @@ built from source by modifying the Dockerfile (see file Dockerfile) adding X11, 
 image compiled with name:
 davidcc73/stratum_bmv2_x11_scapy_pip3
 
+TODO: explain the packet priority system
 
 # IPv6 Segment Routing SRv6  Original README.md<br/>
 SRv6 is a network architecture that encodes a list of instructions in the IPv6 packet header to define a network wide packet processing program. <br/>

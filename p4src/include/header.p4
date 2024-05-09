@@ -204,13 +204,11 @@ struct local_metadata_t {
     l4_port_t l4_dst_port;
     bool ipv4_update;
 
-    ipv6_addr_t src_IP_Pre_SRV6;                //used by INT Source node
-    ipv6_addr_t dst_IP_Pre_SRV6;                //used by INT Source node
+    bit<6> OG_dscp;                             //0 by default which means Best Effort (0 at Precedence Values)
+
     int_metadata_t int_meta;                    //used by INT
     preserving_metadata_t perserv_meta;         //used by INT
     preserving_metadata_CPU_t perserv_CPU_meta; //to migrate from clone3() to clone_preserving() in the clone_to_CPU scenario
-    //digest_t              mac_learn_digest; //ARP used for the original project with ipv4 INT packets
-    bool finished_recirculation;  //true, when the packet has already gone to ingress for recirculation
 }
 
 

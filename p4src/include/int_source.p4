@@ -109,13 +109,12 @@ control process_int_source (
 
     apply {
         //the next table needs to see the OG IPs and ports, that SRv6 (if active) changed the IPs
-        ipv6_addr_t tmp1;
-        ipv6_addr_t tmp2;
-        tmp1 = hdr.ipv6.src_addr;
-        tmp2 = hdr.ipv6.dst_addr;
+        ipv6_addr_t tmp1 = hdr.ipv6.src_addr;
+        ipv6_addr_t tmp2 = hdr.ipv6.dst_addr;
+
         if(hdr.ipv6_inner.isValid()){
-            hdr.ipv6.src_addr = local_metadata.src_IP_Pre_SRV6;
-            hdr.ipv6.dst_addr = local_metadata.dst_IP_Pre_SRV6;
+            hdr.ipv6.src_addr = hdr.ipv6_inner.src_addr;
+            hdr.ipv6.dst_addr = hdr.ipv6_inner.dst_addr;
         }
         
         tb_int_source.apply();
