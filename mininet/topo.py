@@ -28,13 +28,13 @@ from host6 import IPv6Host
 CPU_PORT = 255
 
 BW_INFRA_INFRA = 900                 #Bandwith   (Mbps)              Glass Fiber cable, 10 km
-DL_INFRA_INFRA = 2                   #Latency    (ms) 
+DL_INFRA_INFRA = 2                   #Delay      (ms) 
 
 BW_INFRA_VEHICULE = 700              #Bandwith   (Mbps)              5G cellular towers, 10 km
-DL_INFRA_VEHICULE = 20               #Latency    (ms)                (10-30 ms)
+DL_INFRA_VEHICULE = 20               #Delay      (ms)                (10-30 ms)
 
 BW_VEHICULE_VEHICULE = 700           #Bandwith   (Mbps)              5G between cars, max 100 meters
-DL_VEHICULE_VEHICULE = 7             #Latency    (ms)                (1-10 ms)
+DL_VEHICULE_VEHICULE = 7             #Delay      (ms)                (1-10 ms)
 
 class TutorialTopo(Topo):
     
