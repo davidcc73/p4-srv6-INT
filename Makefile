@@ -52,7 +52,7 @@ restart: reset start
 onos-cli:
 	$(info *** Connecting to the ONOS CLI... password: rocks)
 	$(info *** Top exit press Ctrl-D)
-	$(info *** NON SECURE CONNECTION, ADDED -o HostKeyAlgorithms=ssh-rsa TO AVOID ERROR***)
+	$(info *** WARNING: NON SECURE CONNECTION, ADDED -o HostKeyAlgorithms=ssh-rsa TO AVOID ERROR***)
 	@ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -o HostKeyAlgorithms=ssh-rsa -o LogLevel=ERROR -p 8101 onos@localhost
 
 onos-log:
