@@ -79,9 +79,9 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	    key = {
 	        hdr.ipv6.dst_addr: lpm;
 
-            hdr.ipv6.flow_label : selector;
-            hdr.ipv6.dst_addr : selector;
-            hdr.ipv6.src_addr : selector;
+            //hdr.ipv6.flow_label : selector;
+            //hdr.ipv6.dst_addr : selector;
+            //hdr.ipv6.src_addr : selector;
 	    }
         actions = {
 	        set_next_hop;

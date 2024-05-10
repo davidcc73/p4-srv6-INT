@@ -1,8 +1,8 @@
 ############ r1
 #h1
-route-insert device:r1 2001:1:1::1 128 00:00:00:00:00:10
+route-insert device:r1 2001:1:1::0 64 00:00:00:00:00:10
 #h2
-route-insert device:r1 2001:1:2::1 128 00:aa:00:00:00:09
+route-insert device:r1 2001:1:2::0 64 00:aa:00:00:00:09
 
 #r2
 route-insert device:r1 fcbb:bb00:02:: 48 00:aa:00:00:00:09
@@ -33,9 +33,9 @@ route-insert device:r1 fcbb:bb00:0e:: 48 00:aa:00:00:00:09
 
 ############ r2
 #h1
-route-insert device:r2 2001:1:1::1 128 00:aa:00:00:00:0e
+route-insert device:r2 2001:1:1::0 64 00:aa:00:00:00:0e
 #h2
-route-insert device:r2 2001:1:2::1 128 00:00:00:00:00:20
+route-insert device:r2 2001:1:2::0 64 00:00:00:00:00:20
 
 #r1
 route-insert device:r2 fcbb:bb00:01:: 48 00:aa:00:00:00:0e
@@ -67,9 +67,9 @@ route-insert device:r2 fcbb:bb00:0e:: 48 00:aa:00:00:00:0e
 
 ############ r3
 #h1
-route-insert device:r3 2001:1:1::1 128 00:aa:00:00:00:02
+route-insert device:r3 2001:1:1::0 64 00:aa:00:00:00:02
 #h2
-route-insert device:r3 2001:1:2::1 128 00:aa:00:00:00:02
+route-insert device:r3 2001:1:2::0 64 00:aa:00:00:00:02
 
 #r1
 route-insert device:r3 fcbb:bb00:01:: 48 00:aa:00:00:00:0e
@@ -101,9 +101,9 @@ route-insert device:r3 fcbb:bb00:0e:: 48 00:aa:00:00:00:0e
 
 ############ r4
 #h1
-route-insert device:r4 2001:1:1::1 128 00:aa:00:00:00:01
+route-insert device:r4 2001:1:1::0 64 00:aa:00:00:00:01
 #h2
-route-insert device:r4 2001:1:2::1 128 00:aa:00:00:00:09
+route-insert device:r4 2001:1:2::0 64 00:aa:00:00:00:09
 
 #r1
 route-insert device:r4 fcbb:bb00:01:: 48 00:aa:00:00:00:01
@@ -135,9 +135,9 @@ route-insert device:r4 fcbb:bb00:0e:: 48 00:aa:00:00:00:09
 
 ############ r5
 #h1
-route-insert device:r5 2001:1:1::1 128 00:aa:00:00:00:04
+route-insert device:r5 2001:1:1::0 64 00:aa:00:00:00:04
 #h2
-route-insert device:r5 2001:1:2::1 128 00:aa:00:00:00:0a
+route-insert device:r5 2001:1:2::0 64 00:aa:00:00:00:0a
 
 #r1
 route-insert device:r5 fcbb:bb00:01:: 48 00:aa:00:00:00:04
@@ -168,9 +168,9 @@ route-insert device:r5 fcbb:bb00:0e:: 48 00:aa:00:00:00:0a
 
 ############ r6
 #h1
-route-insert device:r6 2001:1:1::1 128 00:aa:00:00:00:0d
+route-insert device:r6 2001:1:1::0 64 00:aa:00:00:00:0d
 #h2
-route-insert device:r6 2001:1:2::1 128 00:aa:00:00:00:03
+route-insert device:r6 2001:1:2::0 64 00:aa:00:00:00:03
 
 #r1
 route-insert device:r6 fcbb:bb00:01:: 48 00:aa:00:00:00:0d
@@ -201,9 +201,9 @@ route-insert device:r6 fcbb:bb00:0e:: 48 00:aa:00:00:00:0d
 
 ############ r7
 #h1
-route-insert device:r7 2001:1:1::1 128 00:aa:00:00:00:08
+route-insert device:r7 2001:1:1::0 64 00:aa:00:00:00:08
 #h2
-route-insert device:r7 2001:1:2::1 128 00:aa:00:00:00:06
+route-insert device:r7 2001:1:2::0 64 00:aa:00:00:00:06
 
 #r1
 route-insert device:r7 fcbb:bb00:01:: 48 00:aa:00:00:00:0c
@@ -234,9 +234,9 @@ route-insert device:r7 fcbb:bb00:0e:: 48 00:aa:00:00:00:0c
 
 ############ r8
 #h1
-route-insert device:r8 2001:1:1::1 128 00:aa:00:00:00:05
+route-insert device:r8 2001:1:1::0 64 00:aa:00:00:00:05
 #h2
-route-insert device:r8 2001:1:2::1 128 00:aa:00:00:00:07
+route-insert device:r8 2001:1:2::0 64 00:aa:00:00:00:07
 
 #r1
 route-insert device:r8 fcbb:bb00:01:: 48 00:aa:00:00:00:05
@@ -267,9 +267,9 @@ route-insert device:r8 fcbb:bb00:0e:: 48 00:aa:00:00:00:0b
 
 ############ r9
 #h1
-route-insert device:r9 2001:1:1::1 128 00:aa:00:00:00:01
+route-insert device:r9 2001:1:1::0 64 00:aa:00:00:00:01
 #h2
-route-insert device:r9 2001:1:2::1 128 00:aa:00:00:00:0e
+route-insert device:r9 2001:1:2::0 64 00:aa:00:00:00:0e
 
 #r1
 route-insert device:r9 fcbb:bb00:01:: 48 00:aa:00:00:00:01
@@ -300,9 +300,9 @@ route-insert device:r9 fcbb:bb00:0e:: 48 00:aa:00:00:00:0e
 
 ############ r10
 #h1
-route-insert device:r10 2001:1:1::1 128 00:aa:00:00:00:04
+route-insert device:r10 2001:1:1::0 64 00:aa:00:00:00:04
 #h2
-route-insert device:r10 2001:1:2::1 128 00:aa:00:00:00:0d
+route-insert device:r10 2001:1:2::0 64 00:aa:00:00:00:0d
 
 #r1
 route-insert device:r10 fcbb:bb00:01:: 48 00:aa:00:00:00:09
@@ -333,9 +333,9 @@ route-insert device:r10 fcbb:bb00:0e:: 48 00:aa:00:00:00:0e
 
 ############ r11
 #h1
-route-insert device:r11 2001:1:1::1 128 00:aa:00:00:00:0a
+route-insert device:r11 2001:1:1::0 64 00:aa:00:00:00:0a
 #h2
-route-insert device:r11 2001:1:2::1 128 00:aa:00:00:00:0d
+route-insert device:r11 2001:1:2::0 64 00:aa:00:00:00:0d
 
 #r1
 route-insert device:r11 fcbb:bb00:01:: 48 00:aa:00:00:00:0a
@@ -367,9 +367,9 @@ route-insert device:r11 fcbb:bb00:0e:: 48 00:aa:00:00:00:0d
 
 ############ r12
 #h1
-route-insert device:r12 2001:1:1::1 128 00:aa:00:00:00:0a
+route-insert device:r12 2001:1:1::0 64 00:aa:00:00:00:0a
 #h2
-route-insert device:r12 2001:1:2::1 128 00:aa:00:00:00:0d
+route-insert device:r12 2001:1:2::0 64 00:aa:00:00:00:0d
 
 #r1
 route-insert device:r12 fcbb:bb00:01:: 48 00:aa:00:00:00:0a
@@ -400,9 +400,9 @@ route-insert device:r12 fcbb:bb00:0e:: 48 00:aa:00:00:00:0d
 
 ############ r13
 #h1
-route-insert device:r13 2001:1:1::1 128 00:aa:00:00:00:09
+route-insert device:r13 2001:1:1::0 64 00:aa:00:00:00:09
 #h2
-route-insert device:r13 2001:1:2::1 128 00:aa:00:00:00:0e
+route-insert device:r13 2001:1:2::0 64 00:aa:00:00:00:0e
 
 #r1
 route-insert device:r13 fcbb:bb00:01:: 48 00:aa:00:00:00:09
@@ -433,9 +433,9 @@ route-insert device:r13 fcbb:bb00:0e:: 48 00:aa:00:00:00:0e
 
 ############ r14
 #h1
-route-insert device:r14 2001:1:1::1 128 00:aa:00:00:00:09
+route-insert device:r14 2001:1:1::0 64 00:aa:00:00:00:09
 #h2
-route-insert device:r14 2001:1:2::1 128 00:aa:00:00:00:02
+route-insert device:r14 2001:1:2::0 64 00:aa:00:00:00:02
 
 #r1
 route-insert device:r14 fcbb:bb00:01:: 48 00:aa:00:00:00:09
