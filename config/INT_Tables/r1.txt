@@ -4,8 +4,9 @@ table_set_default EgressPipeImpl.process_int_transit.tb_int_insert init_metadata
 
 //----------------------------------------------------SINK
 
-//set up process_int_source_sink (to which ports I am a sink node)
+//set up process_int_source_sink (to which ports I am a sink node, my hosts)
 table_add IngressPipeImpl.process_int_source_sink.tb_set_sink int_set_sink 3 => 
+table_add IngressPipeImpl.process_int_source_sink.tb_set_sink int_set_sink 4 => 
 
 
 //INT metadata report setup

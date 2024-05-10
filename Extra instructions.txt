@@ -47,6 +47,8 @@ Packet_Priority-set                                 #Push packet priority values
 #--------------------at mininet cli (make mn-cli) for the hosts be detected in the ropology send a packet from them
 h1_1 ping h2_1
 h2_1 ping h1_1
+h1_2 ping h2_2
+h2_2 ping h1_2
 
 
 #--------------------Start the INT collector
