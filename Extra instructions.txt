@@ -45,8 +45,8 @@ INT_Role-set                                        #Push INT roles at config\IN
 Packet_Priority-set                                 #Push packet priority values to all switchs
 
 #--------------------at mininet cli (make mn-cli) for the hosts be detected in the ropology send a packet from them
-h1 ping h2
-h2 ping h1
+h1_1 ping h2_1
+h2_1 ping h1_1
 
 
 #--------------------Start the INT collector
@@ -56,11 +56,11 @@ sudo python3 INT/receive/collector_influxdb.py
 
 
 #--------------------To create INT traffic
-# At a h2 terminal run:
+# At a h2_1 terminal run:
 python3 /INT/receive/receive.py 
 
-# At a h1 terminal run (xterm h1 h2):  
-h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --dscp 18 --c 1
+# At h1_1 terminal run with real ips (xterm h1_1 h2_1):  
+h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --c 1
 
 
 #The generated telemetry should be visible in the grafana dashboard
@@ -71,18 +71,18 @@ h1 python3 /INT/send/send.py --ip h2 --l4 udp --port 443 --m INTH1 --dscp 18 --c
 #defined at config\routing_tables.txt
 
 # use case 1
-# at r1 send packets destined to h2 to pass on r8
-# at r2 send packets destined to h1 to pass on r7
+# at h1_1 send packets destined to h2_1 to pass on r8
+# at h2_1 send packets destined to h1_1 to pass on r7
 srv6-insert device:r1 fcbb:bb00:8:7:2:fd00:: 2001:1:2::1
 srv6-insert device:r2 fcbb:bb00:7:8:1:fd00:: 2001:1:1::1
 
 # use case 2
-# at r1 send packets destined to h2 to pass on r9 and then r14
+# at r1 send packets destined to h2_1 to pass on r9 and then r14
 srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2::1
 
 
 
-#--------python3 scrits to create ba chat like traffic between h1 and h2 using tcp, 
+#--------python3 scrits to create ba chat like traffic between h1 and h2_1 using tcp, 
 #can not be used at mininet, server does not reply to the SYN packet, probably mininet is blocking it on how simulates hosts
 python3 /INT/h1_tcp.py
 python3 /INT/h2_tcp.py

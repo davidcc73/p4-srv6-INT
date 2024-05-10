@@ -122,18 +122,20 @@ class TutorialTopo(Topo):
 
 
         # IPv6 hosts attached to leaf 1
-        h1 = self.addHost('h1', cls=IPv6Host, mac="00:00:00:00:00:10",
-                           ipv6='2001:1:1::1/64', ipv6_gw='2001:1:1::ff')
-        h2 = self.addHost('h2', cls=IPv6Host, mac="00:00:00:00:00:20",
-                          ipv6='2001:1:2::1/64', ipv6_gw='2001:1:2::ff')
+        h1_1 = self.addHost('h1_1', cls=IPv6Host, mac="00:00:00:00:00:10",
+                            ipv6='2001:1:1::1/64', ipv6_gw='2001:1:1::ff')
+        h2_1 = self.addHost('h2_1', cls=IPv6Host, mac="00:00:00:00:00:20",
+                            ipv6='2001:1:2::1/64', ipv6_gw='2001:1:2::ff')
 
-        self.addLink(h1, r1, port2=3)
-        self.addLink(h2, r2, port2=3)
+        self.addLink(h1_1, r1, port2=3)
+        self.addLink(h2_1, r2, port2=3)
+
+
 
         #---------------------INT POTION 
         #create the collector
         coll = self.addHost('coll', cls=IPv6Host, mac="00:00:00:00:00:05",
-                                   ipv6='2001:1:1::2/64', ipv6_gw='2001:1:3::ff', loglevel="info")        
+                            ipv6='2001:1:30::1/64', loglevel="info")        
         #port 100 of r1, points to the collector
         self.addLink(coll, r1, port2 = 100)        
         self.addLink(coll, r2, port2 = 100)              
