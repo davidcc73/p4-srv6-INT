@@ -23,6 +23,7 @@ table_add EgressPipeImpl.process_int_report.tb_generate_report do_report_encapsu
 
 //set up process_int_source_sink (to which ports I am a source node)
 table_add IngressPipeImpl.process_int_source_sink.tb_set_source int_set_source 3 => 
+table_add IngressPipeImpl.process_int_source_sink.tb_set_source int_set_source 4 => 
 
 
 //INT activation rules (after port validation), to set up the INT metadata (IPs, port pairs and their masks to monitor)

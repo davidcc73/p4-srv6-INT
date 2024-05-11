@@ -1,6 +1,11 @@
+#subnet masks for hosts that are not from the current switchs
+#its hosts must be the exact IP address
+
 ############ r1
-#h1
-route-insert device:r1 2001:1:1::0 64 00:00:00:00:00:10
+#h1_1
+route-insert device:r1 2001:1:1::1 128 00:00:00:00:00:10
+#h1_2
+route-insert device:r1 2001:1:1::2 128 00:00:00:00:00:11
 #h2
 route-insert device:r1 2001:1:2::0 64 00:aa:00:00:00:09
 
@@ -34,8 +39,10 @@ route-insert device:r1 fcbb:bb00:0e:: 48 00:aa:00:00:00:09
 ############ r2
 #h1
 route-insert device:r2 2001:1:1::0 64 00:aa:00:00:00:0e
-#h2
-route-insert device:r2 2001:1:2::0 64 00:00:00:00:00:20
+#h2_1
+route-insert device:r2 2001:1:2::1 128 00:00:00:00:00:20
+#h2_2
+route-insert device:r2 2001:1:2::2 128 00:00:00:00:00:21
 
 #r1
 route-insert device:r2 fcbb:bb00:01:: 48 00:aa:00:00:00:0e
