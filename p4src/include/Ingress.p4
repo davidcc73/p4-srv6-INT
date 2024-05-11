@@ -428,8 +428,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         //the value is 0 by default (best effort)
 
         //TODO: it can be more efficient the IP Precedence (priority) is always the 3 leftmost bits of the DSCP value
-        set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
-        log_msg("Packet priority set to:{}", {standard_metadata.priority});
+        set_priority_from_dscp.apply();                       //set the packet priority based on the DSCP value
+        if(standard_metadata.priority != 0){log_msg("Packet priority changed to:{}", {standard_metadata.priority});}
 
         //-----------------See if packet should be droped by it's priority and % of queue filled (current size/max size) 
         //if yes, we can just mark to drop and do exit to terminate the packet processing
@@ -520,11 +520,10 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
         }
 
-        if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
+        if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) and the INT header is valid
             // clone packet for Telemetry Report Collector
             log_msg("I am sink of this packet and i will clone it");
             local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
-            //local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
             local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
             local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
 
