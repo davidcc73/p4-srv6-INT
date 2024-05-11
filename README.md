@@ -8,6 +8,7 @@ image compiled with name:
 davidcc73/stratum_bmv2_x11_scapy_pip3
 
 Telemetry is not generated between hosts with the same switch (it's the same car, so it's irrelevant), because the packet that will be the report is cloned to egress at ingress start with no INT header.
+
 TODO: explain the packet priority system
 
 # IPv6 Segment Routing SRv6  Original README.md<br/>
