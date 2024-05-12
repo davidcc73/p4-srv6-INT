@@ -121,11 +121,11 @@ class TutorialTopo(Topo):
         self.addLink(r8, r7, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
 
 
-        #Hosts
+        # Hosts
         #For each host added:
-        #add it's info to the file of the switch connected to it at INT_Tables (to be Source and Sink to it)
-        #add it's info to config\netcong.txt, so ONOS can detect the IPv6Host
-        #add it's info to config\routing_tables.txt, on the switch that connects to it (the other ones know already by the submask of the IP)
+        #add it's info to the file of the switch connected to it at INT_Tables (the ports, to be Source and Sink to it)
+        #add it's info to config\netcong.txt, so ONOS can detect the IPv6Host (the mac)
+        #add it's info to config\Routing_Tables\routing_tables.txt, on the switch that connects to it (the other ones know already by the submask of the IP) (add the IP and mac)
 
         # IPs must respect the subnet of their switch
         
@@ -141,11 +141,19 @@ class TutorialTopo(Topo):
         h2_2 = self.addHost('h2_2', cls=IPv6Host, mac="00:00:00:00:00:21",
                             ipv6='2001:1:2::2/64', ipv6_gw='2001:1:2::ff')
         
-        self.addLink(h1_1, r1, port2=3)
-        self.addLink(h1_2, r1, port2=4)
+        # IPv6 hosts attached to r3
+        h3_1 = self.addHost('h3_1', cls=IPv6Host, mac="00:00:00:00:00:30",
+                            ipv6='2001:1:3::1/64', ipv6_gw='2001:1:3::ff')
+        
+        
+        # Hosts Links
+        self.addLink(h1_1, r1, port2=11)
+        self.addLink(h1_2, r1, port2=12)
 
-        self.addLink(h2_1, r2, port2=3)
-        self.addLink(h2_2, r2, port2=4)
+        self.addLink(h2_1, r2, port2=11)
+        self.addLink(h2_2, r2, port2=12)
+
+        self.addLink(h3_1, r3, port2=11)
 
 
 
@@ -153,9 +161,15 @@ class TutorialTopo(Topo):
         #create the collector
         coll = self.addHost('coll', cls=IPv6Host, mac="00:00:00:00:00:05",
                             ipv6='2001:1:30::1/64', loglevel="info")        
-        #port 100 of r1, points to the collector
+        #port 100 of all leaf switchs, points to the collector
         self.addLink(coll, r1, port2 = 100)        
-        self.addLink(coll, r2, port2 = 100)              
+        self.addLink(coll, r2, port2 = 100)             
+        self.addLink(coll, r3, port2 = 100)   
+        self.addLink(coll, r4, port2 = 100)   
+        self.addLink(coll, r5, port2 = 100)   
+        self.addLink(coll, r6, port2 = 100)   
+        self.addLink(coll, r7, port2 = 100)   
+        self.addLink(coll, r8, port2 = 100)   
 
 class ECMP_Calculator():
     def calculate_ecmp_paths(selt, net):
