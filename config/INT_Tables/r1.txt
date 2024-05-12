@@ -40,4 +40,14 @@ table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:
 table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0000&&&0xFFFFFFF0 2001:0001:0002::0000&&&0xFFFFFFF0 0x00&&&0x00 0x0050&&&0xFFFF => 11 10 0xF 0xF
 
 
+//---------dst r3 subnet
+//port PostGreSQL 5432
+table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0000&&&0xFFFFFFF0 2001:0001:0003::0000&&&0xFFFFFFF0 0x00&&&0x00 0x1538&&&0xFFFF => 11 10 0xF 0xF
+
+//port HTTPS 443
+table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0000&&&0xFFFFFFF0 2001:0001:0003::0000&&&0xFFFFFFF0 0x00&&&0x00 0x01BB&&&0xFFFF => 11 10 0xF 0xF
+
+//port HTTP 80
+table_add IngressPipeImpl.process_int_source.tb_int_source int_source 2001:0001:0001::0000&&&0xFFFFFFF0 2001:0001:0003::0000&&&0xFFFFFFF0 0x00&&&0x00 0x0050&&&0xFFFF => 11 10 0xF 0xF
+
 
