@@ -171,13 +171,6 @@ class TutorialTopo(Topo):
         self.addLink(coll, r7, port2 = 100)   
         self.addLink(coll, r8, port2 = 100)   
 
-class ECMP_Calculator():
-    def calculate_ecmp_paths(selt, net):
-        switches = [s for s in net.switches if s.name.startswith('r')]  # Get all switches starting with 'r'
-        ecmp_paths = {}
-
-
-        print("ECMP paths: ", ecmp_paths)
 
 def main():
     topo = TutorialTopo()
@@ -186,10 +179,6 @@ def main():
 
     net = Mininet(topo=topo, controller=None)
     net.addController(controller)
-
-    # Create an instance of ECMP_Calculator and call the calculate_ecmp_paths method
-    ecmp_calculator = ECMP_Calculator()
-    ecmp_paths = ecmp_calculator.calculate_ecmp_paths(net)
 
     net.start()
 

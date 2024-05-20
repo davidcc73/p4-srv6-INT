@@ -84,6 +84,17 @@ srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2:
 
 
 
+
+#--------------------path calculation
+h1_1 h2_1
+path -kshort -geo 00:00:00:00:00:10/None 00:00:00:00:00:20/None
+
+h1_1 h3_1
+path -kshort -geo 00:00:00:00:00:10/None 00:00:00:00:00:30/None
+
+h2_1 h3_1
+path -kshort -geo 00:00:00:00:00:20/None 00:00:00:00:00:30/None
+
 #--------python3 scrits to create ba chat like traffic between h1 and h2_1 using tcp, 
 #can not be used at mininet, server does not reply to the SYN packet, probably mininet is blocking it on how simulates hosts
 python3 /INT/h1_tcp.py
