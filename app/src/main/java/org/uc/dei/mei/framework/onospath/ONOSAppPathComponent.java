@@ -130,27 +130,6 @@ public class ONOSAppPathComponent implements PathInterface {
         System.out.println(minPath.links());
 
         return minPath;
-
-
-        /*System.out.println("Weigth:" + weigher.toString());
-        System.out.println("Weigth:" + weigher.getInitialWeight());
-        System.out.println("Weigth:" + weigher.getNonViableWeight());
-
-
-        PortNumber pn = PortNumber.fromString("3");
-        ConnectPoint ccSrc = new ConnectPoint(srcID, pn);
-        ConnectPoint ccDst = new ConnectPoint(dstID, pn);
-
-        Link l = linkService.getLink( ccSrc, ccDst);
-
-        TopologyEdge topoedge = new DefaultTopologyEdge(new DefaultTopologyVertex(l.src().deviceId()), new DefaultTopologyVertex(l.dst().deviceId()) , l);
-
-        System.out.println("Edge222:" + topoedge.toString());
-
-        System.out.println("peso222:"+weigher.weight(topoedge));*/
-
-
-        //return "getDisjointPath";
     }
 
     @Override
@@ -166,9 +145,6 @@ public class ONOSAppPathComponent implements PathInterface {
         return minPath;
 
     }
-
-
-
 
 }
 
