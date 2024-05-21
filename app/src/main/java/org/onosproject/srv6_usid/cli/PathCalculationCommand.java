@@ -45,18 +45,18 @@ import javax.sql.DataSource;
 //http://khuhub.khu.ac.kr/2017000000/onos/commit/41fe1ecad03811adc49b2ef2406afc7027363272
 //http://api.onosproject.org/1.13.2/org/onosproject/net/LinkKey.html
 //http://api.onosproject.org/1.13.2/org/onosproject/net/config/basics/BasicLinkConfig.html#METRIC
-public class AppCommandPaths extends AbstractShellCommand{
+public class PathCalculationCommand extends AbstractShellCommand{
 
 
-    // path -kshort -hop AA:BB:CC:DD:00:06/None AA:BB:CC:DD:00:03/None
+    /* path -kshort -hop AA:BB:CC:DD:00:06/None AA:BB:CC:DD:00:03/None
 
-    /*DefaultPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}}
-      DefaultPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/7, dst=of:0000000000000005/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000005/5, dst=of:0000000000000003/6, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=4.0}}*/
+    DefaultPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}}
+      DefaultPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/7, dst=of:0000000000000005/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000005/5, dst=of:0000000000000003/6, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=4.0}}
 
     //path -disjoint -hop AA:BB:CC:DD:00:06/None AA:BB:CC:DD:00:03/None
-    /*DefaultDisjointPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}},
-      DefaultDisjointPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}},*/
-
+    DefaultDisjointPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}},
+      DefaultDisjointPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}},
+    */
 
     @Option( name="-kshort",description = "k-shortes") boolean kshortBoll;                  //path calculations
     @Option( name="-disjoint",description = "get disjoint paths") boolean disjointBoll;
@@ -122,18 +122,13 @@ public class AppCommandPaths extends AbstractShellCommand{
             ElementId src = null;
             ElementId dst = null;
 
-            if(srcElem_str.contains("of:")){
-                src = DeviceId.deviceId(srcElem_str);
-            }else{
-                src = HostId.hostId(srcElem_str);
-            }
+            if(srcElem_str.contains("of:")){ src = DeviceId.deviceId(srcElem_str);}
+            else{                              src = HostId.hostId(srcElem_str);}
 
-            if(dstElem_str.contains("of:")){
-                dst = DeviceId.deviceId(dstElem_str);
-            }else{
-                dst = HostId.hostId(dstElem_str);
-            }
-            print("calculating k-shortest path between %s and %s", srcElem_str, dstElem_str);
+            if(dstElem_str.contains("of:")){  dst = DeviceId.deviceId(dstElem_str);}
+            else{                               dst = HostId.hostId(dstElem_str);}
+
+            print("calculating k-shortest path between %s and %s", src, dst);
             pathService.getK(src, dst, weigher, service_str);
         }
     }
