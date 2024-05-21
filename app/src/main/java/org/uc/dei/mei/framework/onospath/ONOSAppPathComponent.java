@@ -116,7 +116,7 @@ public class ONOSAppPathComponent implements PathInterface {
             weigher = HopCountLinkWeigher.DEFAULT_HOP_COUNT_WEIGHER;
         }else if(weigherSTR.equals("energy")){
             //weigher = new EnergyLinkWeigher(service_str, null);
-            System.out.println("EnergyLinkWeigher deactivated");
+            System.out.println("WARNING: EnergyLinkWeigher deactivated");
         }
 
 
