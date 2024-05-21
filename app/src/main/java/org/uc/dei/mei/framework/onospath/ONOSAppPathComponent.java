@@ -119,15 +119,26 @@ public class ONOSAppPathComponent implements PathInterface {
             System.out.println("WARNING: EnergyLinkWeigher deactivated");
         }
 
-
-        //pathService.getKShortestPaths(srcID, dstID, weigher ).forEach(s -> System.out.println(s));
-        //System.out.println(pathService.getPaths(srcID, dstID, weigher).toString());
-
-        Path minPath = pathService.getKShortestPaths(srcID, dstID, weigher).limit(50).min(Comparator.comparing(Path::weight))
-                .orElseThrow(NoSuchElementException::new);
+        Path minPath = pathService.getKShortestPaths(srcID, dstID, weigher)
+                                    .limit(50)
+                                    .min(Comparator.comparing(Path::weight))
+                                    .orElseThrow(NoSuchElementException::new);
 
         System.out.println(minPath.weight());
-        System.out.println(minPath.links());
+        //System.out.println(minPath.links());          //to see all info
+        minPath.links().forEach(link -> {
+            switch (link.type()) {
+                case DIRECT:
+                    System.out.println("switch-switch: " + link.src() + " -> " + link.dst());
+                    break;
+                case EDGE:
+                    System.out.println("switch-host: " + link.src() + " -> " + link.dst());
+                    break;
+                default:
+                    System.out.println("unknow link type: " + link.src() + " -> " + link.dst());
+                    break;
+            }
+        });
 
         return minPath;
     }

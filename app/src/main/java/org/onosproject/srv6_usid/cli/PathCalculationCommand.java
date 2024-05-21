@@ -122,10 +122,10 @@ public class PathCalculationCommand extends AbstractShellCommand{
             ElementId src = null;
             ElementId dst = null;
 
-            if(srcElem_str.contains("of:")){ src = DeviceId.deviceId(srcElem_str);}
+            if(srcElem_str.contains("device:")){ src = DeviceId.deviceId(srcElem_str);}
             else{                              src = HostId.hostId(srcElem_str);}
 
-            if(dstElem_str.contains("of:")){  dst = DeviceId.deviceId(dstElem_str);}
+            if(dstElem_str.contains("device:")){  dst = DeviceId.deviceId(dstElem_str);}
             else{                               dst = HostId.hostId(dstElem_str);}
 
             print("calculating k-shortest path between %s and %s", src, dst);
