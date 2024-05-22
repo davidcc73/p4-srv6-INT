@@ -123,28 +123,11 @@ public class ONOSAppPathComponent implements PathInterface {
                                     .limit(50)
                                     .min(Comparator.comparing(Path::weight))
                                     .orElseThrow(NoSuchElementException::new);
-
-        System.out.println(minPath.weight());
-        //System.out.println(minPath.links());          //to see all info
-        minPath.links().forEach(link -> {
-            switch (link.type()) {
-                case DIRECT:
-                    System.out.println("switch-switch: " + link.src() + " -> " + link.dst());
-                    break;
-                case EDGE:
-                    System.out.println("switch-host: " + link.src() + " -> " + link.dst());
-                    break;
-                default:
-                    System.out.println("unknow link type: " + link.src() + " -> " + link.dst());
-                    break;
-            }
-        });
-
         return minPath;
     }
 
     @Override
-    public Path getKAlgo(ElementId srcID, ElementId dstID, String service_str, AlgoHelper algohelper){
+    public Path getKAlgo(ElementId srcID, ElementId dstID, String service_str, AlgoHelper algohelper){  //invoke the ONOS API to get the path
 
         //LinkWeigher weigher  = new EnergyLinkWeigherAlgo(service_str, dataSource, algohelper);
         LinkWeigher weigher  = new EnergyLinkWeigherAlgo(service_str, algohelper);

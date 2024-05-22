@@ -24,6 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.topology.*;
+import org.onosproject.net.Path;
 import org.osgi.service.component.annotations.Reference;
 
 import org.uc.dei.mei.framework.onospath.PathInterface;
@@ -45,6 +46,9 @@ import javax.sql.DataSource;
 //http://khuhub.khu.ac.kr/2017000000/onos/commit/41fe1ecad03811adc49b2ef2406afc7027363272
 //http://api.onosproject.org/1.13.2/org/onosproject/net/LinkKey.html
 //http://api.onosproject.org/1.13.2/org/onosproject/net/config/basics/BasicLinkConfig.html#METRIC
+/*
+ * Receives 2 hosts, algorithm type, and returns the best path between them
+ */
 public class PathCalculationCommand extends AbstractShellCommand{
 
 
@@ -80,6 +84,7 @@ public class PathCalculationCommand extends AbstractShellCommand{
         String service_str = "video";                                 //service type (for energy caculations)
         PathInterface pathService;
         pathService = get(PathInterface.class);
+        Path minPath;
 
         /*LinkWeigher weigher = new CustomLinkWeigher();
         if(geoBoll == true) {
@@ -99,37 +104,26 @@ public class PathCalculationCommand extends AbstractShellCommand{
         }
 
 
+        ElementId src = null;
+        ElementId dst = null;
+        if(srcElem_str.contains("device:")){  src = DeviceId.deviceId(srcElem_str);}
+        else{                                   src = HostId.hostId(srcElem_str);}
+
+        if(dstElem_str.contains("device:")){  dst = DeviceId.deviceId(dstElem_str);}
+        else{                                   dst = HostId.hostId(dstElem_str);}
+
+
         if(disjointBoll == true){
-
-            ElementId src = null;
-            ElementId dst = null;
-
-            if(srcElem_str.contains("of:")){
-                src = DeviceId.deviceId(srcElem_str);
-            }else{
-                src = HostId.hostId(srcElem_str);
-            }
-
-            if(dstElem_str.contains("of:")){
-                dst = DeviceId.deviceId(dstElem_str);
-            }else{
-                dst = HostId.hostId(dstElem_str);
-            }
             pathService.getDisjoint(src,dst, weigher);
 
         }else if(kshortBoll == true){
-
-            ElementId src = null;
-            ElementId dst = null;
-
-            if(srcElem_str.contains("device:")){ src = DeviceId.deviceId(srcElem_str);}
-            else{                              src = HostId.hostId(srcElem_str);}
-
-            if(dstElem_str.contains("device:")){  dst = DeviceId.deviceId(dstElem_str);}
-            else{                               dst = HostId.hostId(dstElem_str);}
-
             print("calculating k-shortest path between %s and %s", src, dst);
-            pathService.getK(src, dst, weigher, service_str);
+            minPath = pathService.getK(src, dst, weigher, service_str);
+
+            minPath.links().forEach(link -> {
+                System.out.println(link.src() + " -> " + link.dst());
+                }
+            );
         }
     }
 }

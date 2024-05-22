@@ -85,7 +85,7 @@ srv6-insert device:r1 fcbb:bb00:9:fa94:a:faa5:b:c fcbb:bb00:e:2:fd00:: 2001:1:2:
 
 
 
-#--------------------path calculation
+#--------------------at ONOS cli (make onos-cli) so test path calculation
 h1_1 h2_1
 path -kshort -geo 00:00:00:00:00:10/None 00:00:00:00:00:20/None
 
