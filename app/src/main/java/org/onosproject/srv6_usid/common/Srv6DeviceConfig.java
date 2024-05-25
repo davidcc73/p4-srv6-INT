@@ -31,6 +31,7 @@ public class Srv6DeviceConfig extends Config<DeviceId> {
     private static final String MY_USID = "uN";
     private static final String MY_UDX = "uDX";
     private static final String IS_CORE = "isCore";
+    private static final String SUB_NET_IP = "subNetIP";
 
     @Override
     public boolean isValid() {
@@ -79,4 +80,13 @@ public class Srv6DeviceConfig extends Config<DeviceId> {
         return isCore != null && Boolean.valueOf(isCore);
     }
 
+    /**
+     * Gets the subNetIP instruction of the switch.
+     *
+     * @return subNetIP instruction of the router. Or null if not configured.
+     */
+    public Ip6Address mySubNetIP() {
+        String subNetIP = get(SUB_NET_IP, null);
+        return subNetIP != null ? Ip6Address.valueOf(subNetIP) : null;
+    }
 }

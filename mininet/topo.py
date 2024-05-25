@@ -127,7 +127,7 @@ class TutorialTopo(Topo):
         #add it's info to config\netcong.txt, so ONOS can detect the IPv6Host (the mac)
         #add it's info to config\Routing_Tables\routing_tables.txt, on the switch that connects to it (the other ones know already by the submask of the IP) (add the IP and mac)
 
-        # IPs must respect the subnet of their switch
+        # IPs must respect the subnet of their switch, see netcfg.json to see which subnet IP ONOS assumes each switch has
         
         # IPv6 hosts attached to r1
         h1_1 = self.addHost('h1_1', cls=IPv6Host, mac="00:00:00:00:00:10",

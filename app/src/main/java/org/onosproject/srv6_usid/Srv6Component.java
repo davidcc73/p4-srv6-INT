@@ -388,4 +388,16 @@ public class Srv6Component {
                 .map(Srv6DeviceConfig::myUDX)
                 .orElse(null);
     }
+
+    /**
+     * Returns subNetIP for the given device.
+     * ONLY AS PUBLIC SO PATH CALCULATIONS CAN USE IT!
+     * @param deviceId the device ID
+     * @return subNetIP for the device
+     */
+    public Ip6Address getMySubNetIP(DeviceId deviceId) {   //only on this class just to not create a new class for this, the same for the netcfg.json
+        return getDeviceConfig(deviceId)
+                .map(Srv6DeviceConfig::mySubNetIP)
+                .orElse(null);
+    }
 }
