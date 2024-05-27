@@ -485,13 +485,13 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
             } else {
-                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates or not
+                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
             }
             
-            if (!local_metadata.xconnect) { 
+            if (!local_metadata.xconnect) {      //No SRv6 used
                 routing_v6.apply();              //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
-	        } else {                             //the value of local_metadata.ua_next_hop was changed
-                xconnect_table.apply();          //sets hdr.ethernet.dst_addr to it
+	        } else {                             //SRv6 used
+                xconnect_table.apply();          //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
         
