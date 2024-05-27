@@ -121,7 +121,7 @@ public class ONOSAppPathComponent implements PathInterface {
 
         Path minPath = pathService.getKShortestPaths(srcID, dstID, weigher)
                                     .limit(50)
-                                    .min(Comparator.comparing(Path::weight))
+                                    .min(Comparator.comparing(Path::weight))   //FALTA ADICIONAR O 2º CRITÉRIO DE PESO
                                     .orElseThrow(NoSuchElementException::new);
         return minPath;
     }
