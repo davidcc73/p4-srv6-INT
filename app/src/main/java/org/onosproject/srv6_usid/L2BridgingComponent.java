@@ -358,6 +358,7 @@ public class L2BridgingComponent {
                 log.info("{} event! host={}, deviceId={}, port={}",
                          event.type(), host.id(), deviceId, port);
 
+                //set routing_v6 rule
                 learnHost(host, deviceId, port);
             });
         }
