@@ -462,7 +462,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        drop();
 	    }
 
-	    if (l2_firewall.apply().hit) {                      //just checks is hdr.ethernet.dst_addr is listed in the table
+	    if (l2_firewall.apply().hit) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
             switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
                 srv6_end: {
                     // support for reduced SRH
@@ -480,21 +480,18 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                     routing_v4.apply();
                 }
             }
-
             // SRv6 Encapsulation
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
             } else {
                 srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
             }
-            
             if (!local_metadata.xconnect) {      //No SRv6 used
                 routing_v6.apply();              //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
 	        } else {                             //SRv6 used
                 xconnect_table.apply();          //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
-        
 	    if (!local_metadata.skip_l2) {
             if (!unicast.apply().hit) {         //uses hdr.ethernet.dst_addr to set egress_spec
                 multicast.apply();
