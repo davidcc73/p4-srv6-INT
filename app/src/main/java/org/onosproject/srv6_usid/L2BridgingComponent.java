@@ -387,11 +387,11 @@ public class L2BridgingComponent {
         //     }
         //   ]
         // }
-        return interfaceService.getInterfaces().stream()
-                .map(Interface::connectPoint)
-                .filter(cp -> cp.deviceId().equals(deviceId))
-                .map(ConnectPoint::port)
-                .collect(Collectors.toSet());
+        return interfaceService.getInterfaces().stream()            //gets all interfaces
+                .map(Interface::connectPoint)                       //converts them to ConnectPoint
+                .filter(cp -> cp.deviceId().equals(deviceId))       //only the ones for the given device
+                .map(ConnectPoint::port)                            //converts them to port number
+                .collect(Collectors.toSet());                       //aggregates them in a set
     }
 
     /**
@@ -422,7 +422,7 @@ public class L2BridgingComponent {
      * Sets up L2 bridging on all devices known by ONOS and for which this ONOS
      * node instance is currently master.
      * <p>
-     * This method is called at component activation.
+     * This method is called at component activation, with a delay.
      */
     private void setUpAllDevices() {
         deviceService.getAvailableDevices().forEach(device -> {
