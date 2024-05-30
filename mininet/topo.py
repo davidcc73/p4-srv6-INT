@@ -76,6 +76,7 @@ class TutorialTopo(Topo):
         r14 = self.addSwitch('r14', cls=StratumBmv2Switch, cpuport=CPU_PORT, loglevel="info")
         
 
+        # Switch Links, if intended to send broadcast packets, must add the port (that sends) to the "ports" list in config\netcfg.json
         self.addLink(r1, r4,  port1 = 1,  port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
         self.addLink(r1, r9,  port1 = 2,  port2 = 1, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 

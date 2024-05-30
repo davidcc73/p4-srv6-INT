@@ -24,6 +24,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         standard_metadata.egress_spec = port_num;
     }
     action set_multicast_group(group_id_t gid) {
+        log_msg("Multicast group set to:{}", gid);
         standard_metadata.mcast_grp = gid;
         local_metadata.is_multicast = true;
     }
@@ -493,8 +494,11 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
         }
 	    if (!local_metadata.skip_l2) {
-            if (!unicast.apply().hit) {         //uses hdr.ethernet.dst_addr to set egress_spec
-                multicast.apply();
+            if (!unicast.apply().hit)            //uses hdr.ethernet.dst_addr to set egress_spec
+                if(hdr.ethernet.ether_type == ETHERTYPE_IPV6){  //we only care about IPv6 broadcasts to check the table (Neighbor solicitation from hosts)
+                    log_msg("It's an IPv6 broadcast packet");
+                    multicast.apply();
+                }
 	        }
 	    }
 
