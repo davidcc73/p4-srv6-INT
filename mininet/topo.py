@@ -77,6 +77,7 @@ class TutorialTopo(Topo):
         
 
         # Switch Links, if intended to send broadcast packets, must add the port (that sends) to the "ports" list in config\netcfg.json
+        #usualy the port that connects to the next switch that know how to solve the broadcast or links to it the same way
         self.addLink(r1, r4,  port1 = 1,  port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
         self.addLink(r1, r9,  port1 = 2,  port2 = 1, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
 
@@ -125,6 +126,7 @@ class TutorialTopo(Topo):
         #For each host added:
         #add it's info to the file of the switch connected to it at INT_Tables (the ports, to be Source and Sink to it)
         #add it's info to config\netcong.txt, so ONOS can detect the IPv6Host (the mac)
+        #at config\netcong.txt, add the port of the switch facing the new host to "ports" so it receives broadcast packets
         #add it's info to config\Routing_Tables\routing_tables.txt, on the switch that connects to it (the other ones know already by the submask of the IP) (add the IP and mac)
 
         # IPs must respect the subnet of their switch, see netcfg.json to see which subnet IP ONOS assumes each switch has
