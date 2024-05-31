@@ -376,12 +376,7 @@ public class L2BridgingComponent {
      * @return set of host facing ports
      */
     private Set<PortNumber> getHostFacingPorts(DeviceId deviceId) {
-        // Get all interfaces configured via netcfg for the given device ID and
-        // return the corresponding device port number. 
-        // The ports were configured in a way that each leaf will broadcast into a spine switch, 
-        // and the spine switches will circulate the packets through their outer links (between switches) 
-        // with exception of the link between switchs 9 and 14, to avoid a broadcasting loop.
-        // The broadcast ports were configured so that each link works on both directions.
+        // Get all interfaces configured via netcfg for the given device ID and return the corresponding device port number. 
         // Interface configuration in the netcfg.json looks like this:
         // "device:leaf1/3": {
         //   "interfaces": [
@@ -391,6 +386,12 @@ public class L2BridgingComponent {
         //     }
         //   ]
         // }
+
+        // The ports were configured in a way that each leaf will broadcast into a spine switch, 
+        // and the spine switches will circulate the packets through their outer links (still between spines) 
+        // with exception of the link between switchs 9 and 14, to avoid a broadcasting loop.
+        // The broadcast ports were configured so that each link works on both directions.
+
         return interfaceService.getInterfaces().stream()            //gets all interfaces
                 .map(Interface::connectPoint)                       //converts them to ConnectPoint
                 .filter(cp -> cp.deviceId().equals(deviceId))       //only the ones for the given device
