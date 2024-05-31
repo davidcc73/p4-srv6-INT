@@ -244,6 +244,38 @@
           "ips": ["2001:1:3::ff/64"]
         }
       ]
+    },
+    "device:r9/1": {
+      "interfaces": [
+        {
+          "name": "r9/1",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r9/5": {
+      "interfaces": [
+        {
+          "name": "r9/5",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r14/1": {
+      "interfaces": [
+        {
+          "name": "r14/1",
+          "ips": ["2001:1:e::ff/64"]
+        }
+      ]
+    },
+    "device:r14/2": {
+      "interfaces": [
+        {
+          "name": "r14/2",
+          "ips": ["2001:1:e::ff/64"]
+        }
+      ]
     }
   },
   "hosts": {
