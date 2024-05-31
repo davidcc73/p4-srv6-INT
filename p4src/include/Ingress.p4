@@ -493,7 +493,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 xconnect_table.apply();          //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
-	    if (!local_metadata.skip_l2) {
+	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined
             if (!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
                 if(hdr.ethernet.ether_type == ETHERTYPE_IPV6){  //we only care about IPv6 broadcasts to check the table (Neighbor/Router solicitation)
                     log_msg("It's an IPv6 broadcast packet");
