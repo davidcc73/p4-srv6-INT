@@ -309,6 +309,14 @@
         }
       ]
     },
+    "device:r9/4": {
+      "interfaces": [
+        {
+          "name": "r9/4",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
     "device:r9/5": {
       "interfaces": [
         {
@@ -325,6 +333,14 @@
         }
       ]
     },
+    "device:r10/2": {
+      "interfaces": [
+        {
+          "name": "r10/2",
+          "ips": ["2001:1:a::ff/64"]
+        }
+      ]
+    },
     "device:r10/5": {
       "interfaces": [
         {
@@ -333,10 +349,34 @@
         }
       ]
     },
+    "device:r10/6": {
+      "interfaces": [
+        {
+          "name": "r10/6",
+          "ips": ["2001:1:a::ff/64"]
+        }
+      ]
+    },
+    "device:r10/7": {
+      "interfaces": [
+        {
+          "name": "r10/7",
+          "ips": ["2001:1:a::ff/64"]
+        }
+      ]
+    },
     "device:r11/1": {
       "interfaces": [
         {
           "name": "r11/1",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r11/2": {
+      "interfaces": [
+        {
+          "name": "r11/2",
           "ips": ["2001:1:b::ff/64"]
         }
       ]
@@ -362,6 +402,14 @@
         {
           "name": "r11/4",
           "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r12/1": {
+      "interfaces": [
+        {
+          "name": "r12/1",
+          "ips": ["2001:1:c::ff/64"]
         }
       ]
     },
@@ -397,10 +445,34 @@
         }
       ]
     },
+    "device:r13/1": {
+      "interfaces": [
+        {
+          "name": "r13/1",
+          "ips": ["2001:1:d::ff/64"]
+        }
+      ]
+    },
     "device:r13/2": {
       "interfaces": [
         {
           "name": "r13/2",
+          "ips": ["2001:1:d::ff/64"]
+        }
+      ]
+    },
+    "device:r13/4": {
+      "interfaces": [
+        {
+          "name": "r13/4",
+          "ips": ["2001:1:d::ff/64"]
+        }
+      ]
+    },
+    "device:r13/5": {
+      "interfaces": [
+        {
+          "name": "r13/5",
           "ips": ["2001:1:d::ff/64"]
         }
       ]
@@ -425,6 +497,14 @@
       "interfaces": [
         {
           "name": "r14/2",
+          "ips": ["2001:1:e::ff/64"]
+        }
+      ]
+    },
+    "device:r14/3": {
+      "interfaces": [
+        {
+          "name": "r14/3",
           "ips": ["2001:1:e::ff/64"]
         }
       ]
