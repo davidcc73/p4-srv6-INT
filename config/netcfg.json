@@ -245,10 +245,58 @@
         }
       ]
     },
+    "device:r4/2": {
+      "interfaces": [
+        {
+          "name": "r4/2",
+          "ips": ["2001:1:4::ff/64"]
+        }
+      ]
+    },
+    "device:r5/4": {
+      "interfaces": [
+        {
+          "name": "r5/4",
+          "ips": ["2001:1:5::ff/64"]
+        }
+      ]
+    },
+    "device:r6/4": {
+      "interfaces": [
+        {
+          "name": "r6/4",
+          "ips": ["2001:1:6::ff/64"]
+        }
+      ]
+    },
+    "device:r7/2": {
+      "interfaces": [
+        {
+          "name": "r7/2",
+          "ips": ["2001:1:7::ff/64"]
+        }
+      ]
+    },
+    "device:r8/2": {
+      "interfaces": [
+        {
+          "name": "r8/2",
+          "ips": ["2001:1:8::ff/64"]
+        }
+      ]
+    },
     "device:r9/1": {
       "interfaces": [
         {
           "name": "r9/1",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r9/2": {
+      "interfaces": [
+        {
+          "name": "r9/2",
           "ips": ["2001:1:9::ff/64"]
         }
       ]
@@ -258,6 +306,38 @@
         {
           "name": "r9/5",
           "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r11/3": {
+      "interfaces": [
+        {
+          "name": "r11/3",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r11/4": {
+      "interfaces": [
+        {
+          "name": "r11/4",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r12/3": {
+      "interfaces": [
+        {
+          "name": "r12/3",
+          "ips": ["2001:1:c::ff/64"]
+        }
+      ]
+    },
+    "device:r12/5": {
+      "interfaces": [
+        {
+          "name": "r12/5",
+          "ips": ["2001:1:c::ff/64"]
         }
       ]
     },
