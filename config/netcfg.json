@@ -309,14 +309,6 @@
         }
       ]
     },
-    "device:r9/5": {
-      "interfaces": [
-        {
-          "name": "r9/5",
-          "ips": ["2001:1:9::ff/64"]
-        }
-      ]
-    },
     "device:r10/1": {
       "interfaces": [
         {
@@ -417,14 +409,6 @@
       "interfaces": [
         {
           "name": "r14/1",
-          "ips": ["2001:1:e::ff/64"]
-        }
-      ]
-    },
-    "device:r14/2": {
-      "interfaces": [
-        {
-          "name": "r14/2",
           "ips": ["2001:1:e::ff/64"]
         }
       ]
