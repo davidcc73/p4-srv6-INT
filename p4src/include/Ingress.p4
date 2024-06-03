@@ -448,13 +448,13 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
 
 
-        //-----------------Forwarding
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
             exit;
         }
 
+        //-----------------Forwarding NDP packets
         if (hdr.icmpv6.isValid() && hdr.icmpv6.type == ICMP6_TYPE_NS) {
             ndp_reply_table.apply();
         }
@@ -487,13 +487,15 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             } else {
                 srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
             }
-            if (!local_metadata.xconnect) {      //No SRv6 used
+
+            //-----------------Forwarding by IP
+            if (!local_metadata.xconnect) {      //No SRv6 ua_next_hop 
                 routing_v6.apply();              //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
-	        } else {                             //SRv6 used
+	        } else {                             //SRv6 ua_next_hop
                 xconnect_table.apply();          //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
-	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined
+	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined by ndp_reply_table
             if (!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
                 if(hdr.ethernet.ether_type == ETHERTYPE_IPV6){  //we only care about IPv6 broadcasts to check the table (Neighbor/Router solicitation)
                     log_msg("It's an IPv6 broadcast packet");
