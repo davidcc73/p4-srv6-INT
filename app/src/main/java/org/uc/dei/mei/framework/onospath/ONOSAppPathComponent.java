@@ -118,10 +118,9 @@ public class ONOSAppPathComponent implements PathInterface {
             //weigher = new EnergyLinkWeigher(service_str, null);
             System.out.println("WARNING: EnergyLinkWeigher deactivated");
         }
-
         Path minPath = pathService.getKShortestPaths(srcID, dstID, weigher)
                                     .limit(50)
-                                    .min(Comparator.comparing(Path::weight))   //FALTA ADICIONAR O 2º CRITÉRIO DE PESO
+                                    .min(Comparator.comparing(Path::weight))   //MISSING ADDING THE SECUNDAIRY WEIGHT
                                     .orElseThrow(NoSuchElementException::new);
         return minPath;
     }

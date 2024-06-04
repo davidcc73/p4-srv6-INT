@@ -1,4 +1,15 @@
-#if a device, detects an (uN, uA, uDX) value instruction (see netcfg.json for the config) => change next hop IP and MAC
+#device, uAInstruction, nextHopIpv6, nextHopMac
 
+#64 bits mask for the uAInstruction, it it's a match, nextHopIpv6 will be used as argument to action srv6_usid_ua
+#just like uN but with a bit shift of 32 but will NOT be used to get the next MAC, 
+#the IP value to use will the arg value (nextHopIpv6)
+
+#The previous entry will (in the same switch) trigger xconnect_act, that by using the value defined in nextHopIpv6, 
+#will set as next hop (nextHopMac)
+
+
+#Change IP to the uN of r4 and change the nextHopMac to the MAC of r4 (r9->r4)
 uA-insert device:r9  fcbb:bb00:9:fa94:: fcbb:bb00:4:: 00:aa:00:00:00:04
+
+#Change IP to the uN of r5 and change the nextHopMac to the MAC of r5 (r10->r5)
 uA-insert device:r10 fcbb:bb00:a:faa5:: fcbb:bb00:5:: 00:aa:00:00:00:05

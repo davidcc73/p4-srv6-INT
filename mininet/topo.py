@@ -127,6 +127,7 @@ class TutorialTopo(Topo):
         #add it's info to the file of the switch connected to it at INT_Tables (the ports, to be Source and Sink to it)
         #add it's info to config\netcong.txt, so ONOS can detect the IPv6Host (the mac)
         #at config\netcong.txt, add the port of the switch facing the new host to "ports" so it receives broadcast packets
+        #add it's info to config\hosts_routing_tables.txt, so ONOS can map the IPs to the MACs
         #add it's info to config\Routing_Tables\routing_tables.txt, on the switch that connects to it (the other ones know already by the submask of the IP) (add the IP and mac)
 
         # IPs must respect the subnet of their switch, see netcfg.json to see which subnet IP ONOS assumes each switch has
