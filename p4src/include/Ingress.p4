@@ -145,10 +145,12 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     action srv6_end() {}
 
     action srv6_usid_un() {
+        log_msg("srv6_usid_un action");
         hdr.ipv6.dst_addr = (hdr.ipv6.dst_addr & UN_BLOCK_MASK) | ((hdr.ipv6.dst_addr << 16) & ~((bit<128>)UN_BLOCK_MASK));
     }
 
     action srv6_usid_ua(ipv6_addr_t next_hop) {
+        log_msg("srv6_usid_ua action");
         hdr.ipv6.dst_addr = (hdr.ipv6.dst_addr & UN_BLOCK_MASK) | ((hdr.ipv6.dst_addr << 32) & ~((bit<128>)UN_BLOCK_MASK));
         local_metadata.xconnect = true;
 
@@ -420,7 +422,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = acl_counter;
     }
 
-    apply {        
+    apply {
         //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
         if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
