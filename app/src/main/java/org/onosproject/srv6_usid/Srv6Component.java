@@ -191,6 +191,7 @@ public class Srv6Component {
 
         final int mask = 64;
 
+        //table srv6_localsid_table
         PiCriterion match = PiCriterion.builder()
                 .matchLpm(
                         PiMatchFieldId.of("hdr.ipv6.dst_addr"),
@@ -210,7 +211,7 @@ public class Srv6Component {
         flowRuleService.applyFlowRules(Utils
                  .buildFlowRule(routerId, appId, uATableId, match, action));
 
-
+        //table xconnect_table
         match = PiCriterion.builder()
                     .matchLpm(
                                 PiMatchFieldId.of("local_metadata.ua_next_hop"),
