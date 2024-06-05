@@ -10,7 +10,8 @@ import org.onosproject.srv6_usid.Ipv6RoutingComponent;
 
 
 /**
- *  Calculate-Routing-Path Command
+ * Calculate-Routing-Path Command
+ * It will calculate the best path to all devices and push those intructions to the devices in the path
  */
 @Service
 @Command(scope = "onos", name = "Calculate-Routing-Paths",
