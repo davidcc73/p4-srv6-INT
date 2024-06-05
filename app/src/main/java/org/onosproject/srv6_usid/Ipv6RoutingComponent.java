@@ -255,7 +255,7 @@ public class Ipv6RoutingComponent{
         Set<DeviceId> allDevices = new HashSet<>();
         log.info("Calculating all paths...");
 
-        // Get all devices in the network
+        // Get all devices in the network (just switchs, not hosts)
         deviceService.getDevices().forEach(device -> allDevices.add(device.id()));
 
         // Iterate over all possible pairs devices, THIS LOOP CAN BE OPTIMIZED! 
