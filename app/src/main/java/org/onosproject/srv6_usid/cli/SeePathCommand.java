@@ -46,10 +46,11 @@ import javax.sql.DataSource;
 //http://khuhub.khu.ac.kr/2017000000/onos/commit/41fe1ecad03811adc49b2ef2406afc7027363272
 //http://api.onosproject.org/1.13.2/org/onosproject/net/LinkKey.html
 //http://api.onosproject.org/1.13.2/org/onosproject/net/config/basics/BasicLinkConfig.html#METRIC
+
 /*
  * Receives 2 hosts, algorithm type, and returns the best path between them
  */
-public class PathCalculationCommand extends AbstractShellCommand{
+public class SeePathCommand extends AbstractShellCommand{
 
 
     /* path -kshort -hop AA:BB:CC:DD:00:06/None AA:BB:CC:DD:00:03/None
