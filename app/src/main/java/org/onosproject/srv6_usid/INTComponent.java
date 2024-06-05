@@ -11,10 +11,8 @@ import java.util.List;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
@@ -22,7 +20,6 @@ import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.PiCriterion.Builder;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
@@ -70,19 +67,10 @@ public class INTComponent {
         private FlowRuleService flowRuleService;
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY)
-        private MastershipService mastershipService;
-
-        @Reference(cardinality = ReferenceCardinality.MANDATORY)
         private GroupService groupService;
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY)
         private DeviceService deviceService;
-
-        @Reference(cardinality = ReferenceCardinality.MANDATORY)
-        private NetworkConfigService networkConfigService;
-
-        @Reference(cardinality = ReferenceCardinality.MANDATORY)
-        private InterfaceService interfaceService;
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY)
         private LinkService linkService;
