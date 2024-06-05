@@ -10,6 +10,8 @@ davidcc73/stratum_bmv2_x11_scapy_pip3
 Telemetry is not generated between hosts with the same switch (it's the same car, so it's irrelevant), because the packet that will be the report is cloned to egress at ingress start with no INT header.
 
 TODO: explain the packet priority system
+TODO: explain KShort path calculations based on: https://github.com/bmsousa/ONOS-Framework
+TODO: explain ECMP path calculations based on: https://github.com/ruicao93/simple-ecmp/tree/master
 
 # IPv6 Segment Routing SRv6  Original README.md<br/>
 SRv6 is a network architecture that encodes a list of instructions in the IPv6 packet header to define a network wide packet processing program. <br/>
