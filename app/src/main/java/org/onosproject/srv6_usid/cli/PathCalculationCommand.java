@@ -82,8 +82,7 @@ public class PathCalculationCommand extends AbstractShellCommand{
     protected void doExecute() {
 
         String service_str = "video";                                 //service type (for energy caculations)
-        PathInterface pathService;
-        pathService = get(PathInterface.class);
+        PathInterface pathService = get(PathInterface.class);
         Path minPath;
 
         /*LinkWeigher weigher = new CustomLinkWeigher();
