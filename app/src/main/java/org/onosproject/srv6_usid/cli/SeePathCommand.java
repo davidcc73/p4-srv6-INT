@@ -28,6 +28,8 @@ import org.onosproject.net.Path;
 import org.osgi.service.component.annotations.Reference;
 
 import org.uc.dei.mei.framework.onospath.PathInterface;
+import org.onosproject.ecmp.ECMPPathService;
+
 import org.helper.CustomLinkWeigher;
 import org.helper.EnergyLinkWeigher;
 
@@ -63,18 +65,21 @@ public class SeePathCommand extends AbstractShellCommand{
       DefaultDisjointPath{src=AA:BB:CC:DD:00:06/None/0, dst=AA:BB:CC:DD:00:03/None/0, type=INDIRECT, state=ACTIVE, expected=false, links=[DefaultEdgeLink{src=AA:BB:CC:DD:00:06/None/0, dst=of:0000000000000006/2, type=EDGE, state=ACTIVE, expected=false}, DefaultLink{src=of:0000000000000006/5, dst=of:0000000000000003/7, type=DIRECT, state=ACTIVE, expected=false}, DefaultEdgeLink{src=of:0000000000000003/2, dst=AA:BB:CC:DD:00:03/None/0, type=EDGE, state=ACTIVE, expected=false}], cost=ScalarWeight{value=3.0}},
     */
 
-    @Option( name="-kshort",description = "k-shortes") boolean kshortBoll;                  //path calculations
-    @Option( name="-disjoint",description = "get disjoint paths") boolean disjointBoll;
+    @Option( name="-kshort",description = "k-shortest") boolean kshortBoll;                  //path calculations
+    @Option( name="-ecmp",description = "get ecmp paths") boolean ecmpBoll;
 
     @Option( name="-geo",description = "geo weigher ") boolean geoBoll;                     //No Weights
     @Option( name="-hop",description = "hop weigher ") boolean hopBoll;                     //Weights (Hop Count)
     @Option( name="-metric",description = "metric weigher ") boolean metricBoll;            //Weights (Energy)
 
-    @Argument(index = 0, name = "srcElem", description = "src Element of path", required = false)   //end-point MAC Addr
+    @Argument(index = 0, name = "srcElem", description = "src Element of path", required = true)   //end-point MAC Addr
     String srcElem_str;
 
-    @Argument(index = 1, name = "dstElem", description = "dst Element of path", required = false)
+    @Argument(index = 1, name = "dstElem", description = "dst Element of path", required = true)
     String dstElem_str;
+
+    @Argument(index = 2, name = "flowLabel", description = "flowLabel, number of the flow between src and dst", required = false)
+    int flowLabel;
 
     //@Reference
     //private DataSource dataSource;
@@ -83,8 +88,7 @@ public class SeePathCommand extends AbstractShellCommand{
     protected void doExecute() {
 
         String service_str = "video";                                 //service type (for energy caculations)
-        PathInterface pathService = get(PathInterface.class);
-        Path minPath;
+        Path minPath = null;
 
         /*LinkWeigher weigher = new CustomLinkWeigher();
         if(geoBoll == true) {
@@ -113,17 +117,21 @@ public class SeePathCommand extends AbstractShellCommand{
         else{                                   dst = HostId.hostId(dstElem_str);}
 
 
-        if(disjointBoll == true){
-            pathService.getDisjoint(src,dst, weigher);
+        if(ecmpBoll == true){
+            print("calculating ecmp path between %s and %s", src, dst);            
+            ECMPPathService ecmpPathService = get(ECMPPathService.class);
+            //minPath = ecmpPathService.getPath(src, dst, flowLabel);
 
         }else if(kshortBoll == true){
             print("calculating k-shortest path between %s and %s", src, dst);
+            PathInterface pathService = get(PathInterface.class);
             minPath = pathService.getK(src, dst, weigher, service_str);
 
-            minPath.links().forEach(link -> {
-                System.out.println(link.src() + " -> " + link.dst());
-                }
-            );
         }
+        
+        minPath.links().forEach(link -> {
+            System.out.println(link.src() + " -> " + link.dst());
+            }
+        );
     }
 }
