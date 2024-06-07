@@ -425,16 +425,6 @@ public class SimpleECMPForwarding implements ECMPPathService {
         });
         log.info("end paths prints");
 
-
-
-        //It would filter out the paths that do not pass through the source port, BUT I DO NOT INTEND TO USE IT 
-        //because IPv6 uses the flow label to identify the flow, so the source port is not relevant
-        /*Set<Path> pathSet = pickForwardPathSetIfPossible(paths, PortNumber.portNumber(2));
-        if (pathSet.isEmpty()) { 
-            log.info("No pathSet found when source port {}", PortNumber.portNumber(2));
-            return null;}
-        */
-
         // Get the hash that will represent this flow's packets
         long ecmpCode = ecmpCode(IpAddress.valueOf("2001:1:1::1"), IpAddress.valueOf("2001:1:2::1"), flowLabel);
 
@@ -451,7 +441,7 @@ public class SimpleECMPForwarding implements ECMPPathService {
         long num_paths = paths.size();
         
         // Make sure the hash value is between 0 and num_paths exclusive
-        int chosenPathIndex = Math.floorMod((int) ecmpCode,(int)  num_paths);
+        int chosenPathIndex = Math.floorMod((int) ecmpCode, (int) num_paths);
 
         log.info("num_paths: {}", num_paths);
         log.info("Chosen Path index: {}", chosenPathIndex);
