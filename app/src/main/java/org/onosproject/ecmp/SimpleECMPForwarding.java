@@ -20,6 +20,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+
 import org.onosproject.net.*;
 import org.onosproject.net.flow.*;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -29,12 +30,14 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.packet.*;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.net.topology.Topology;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -74,8 +77,12 @@ public class SimpleECMPForwarding implements ECMPPathService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
+    //will not use
+    //@Reference(cardinality = ReferenceCardinality.MANDATORY)
+    //protected ComponentConfigService cfgService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected ComponentConfigService cfgService;
+    private DeviceService deviceService;
 
     //COMMENTED BECAUSE I DO NOT INTEND TO PROCESS EACH PACKET INDIVIDUALLY
     //private ReactivePacketProcessor processor = new ReactivePacketProcessor();
@@ -140,12 +147,13 @@ public class SimpleECMPForwarding implements ECMPPathService {
     //        label = "Ignore (do not forward) IPv4 multicast packets; default is false")
     private boolean ignoreIpv4McastPackets = false;
 
-    private final TopologyListener topologyListener = new InternalTopologyListener();
+    private final TopologyListener topologyListener = new InternalTopologyListener();  
 
 
     @Activate
     public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
+        //will not use
+        //cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.ecmp");
 
         //COMMENTED BECAUSE I DO NOT INTEND TO PROCESS EACH PACKET INDIVIDUALLY
@@ -159,7 +167,8 @@ public class SimpleECMPForwarding implements ECMPPathService {
 
     @Deactivate
     public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
+        //will not use
+        //cfgService.unregisterProperties(getClass(), false);
         withdrawIntercepts();
         flowRuleService.removeFlowRulesById(appId);
 
@@ -353,42 +362,116 @@ public class SimpleECMPForwarding implements ECMPPathService {
         log.info("Configured. Flow Priority is configured to {}", flowPriority);
     }
 
+    /*
+    * Receives 3 packet elements and returns the path between the the 2 indicated hosts
+    * 
+    * @param srcID, source host ID
+    * @param dstID, destination host ID
+    * @param flowLabel, flow label of the packet
+    */
     @Override
-    public Path getPath(IpAddress srcIp, IpAddress dstIp, int srcPort, int dstPort) {
-        // srcHost, dstHost
-        Set<Host> srcHosts = hostService.getHostsByIp(srcIp);
-        Set<Host> dstHosts = hostService.getHostsByIp(dstIp);
-        if (srcHosts.isEmpty() || dstHosts.isEmpty()) {
-            return null;
-        }
-        Host srcHost = (Host) srcHosts.toArray()[0];
-        Host dstHost = (Host) dstHosts.toArray()[0];
-        Set<Path> paths =
-                topologyService.getPaths(topologyService.currentTopology(),srcHost.location().deviceId(), dstHost.location().deviceId());
-        if (paths.isEmpty()) {
-            return null;
-        }
-        Set<Path> pathSet = pickForwardPathSetIfPossible(paths, srcHost.location().port());
-        if (pathSet.isEmpty()) {
+    public Path getPath(ElementId srcID, ElementId dstID, int flowLabel) {
+        //---------------- Get the IP addresses of the source and destination elements
+        // preciso o ip REAL DOS HOSTS, TALVEZ USAR A SUNET DO SWITCH E O NOME DO HOST PARA DEDUZIR
+        // OU USAR O HOST SERVICE PARA ISSO
+
+        /*
+        // Get the IPv6 addresses of the source and destination element
+        IpAddress srcIp = srcHost.ipAddresses().stream()
+                .filter(ip -> ip.isIp6())
+                .findFirst()
+                .orElse(null);
+
+        IpAddress dstIp = dstHost.ipAddresses().stream()
+                .filter(ip -> ip.isIp6())
+                .findFirst()
+                .orElse(null);
+
+        if (srcIp == null) { log.info("Source IP of element not found"); return null;}
+        if (dstIp == null) { log.info("Destination IP of element not found"); return null;}
+        */
+        //--------for the switchs uN
+
+
+
+        //--------Calculate the path between the source and destination elements
+        // Convert ElementId to DeviceId
+        DeviceId srcDeviceId = (DeviceId) srcID;
+        DeviceId dstDeviceId = (DeviceId) dstID;
+
+        Topology currentTopology = topologyService.currentTopology();
+
+        log.info("Getting paths between {} and {}", srcDeviceId, dstDeviceId);
+        if (currentTopology == null){
+            log.info("Topology service is null");
             return null;
         }
 
-        Path path = null;
-        long ecmpCode = ecmpCode(srcIp, dstIp, srcPort, dstPort);
-        path = getEcmpPath(ecmpCode, paths);
+        // Gets the shortest path between the source and destination (if a tie, returns them all paths)
+        Set<Path> paths = topologyService.getPaths(currentTopology, srcDeviceId, dstDeviceId);
+        if (paths.isEmpty()) { 
+            log.info("No paths found between {} and {}", srcDeviceId, dstDeviceId);
+            return null;
+        }
+
+        
+        //print each link of each path
+        paths.forEach(path -> {
+            StringBuilder pathDescription = new StringBuilder("Path:\n");
+            path.links().forEach(link -> {
+                pathDescription.append(link.src()).append(" -> ").append(link.dst()).append("\n");
+            });
+            log.info(pathDescription.toString());
+        });
+        log.info("end paths prints");
+
+
+
+        //It would filter out the paths that do not pass through the source port, BUT I DO NOT INTEND TO USE IT 
+        //because IPv6 uses the flow label to identify the flow, so the source port is not relevant
+        /*Set<Path> pathSet = pickForwardPathSetIfPossible(paths, PortNumber.portNumber(2));
+        if (pathSet.isEmpty()) { 
+            log.info("No pathSet found when source port {}", PortNumber.portNumber(2));
+            return null;}
+        */
+
+        // Get the hash that will represent this flow's packets
+        long ecmpCode = ecmpCode(IpAddress.valueOf("2001:1:1::1"), IpAddress.valueOf("2001:1:2::1"), flowLabel);
+
+        //Select one of the availabels paths by using the hash to select one of them
+        Path path = getEcmpPath(ecmpCode, paths);
         return path;
     }
 
+    /*
+     * Given a set of Paths and a hash value,
+     * it will use the value to select one of the paths and return it 
+     */
     private Path getEcmpPath(long ecmpCode, Set<Path> paths) {
-        long pathNum = paths.size();
-        int pathIndex = new Long(ecmpCode % pathNum).intValue();
-        Path path = (Path) paths.toArray()[pathIndex];
+        long num_paths = paths.size();
+        
+        // Make sure the hash value is between 0 and num_paths exclusive
+        int chosenPathIndex = Math.floorMod((int) ecmpCode,(int)  num_paths);
+
+        log.info("num_paths: {}", num_paths);
+        log.info("Chosen Path index: {}", chosenPathIndex);
+
+        Path path = (Path) paths.toArray()[chosenPathIndex];
+
         return path;
     }
 
-    private long ecmpCode(IpAddress srcIp, IpAddress dstIp, int srcPort, int dstPort) {
-//        return Math.abs((long) srcIp.getIp4Address().toInt() + (long) dstIp.getIp4Address().toInt() + srcPort + dstPort);
-        return dstPort;
+    /*
+    * Concatenates the 3 values and returns the hash of them.
+    */
+    private int ecmpCode(IpAddress srcIp, IpAddress dstIp, int flowLabel) {
+        // Concatenate the values into a string representation
+        String hashString = Objects.toString(srcIp) + Objects.toString(dstIp) + flowLabel;
+        
+        // Generate hash value from the concatenated string
+        int hashValue = hashString.hashCode();
+        
+        return hashValue;
     }
 
     private Path pickForwardPathIfPossible(Set<Path> paths, PortNumber notToPort) {

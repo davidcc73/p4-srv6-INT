@@ -86,8 +86,7 @@ public class SeePathCommand extends AbstractShellCommand{
 
     @Override
     protected void doExecute() {
-
-        String service_str = "video";                                 //service type (for energy caculations)
+        print("starting");
         Path minPath = null;
 
         /*LinkWeigher weigher = new CustomLinkWeigher();
@@ -120,15 +119,20 @@ public class SeePathCommand extends AbstractShellCommand{
         if(ecmpBoll == true){
             print("calculating ecmp path between %s and %s", src, dst);            
             ECMPPathService ecmpPathService = get(ECMPPathService.class);
-            //minPath = ecmpPathService.getPath(src, dst, flowLabel);
+            minPath = ecmpPathService.getPath(src, dst, flowLabel);
 
         }else if(kshortBoll == true){
             print("calculating k-shortest path between %s and %s", src, dst);
             PathInterface pathService = get(PathInterface.class);
-            minPath = pathService.getK(src, dst, weigher, service_str);
+            minPath = pathService.getK(src, dst, weigher, "video"); //service type, for energy caculations (not used in this case)
 
         }
         
+        if(minPath == null){
+            print("minPath is null");
+            return;
+        }
+
         minPath.links().forEach(link -> {
             System.out.println(link.src() + " -> " + link.dst());
             }
