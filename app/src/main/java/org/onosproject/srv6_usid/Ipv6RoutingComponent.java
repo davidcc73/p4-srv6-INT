@@ -24,6 +24,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.ecmp.ECMPPathService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -67,6 +68,8 @@ import org.onosproject.srv6_usid.common.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uc.dei.mei.framework.onospath.PathInterface;
+import org.onosproject.ecmp.ECMPPathService;
+
 
 import java.util.Collection;
 import java.util.Collections;
@@ -143,7 +146,10 @@ public class Ipv6RoutingComponent{
     private Srv6Component srv6Component;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private PathInterface pathService;
+    private PathInterface multiplePathService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private ECMPPathService ecmpPathService;
 
     //--------------------------------------------------------------------------
     // COMPONENT ACTIVATION.
@@ -264,7 +270,16 @@ public class Ipv6RoutingComponent{
             if(sourceDevice.equals(destinationDevice)) {continue;}
             //Calculate the path from the current device to the destination device
             try{
-                minPath = pathService.getK(sourceDevice, destinationDevice, "geo", "video");
+                if(algorithm == 0){ //KShort
+                    minPath = multiplePathService.getK(sourceDevice, destinationDevice, "geo", "video");
+                }
+                else if(algorithm == 1){ //ECMP         
+                    minPath = ecmpPathService.getPath(sourceDevice, destinationDevice, 2);
+                }
+                else{
+                    log.info("Invalid algorithm");
+                    return "Invalid algorithm";
+                }
             }catch(NoSuchElementException e){
                 log.info("No path found between {} and {}", sourceDevice, destinationDevice);
                 count_fails++;
