@@ -28,8 +28,8 @@ public class CalculatePathCommand extends AbstractShellCommand {
             required = true, multiValued = false)
         @Completion(DeviceIdCompleter.class)
         String secundary_weigher = null;
+        
         @Override
-
         protected void doExecute() {
             String result = null;
             Ipv6RoutingComponent app = get(Ipv6RoutingComponent.class);
