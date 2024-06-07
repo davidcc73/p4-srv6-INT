@@ -73,7 +73,7 @@ h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18
 
 
 #--------------------at ONOS cli (make onos-cli)
-#To see the SRv6 commands go to config/srv6_insert.txt
+#To see the SRv6 commands go to srv6_insert.txt
 
 
 
