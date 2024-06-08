@@ -371,29 +371,6 @@ public class SimpleECMPForwarding implements ECMPPathService {
     */
     @Override
     public Path getPath(ElementId srcID, ElementId dstID, int flowLabel) {
-        //---------------- Get the IP addresses of the source and destination elements
-        // preciso o ip REAL DOS HOSTS, TALVEZ USAR A SUNET DO SWITCH E O NOME DO HOST PARA DEDUZIR
-        // OU USAR O HOST SERVICE PARA ISSO
-
-        /*
-        // Get the IPv6 addresses of the source and destination element
-        IpAddress srcIp = srcHost.ipAddresses().stream()
-                .filter(ip -> ip.isIp6())
-                .findFirst()
-                .orElse(null);
-
-        IpAddress dstIp = dstHost.ipAddresses().stream()
-                .filter(ip -> ip.isIp6())
-                .findFirst()
-                .orElse(null);
-
-        if (srcIp == null) { log.info("Source IP of element not found"); return null;}
-        if (dstIp == null) { log.info("Destination IP of element not found"); return null;}
-        */
-        //--------for the switchs uN
-
-
-
         //--------Calculate the path between the source and destination elements
         // Convert ElementId to DeviceId
         DeviceId srcDeviceId = (DeviceId) srcID;
@@ -413,7 +390,6 @@ public class SimpleECMPForwarding implements ECMPPathService {
             log.info("No paths found between {} and {}", srcDeviceId, dstDeviceId);
             return null;
         }
-
         
         //print each link of each path
         paths.forEach(path -> {

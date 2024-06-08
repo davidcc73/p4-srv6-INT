@@ -85,13 +85,13 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = routing_v6_kShort_counter;
     }
 
-    //ECMP Path Routing Table
+    //ECMP Path Routing Table, ternary match so i can abstract the hosts to their switchs (we use a maks to match the first 64 bits of the address)
     action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ECMP_selector;
     direct_counter(CounterType.packets_and_bytes) routing_v6_ECMP_counter;
     table routing_v6_ECMP {
         key = {
-            hdr.ipv6.src_addr   : exact;
-            hdr.ipv6.dst_addr   : exact;
+            hdr.ipv6.src_addr   : ternary;
+            hdr.ipv6.dst_addr   : ternary;
             hdr.ipv6.flow_label : exact;
         }
         actions = {

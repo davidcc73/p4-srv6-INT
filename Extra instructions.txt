@@ -45,6 +45,7 @@ Packet_Priority-set                                 #Push packet priority values
 source /config/ua_config.txt
 source /config/INT_Tables/INT_Transit_config.txt    #Push INT instructions to switchs
 source /config/hosts_routing_tables.txt             #Push host routing rules to switchs (between switch and it's hots)
+
 Calculate-Routing-Paths KShort latency              #Creates the routing rule between switchs (KShort, ECMP - latency, bandwidth)
 
 #--------------------at mininet cli (make mn-cli) 
@@ -123,3 +124,6 @@ path -ecmp 00:00:00:00:00:10/None 00:00:00:00:00:20/None 2
 #can not be used at mininet, server does not reply to the SYN packet, probably mininet is blocking it on how simulates hosts
 python3 /INT/h1_tcp.py
 python3 /INT/h2_tcp.py
+
+
+explicar que caminhos sao de ECMP so assumimos flow laber de 0-5
