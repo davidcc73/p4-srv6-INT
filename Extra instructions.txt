@@ -99,7 +99,7 @@ r1 h2_1
 path -kshort -geo device:r1 00:00:00:00:00:20/None
 
 
-#----------ECMP
+#----------ECMP (only works between switchs, not hosts)
 r1 r2       flow_label=2
 path -ecmp device:r1 device:r2 2
 
@@ -109,15 +109,14 @@ path -ecmp device:r1 device:r7 2
 r9 r8       flow_label=1
 path -ecmp device:r9 device:r8 1
 
-r9 r8       flow_label=2
-path -ecmp device:r9 device:r8 2
+r2 r11       flow_label=2
+path -ecmp device:r2 device:r11 2
 
 r1 r12       flow_label=2
 path -ecmp device:r1 device:r12 2
 
-
-h1_1 h2_1   flow_label=2
-path -ecmp 00:00:00:00:00:10/None 00:00:00:00:00:20/None 2
+r5 r9       flow_label=2
+path -ecmp device:r5 device:r9 2
 
 
 #--------python3 scrits to create ba chat like traffic between h1 and h2_1 using tcp, 
