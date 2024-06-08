@@ -46,9 +46,9 @@ def main(args):
     pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
     if args.l4 == 'tcp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m
+        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m
     elif args.l4 == 'udp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / args.m
+        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / args.m
     pkt.show2()
 
     for i in range(args.c):
@@ -68,7 +68,9 @@ if __name__ == '__main__':
                         type=str, action="store", required=True)
     parser.add_argument('--m', help="message", type=str,
                         action='store', required=False, default="")
-    parser.add_argument('--dscp', help="message", type=int,
+    parser.add_argument('--dscp', help="DSCP value", type=int,
+                        action='store', required=False, default=0)
+    parser.add_argument('--flow_label', help="flow_label value", type=int,
                         action='store', required=False, default=0)
     args = parser.parse_args()
     main(args)

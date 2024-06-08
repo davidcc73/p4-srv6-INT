@@ -67,7 +67,7 @@ sudo python3 INT/receive/collector_influxdb.py
 python3 /INT/receive/receive.py 
 
 # At h1_1 terminal run with real ips (xterm h1_1 h2_1):  
-h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --c 1000
+h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 3 --c 1000
 
 
 #The generated telemetry should be visible in the grafana dashboard
