@@ -300,11 +300,11 @@ public class Ipv6RoutingComponent{
 
                 //USING IP6 ADDRESS (for normal routing)
                 //Always use mask 64, so it also forwards host's traffic into the right switch, that is connected to it (host's IPs are subnets of switch's IP)         
-                insertRoutingRule(link.src().deviceId(), ip_final_dst, 64, nextHopMac);
+                insertRoutingRuleKShort(link.src().deviceId(), ip_final_dst, 64, nextHopMac);
 
                 //USING uN Value    (for Srv6 routing) (it's uSID value of the switch)
                 //Always use mask 48
-                insertRoutingRule(link.src().deviceId(), uN_final_dst, 48, nextHopMac);
+                insertRoutingRuleKShort(link.src().deviceId(), uN_final_dst, 48, nextHopMac);
             }
             );
         }
@@ -438,11 +438,11 @@ public class Ipv6RoutingComponent{
     }
 
     /*
-     * Creates and Pushes L3 routing rules to the device, so it can forward packets 
+     * Creates and Pushes L3 routing rules to the device, so it can forward packets, into the KShortest table
      * to the next hop MAC address based on its IP and mask.
      * Existing rules are overwritten, when the match fields coincide.
      */
-    public void insertRoutingRule(DeviceId routerId, Ip6Address ipv6Addr,
+    public void insertRoutingRuleKShort(DeviceId routerId, Ip6Address ipv6Addr,
                                     int mask, MacAddress nextHopMac) {
         log.info("Adding a route on {}...", routerId);
 
