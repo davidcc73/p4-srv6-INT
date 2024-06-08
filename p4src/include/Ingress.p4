@@ -250,7 +250,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + 40;
         hdr.ipv6.next_header = PROTO_IPV6;
-        hdr.ipv6.src_addr = src_addr;
+        hdr.ipv6.src_addr = src_addr;                            //uN of the current device
         hdr.ipv6.dst_addr = s1;
     }
 
@@ -269,7 +269,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + 40 + 24;
         hdr.ipv6.next_header = PROTO_SRV6;
-        hdr.ipv6.src_addr = src_addr;
+        hdr.ipv6.src_addr = src_addr;                            //uN of the current device
         hdr.ipv6.dst_addr = s1;
 
         hdr.srv6h.setValid();

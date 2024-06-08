@@ -239,7 +239,7 @@ public class Srv6Component {
      * @param deviceId     device ID
      * @param destIp       target IP address for the SRv6 policy
      * @param prefixLength prefix length for the target IP
-     * @param segmentList  list of SRv6 SIDs that make up the path
+     * @param segmentList  list of SRv6 SIDs that make up the path, also the final IP at the end
      */
     public void insertSrv6InsertRule(DeviceId deviceId, Ip6Address destIp, int prefixLength,
                                      List<Ip6Address> segmentList) {
@@ -253,6 +253,7 @@ public class Srv6Component {
 
         List<PiActionParam> actionParams = Lists.newArrayList();
 
+        //This argument will set the source IP to the uN of the current device
         PiActionParamId paramId = PiActionParamId.of("src_addr");
         PiActionParam param = new PiActionParam(paramId, myUSid.toOctets());
         actionParams.add(param);
