@@ -73,22 +73,32 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	    hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
     }
 
-    // TODO: implement ecmp with ipv6.src+ipv6.dst+ipv6.flow_label
-    //action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ecmp_selector;
-    direct_counter(CounterType.packets_and_bytes) routing_v6_counter;
-    table routing_v6 {
+    //K-Shortest Path Routing Table
+    direct_counter(CounterType.packets_and_bytes) routing_v6_kShort_counter;
+    table routing_v6_kShort {            
 	    key = {
 	        hdr.ipv6.dst_addr: lpm;
-
-            //hdr.ipv6.flow_label : selector;
-            //hdr.ipv6.dst_addr : selector;
-            //hdr.ipv6.src_addr : selector;
-	    }
+        }
         actions = {
 	        set_next_hop;
         }
-        counters = routing_v6_counter;
-        //implementation = ip6_ecmp_selector;
+        counters = routing_v6_kShort_counter;
+    }
+
+    //ECMP Path Routing Table
+    action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ECMP_selector;
+    direct_counter(CounterType.packets_and_bytes) routing_v6_ECMP_counter;
+    table routing_v6_ECMP {
+        key = {
+            hdr.ipv6.src_addr   : exact;
+            hdr.ipv6.dst_addr   : exact;
+            hdr.ipv6.flow_label : exact;
+        }
+        actions = {
+            set_next_hop;
+        }
+        counters = routing_v6_ECMP_counter;
+        implementation = ip6_ECMP_selector;
     }
 
     // TODO calc checksum
@@ -492,7 +502,11 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
             //-----------------Forwarding by IP
             if (!local_metadata.xconnect) {      //No SRv6 ua_next_hop 
-                routing_v6.apply();              //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
+                //first we try doing kShortestPath routing (if it fails we do ECMP)
+                //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
+                if(!routing_v6_kShort.apply().hit){
+                    routing_v6_ECMP.apply();
+                }
 	        } else {                             //SRv6 ua_next_hop
                 xconnect_table.apply();          //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }

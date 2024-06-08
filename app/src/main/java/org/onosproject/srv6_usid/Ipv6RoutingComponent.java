@@ -446,7 +446,7 @@ public class Ipv6RoutingComponent{
                                     int mask, MacAddress nextHopMac) {
         log.info("Adding a route on {}...", routerId);
 
-        final String tableId = "IngressPipeImpl.routing_v6";
+        final String tableId = "IngressPipeImpl.routing_v6_kShort";
         final String actionName = "IngressPipeImpl.routing_v6";
 
         final PiCriterion match = PiCriterion.builder()
