@@ -400,14 +400,14 @@ public class SimpleECMPForwarding implements ECMPPathService {
         }
         
         //print each link of each path
-        paths.forEach(path -> {
+        /*paths.forEach(path -> {
             StringBuilder pathDescription = new StringBuilder("Path:\n");
             path.links().forEach(link -> {
                 pathDescription.append(link.src()).append(" -> ").append(link.dst()).append("\n");
             });
             log.info(pathDescription.toString());
         });
-        log.info("end paths prints");
+        log.info("end paths prints");*/
 
         // Get the hash that will select this flow's path (switch's configured IPs) (ONLY works for switch to switch paths)
         final Ip6Address ip_src = getMySubNetIP(srcDeviceId);
@@ -429,8 +429,8 @@ public class SimpleECMPForwarding implements ECMPPathService {
         // Make sure the hash value is between 0 and num_paths exclusive
         int chosenPathIndex = Math.floorMod((int) ecmpCode, (int) num_paths);
 
-        log.info("num_paths: {}", num_paths);
-        log.info("Chosen Path index: {}", chosenPathIndex);
+        //log.info("num_paths: {}", num_paths);
+        //log.info("Chosen Path index: {}", chosenPathIndex);
 
         Path path = (Path) paths.toArray()[chosenPathIndex];
 
