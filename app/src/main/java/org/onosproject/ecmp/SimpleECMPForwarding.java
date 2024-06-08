@@ -16,6 +16,8 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import org.onlab.packet.*;
 import org.onlab.util.Tools;
+import org.onlab.util.ItemNotFoundException;
+
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -39,6 +41,8 @@ import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.srv6_usid.common.Srv6DeviceConfig;
+
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -368,9 +372,9 @@ public class SimpleECMPForwarding implements ECMPPathService {
 
     /*
     * Receives 3 packet elements and returns the path between the the 2 indicated hosts
-    * 
-    * @param srcID, source host ID
-    * @param dstID, destination host ID
+    * Only works for switch to switch paths
+    * @param srcID, source ID
+    * @param dstID, destination ID
     * @param flowLabel, flow label of the packet
     */
     @Override
@@ -405,9 +409,9 @@ public class SimpleECMPForwarding implements ECMPPathService {
         });
         log.info("end paths prints");
 
-        // Get the hash that will select this flow's path (mask to abstract the hosts' IPs) (ONLY works for switch to switch paths)
-        final Ip6Address ip_src = getMySubNetIP(srcID).and(Ip6Address.valueOf("FFFFFFFFFFFFFFFF0000000000000000"));
-        final Ip6Address ip_dst = getMySubNetIP(dstID).and(Ip6Address.valueOf("FFFFFFFFFFFFFFFF0000000000000000"));
+        // Get the hash that will select this flow's path (switch's configured IPs) (ONLY works for switch to switch paths)
+        final Ip6Address ip_src = getMySubNetIP(srcDeviceId);
+        final Ip6Address ip_dst = getMySubNetIP(dstDeviceId);
         long ecmpCode = ecmpCode(ip_src, ip_dst, flowLabel);
 
         //Select one of the availabels paths by using the hash to select one of them
