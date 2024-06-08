@@ -46,7 +46,8 @@ source /config/ua_config.txt
 source /config/INT_Tables/INT_Transit_config.txt    #Push INT instructions to switchs
 source /config/hosts_routing_tables.txt             #Push host routing rules to switchs (between switch and it's hots)
 
-Calculate-Routing-Paths KShort latency              #Creates the routing rule between switchs (KShort, ECMP - latency, bandwidth)
+#Calculate-Routing-Paths KShort latency              #Creates the routing rule between switchs (KShort, ECMP - latency, bandwidth)
+Calculate-Routing-Paths ECMP latency                
 
 #--------------------at mininet cli (make mn-cli) 
 #For the hosts be detected in the topology send a packet from them, or ping 2 in the same switch (both will be detected)
