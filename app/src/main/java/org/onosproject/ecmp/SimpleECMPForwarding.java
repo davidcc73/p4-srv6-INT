@@ -38,6 +38,7 @@ import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.Topology;
+import org.onosproject.net.config.NetworkConfigService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -76,6 +77,9 @@ public class SimpleECMPForwarding implements ECMPPathService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private NetworkConfigService networkConfigService;
 
     //will not use
     //@Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -401,8 +405,10 @@ public class SimpleECMPForwarding implements ECMPPathService {
         });
         log.info("end paths prints");
 
-        // Get the hash that will represent this flow's packets
-        long ecmpCode = ecmpCode(IpAddress.valueOf("2001:1:1::1"), IpAddress.valueOf("2001:1:2::1"), flowLabel);
+        // Get the hash that will select this flow's path (mask to abstract the hosts' IPs) (ONLY works for switch to switch paths)
+        final Ip6Address ip_src = getMySubNetIP(srcID).and(Ip6Address.valueOf("FFFFFFFFFFFFFFFF0000000000000000"));
+        final Ip6Address ip_dst = getMySubNetIP(dstID).and(Ip6Address.valueOf("FFFFFFFFFFFFFFFF0000000000000000"));
+        long ecmpCode = ecmpCode(ip_src, ip_dst, flowLabel);
 
         //Select one of the availabels paths by using the hash to select one of them
         Path path = getEcmpPath(ecmpCode, paths);
@@ -1142,5 +1148,31 @@ public class SimpleECMPForwarding implements ECMPPathService {
         public int hashCode() {
             return Objects.hash(src, dst);
         }
+    }
+
+    /**
+     * Returns the Srv6 config object for the given device.
+     *
+     * @param deviceId the device ID
+     * @return Srv6  device config
+     */
+    private Optional<Srv6DeviceConfig> getDeviceConfig(DeviceId deviceId) {
+        Srv6DeviceConfig config = networkConfigService.getConfig(
+                deviceId, Srv6DeviceConfig.class);
+        return Optional.ofNullable(config);
+    }
+    
+    /**
+     * Returns the IP address configured in the "subNetIP" property of the
+     * given device config.
+     *
+     * @param deviceId the device ID
+     * @return MyStation MAC address
+     */
+    private Ip6Address getMySubNetIP(DeviceId deviceId) {
+        return getDeviceConfig(deviceId)
+                .map(Srv6DeviceConfig::mySubNetIP)
+                .orElseThrow(() -> new ItemNotFoundException(
+                        "Missing mySubNetIP config for " + deviceId));
     }
 }
