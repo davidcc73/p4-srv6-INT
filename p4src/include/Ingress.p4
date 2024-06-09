@@ -86,7 +86,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     //ECMP Path Routing Table, ternary match so i can abstract the hosts to their switchs (we use a maks to match the first 64 bits of the address)
-    action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ECMP_selector;
+    //action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ECMP_selector;
     direct_counter(CounterType.packets_and_bytes) routing_v6_ECMP_counter;
     table routing_v6_ECMP {
         key = {
@@ -98,7 +98,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             set_next_hop;
         }
         counters = routing_v6_ECMP_counter;
-        implementation = ip6_ECMP_selector;
+        //implementation = ip6_ECMP_selector;
     }
 
     // TODO calc checksum
@@ -501,21 +501,27 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
 
             //-----------------Forwarding by IP
-            if (!local_metadata.xconnect) {      //No SRv6 ua_next_hop 
-                //first we try doing kShortestPath routing (if it fails we do ECMP)
+            if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
+                //first we try doing ECMP routing, if it fails we do kShortestPath
                 //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
-                if(!routing_v6_kShort.apply().hit){
-                    routing_v6_ECMP.apply();
+                if(!routing_v6_ECMP.apply().hit){
+                    if(!routing_v6_kShort.apply().hit){
+                        log_msg("No route found for IPv6 packet!");
+                    }
                 }
-	        } else {                             //SRv6 ua_next_hop
-                xconnect_table.apply();          //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
+	        } else {                              //SRv6 ua_next_hop
+                xconnect_table.apply();           //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
 	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined by ndp_reply_table
-            if (!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
-                if(hdr.ethernet.ether_type == ETHERTYPE_IPV6){  //we only care about IPv6 broadcasts to check the table (Neighbor/Router solicitation)
-                    log_msg("It's an IPv6 broadcast packet");
-                    multicast.apply();
+            if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
+                log_msg("It's an LLDP multicast packet, not meant to be forwarded");
+            }
+            else{
+                if(!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
+                    if(hdr.ethernet.ether_type == ETHERTYPE_IPV6 || hdr.ethernet.ether_type == ETHERTYPE_LLDP){  //we only care about IPv6 broadcasts to check the table (Neighbor/Router solicitation)
+                        multicast.apply();
+                    }
                 }
 	        }
 	    }
