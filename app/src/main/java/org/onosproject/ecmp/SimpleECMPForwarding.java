@@ -386,7 +386,7 @@ public class SimpleECMPForwarding implements ECMPPathService {
 
         Topology currentTopology = topologyService.currentTopology();
 
-        log.info("Getting ECMP paths between {} and {}", srcDeviceId, dstDeviceId);
+        //log.info("Getting ECMP paths between {} and {}", srcDeviceId, dstDeviceId);
         if (currentTopology == null){
             log.info("Topology service is null");
             return null;

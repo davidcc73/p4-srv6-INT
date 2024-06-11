@@ -149,8 +149,8 @@ public class L2BridgingComponent {
     }
 
     /**
-     * Inserts an ALL group in the ONOS core to replicate packets on all host
-     * facing ports. This group will be used to broadcast all ARP/NDP requests.
+     * Inserts an ALL group in the ONOS core to replicate packets on all host. 
+     * This group will be used to broadcast all ARP/NDP requests.
      * <p>
      * ALL groups in ONOS are equivalent to P4Runtime packet replication engine
      * (PRE) Multicast groups.

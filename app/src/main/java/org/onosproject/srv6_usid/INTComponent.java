@@ -145,7 +145,7 @@ public class INTComponent {
                 }
 
                 try{
-                        log.info("Pushing INT rule to device {}", deviceId);  
+                        //log.info("Pushing INT rule to device {}", deviceId);  
                         
                         final FlowRule rule = Utils.buildFlowRule(deviceId, appId, tableId, match, action);
                         flowRuleService.applyFlowRules(rule);
