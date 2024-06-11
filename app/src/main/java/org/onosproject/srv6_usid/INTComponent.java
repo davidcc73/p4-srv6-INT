@@ -189,7 +189,7 @@ public class INTComponent {
          */
         public String insertDefaultTableRule(DeviceId deviceId, String pipeline, String control, String table, 
                                                 int arg_value, String action_name) {
-                log.info("Inserting Default rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting Default rule for device {} and table {}", deviceId, table);
 
                 String tableId = pipeline + "." + control + "." + table;
 
@@ -225,7 +225,7 @@ public class INTComponent {
          */
         public String insertRule_process_int_source_sink(DeviceId deviceId, String pipeline, String control, String table,
                         String action_name, int key) {
-                log.info("Inserting a table rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting a table rule for device {} and table {}", deviceId, table);
                 String tableId = pipeline + "." + control + "." + table;
                 String cmp_field=null;
 
@@ -263,7 +263,7 @@ public class INTComponent {
          */
         public String insertRule_process_int_report(DeviceId deviceId, String pipeline, String control, String table,
                         String action_name, int key, String arg_str) {
-                log.info("Inserting a table rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting a table rule for device {} and table {}", deviceId, table);
                 String tableId = pipeline + "." + control + "." + table;
                 PiActionParam param;
                 PiActionParamId paramId;
@@ -313,7 +313,7 @@ public class INTComponent {
          */
         public String insertRule_process_int_source(DeviceId deviceId, String pipeline, String control, String table,
                                                    String action_name, String[] keys, String[] args) {
-                log.info("Inserting a table rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting a table rule for device {} and table {}", deviceId, table);
                 String tableId = pipeline + "." + control + "." + table;
 
 
