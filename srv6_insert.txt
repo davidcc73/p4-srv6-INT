@@ -40,6 +40,11 @@ srv6-insert device:r3 fcbb:bb00:c:6:2:fd00:: 2001:1:2::2
 
 
 # use case 5 (only uN) 
+# at r1 send packets destined to h3_1 to pass on r14, r3
+srv6-insert device:r1 fcbb:bb00:e:3:fd00:: 2001:1:3::1
+
+
+# use case 6 (only uN) 
 # at r1 send packets destined to h2_1 to pass on r2 (it's the same as the default route)
 srv6-insert device:r1 fcbb:bb00:2:fd00:: 2001:1:2::1  
 
