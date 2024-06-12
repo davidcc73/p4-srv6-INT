@@ -137,5 +137,5 @@ python3 /INT/h1_tcp.py
 python3 /INT/h2_tcp.py
 
 
-Note: For ECMP we only calculate paths for flow labels 0-4, to change, 
-      need to change the variable maxflowlabel in the function that creates the paths
+Note: ECMP we only calculate paths for flow labels 0-4, to change, need to change maxflowlabel in the function that creates the paths
+      ECMP when using SRv6, does not take into account the src value in the packet when choosing the path
