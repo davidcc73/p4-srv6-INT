@@ -23,11 +23,11 @@ public class CalculatePathCommand extends AbstractShellCommand {
         @Completion(DeviceIdCompleter.class)
         String algorithm = null;
 
-        @Argument(index = 1, name = "secundary_weigher", 
+        /*@Argument(index = 1, name = "secundary_weigher", 
             description = "Which secondary weigher criteria should be used to decide between same length paths, either 'latency' or 'bandwith'",
             required = true, multiValued = false)
         @Completion(DeviceIdCompleter.class)
-        String secundary_weigher = null;
+        String secundary_weigher = null;*/
         
         @Override
         protected void doExecute() {
@@ -39,15 +39,15 @@ public class CalculatePathCommand extends AbstractShellCommand {
                     return;
             }
 
-            if(!secundary_weigher.equals("latency") && !secundary_weigher.equals("bandwith")){
+            /*if(!secundary_weigher.equals("latency") && !secundary_weigher.equals("bandwith")){
                 print("Invalid secundary_weigher, please use either 'latency' or 'bandwith'");
                 return;
-            }
+            }*/
 
             //Change path calculation criterias
             app.setAlgorithm(algorithm);
-            app.setPrioritize(secundary_weigher);
-            print("Changed current algorithm to (" + algorithm + ") and secundary weigher to (" + secundary_weigher + ")");
+            //app.setPrioritize(secundary_weigher);
+            print("Changed current algorithm to (" + algorithm + ")");
 
             print("Calculating and pushing routing rules...");
             result = app.recalculateAllPaths();

@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
 import org.uc.dei.mei.framework.onospath.PathInterface;
 import org.onosproject.ecmp.ECMPPathService;
 
-
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -80,6 +80,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
+import javax.swing.Action;
 import javax.swing.text.html.parser.Element;
 
 import java.util.HashSet;
@@ -213,7 +214,6 @@ public class Ipv6RoutingComponent{
         flowRuleService.applyFlowRules(myStationRule);
     }
 
-
     /**
      * Creates a flow rule for the L2 table mapping the given next hop MAC to
      * the given output port.
@@ -256,7 +256,6 @@ public class Ipv6RoutingComponent{
      */
     public String recalculateAllPaths(){
         int count_fails = 0;
-        Path minPath;
         String result = "Success";
         Set<DeviceId> allDevices = new HashSet<>();
         log.info("Calculating all paths...");
@@ -266,51 +265,112 @@ public class Ipv6RoutingComponent{
 
         // Iterate over all possible pairs devices, THIS LOOP CAN BE OPTIMIZED! 
         for (DeviceId sourceDevice : allDevices) {
-        for (DeviceId destinationDevice : allDevices) {
-            if(sourceDevice.equals(destinationDevice)) {continue;}
-            //Calculate the path from the current device to the destination device
-            try{
+            for (DeviceId destinationDevice : allDevices) {
+                if(sourceDevice.equals(destinationDevice)) {continue;}
+                //Calculate the path from the current device to the destination device
+
+                //Having the path, we can push the rules to the switches, 
+                //we go link by link push the rule to current source
+                //(only in one direction, the other will be done by another function call)
+                final Ip6Address ip_src = getMySubNetIP(sourceDevice);
+                final Ip6Address uN_src = getDeviceSid(sourceDevice);
+
+                final Ip6Address ip_dst = getMySubNetIP(destinationDevice);
+                final Ip6Address uN_dst = getDeviceSid(destinationDevice);
+                
                 if(algorithm == 0){ //KShort
-                    minPath = multiplePathService.getK(sourceDevice, destinationDevice, "geo", "video");
+                    count_fails = count_fails + recalculateAllPaths_KShort(sourceDevice, destinationDevice, "geo", "video", 
+                                                            ip_dst, uN_dst);
                 }
-                else if(algorithm == 1){ //ECMP         
-                    minPath = ecmpPathService.getPath(sourceDevice, destinationDevice, 2);
+                else if(algorithm == 1){ //ECMP   
+                    count_fails = count_fails + recalculateAllPaths_ECMP(sourceDevice, destinationDevice, "geo", "video", 
+                                                            ip_src, uN_src, ip_dst, uN_dst);
                 }
                 else{
                     log.info("Invalid algorithm");
                     return "Invalid algorithm";
                 }
-            }catch(NoSuchElementException e){
-                log.info("No path found between {} and {}", sourceDevice, destinationDevice);
-                count_fails++;
-                continue;
             }
-    
-            //Having the path, we can now push the rules to the switches, 
-            //we go link by link push the rule to current source
-            //(only in one direction, the other will be done by another function call)
-            final Ip6Address ip_final_dst = getMySubNetIP(destinationDevice);
-            final Ip6Address uN_final_dst = getDeviceSid(destinationDevice);
+        }
+        if(count_fails != 0){ result = "Failed to calculate path for " + count_fails + " pairs of devices";}
+        return result;
+    }
+
+    /**
+     * Continuation of the recalculateAllPaths function, when KShort algorithm is used
+     */
+    public int recalculateAllPaths_KShort(DeviceId sourceDevice , DeviceId destinationDevice, String weigher, 
+                                          String serviceType, Ip6Address ip_dst, Ip6Address uN_dst){
+        Path minPath = null;
+        
+        try{
+            minPath = multiplePathService.getK(sourceDevice, destinationDevice, "geo", "video");
+        }catch(NoSuchElementException e){
+            log.info("No path found between {} and {}, skipping...", sourceDevice, destinationDevice);
+            return 1;
+        }
+        if(minPath == null){
+            log.info("No path found between {} and {}, skipping...", sourceDevice, destinationDevice);
+            return 1;
+        }
+
+        minPath.links().forEach(link -> {
+            //Create flow rules and push it to the switch that is source to the current link
+            final MacAddress nextHopMac = getMyStationMac(link.dst().deviceId());
+
+            //USING IP6 ADDRESS (for normal routing)
+            //Always use mask 64, so it also forwards host's traffic into the right switch, that is connected to it (host's IPs are subnets of switch's IP)         
+            insertRoutingRuleKShort(link.src().deviceId(), ip_dst, 64, nextHopMac);
+
+            //USING uN Value    (for Srv6 routing) (it's uSID value of the switch)
+            //Always use mask 48
+            insertRoutingRuleKShort(link.src().deviceId(), uN_dst, 48, nextHopMac);
+        });
+        return 0;
+    }
+
+    /**
+     * Continuation of the recalculateAllPaths function, when ECMP algorithm is used
+     */
+    public int recalculateAllPaths_ECMP(DeviceId sourceDevice , DeviceId destinationDevice, String weigher, 
+                                        String serviceType, Ip6Address ip_src, Ip6Address uN_src,
+                                        Ip6Address ip_dst, Ip6Address uN_dst){
+        Path minPath = null;
+        int max_FlowLabel = 3;                 //[0-3] 4 different labels will be able to activate ECMP table entries
+
+        for(int flowLabel = 0; flowLabel <= max_FlowLabel; flowLabel++){
+            final int currentFlowLabel = flowLabel;
+
+            try{
+                minPath = ecmpPathService.getPath(sourceDevice, destinationDevice, currentFlowLabel);
+            }catch(NoSuchElementException e){
+                log.info("No path found between {} and {}, skipping...", sourceDevice, destinationDevice);
+                return 1;
+            }
+            if(minPath == null){
+                log.info("No path found between {} and {}, skipping...", sourceDevice, destinationDevice);
+                return 1;
+            }
 
             minPath.links().forEach(link -> {
-                //log.info("Link: {} -> {}", link.src().deviceId(), link.dst().deviceId());
-
                 //Create flow rules and push it to the switch that is source to the current link
                 final MacAddress nextHopMac = getMyStationMac(link.dst().deviceId());
 
                 //USING IP6 ADDRESS (for normal routing)
                 //Always use mask 64, so it also forwards host's traffic into the right switch, that is connected to it (host's IPs are subnets of switch's IP)         
-                insertRoutingRuleKShort(link.src().deviceId(), ip_final_dst, 64, nextHopMac);
+                insertRoutingRuleECMP(link.src().deviceId(), ip_src, ip_dst, 64, 64, currentFlowLabel, nextHopMac);
 
                 //USING uN Value    (for Srv6 routing) (it's uSID value of the switch)
-                //Always use mask 48
-                insertRoutingRuleKShort(link.src().deviceId(), uN_final_dst, 48, nextHopMac);
-            }
-            );
+                //Use mask 48 for the destination
+                //Use mask 0 for the source
+                //because the uN_src is never updated from the original value (uN of the source switch)
+                //so we should not take it into account when calculating the path
+                insertRoutingRuleECMP(link.src().deviceId(), uN_src, uN_dst, 0, 48, currentFlowLabel, nextHopMac);
+
+            });
         }
-        }
-        if(count_fails != 0){ result = "Failed to calculate path for " + count_fails + " pairs of devices";}
-        return result;
+
+        return 0;
     }
 
     //--------------------------------------------------------------------------
@@ -444,7 +504,7 @@ public class Ipv6RoutingComponent{
      */
     public void insertRoutingRuleKShort(DeviceId routerId, Ip6Address ipv6Addr,
                                     int mask, MacAddress nextHopMac) {
-        log.info("Adding a route on {}...", routerId);
+        //log.info("Adding a route on {}...", routerId);
 
         final String tableId = "IngressPipeImpl.routing_v6_kShort";
 
@@ -463,11 +523,65 @@ public class Ipv6RoutingComponent{
                             // Action param value.
                             nextHopMac.toBytes()))
                     .build();
+
         flowRuleService.applyFlowRules(Utils
                  .buildFlowRule(routerId, appId, tableId, match, action));
        
     }    
 
+    /*
+     * Creates and Pushes L3 routing rules to the device, so it can forward packets, into the ECMP table
+     * to the next hop MAC address based on its IP and mask.
+     * Existing rules are overwritten, when the match fields coincide.
+     */
+    public void insertRoutingRuleECMP(DeviceId routerId, Ip6Address srcAddr, Ip6Address dstAddr,
+                                    int srcMask, int dstMask, int flowLabel, MacAddress nextHopMac) {
+        //log.info("Adding a route on {}...", routerId);
+
+        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
+        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
+        final String tableId = "IngressPipeImpl.routing_v6_ECMP";
+        PiCriterion match = null;
+
+        if(srcMask != 0){
+            match = PiCriterion.builder()
+            .matchTernary(
+                PiMatchFieldId.of("hdr.ipv6.src_addr"), 
+                    srcAddr.toOctets(), 
+                    src_mask_bytes)
+            .matchTernary(
+                PiMatchFieldId.of("hdr.ipv6.dst_addr"), 
+                    dstAddr.toOctets(), 
+                    dst_mask_bytes)
+            .matchExact(
+                PiMatchFieldId.of("hdr.ipv6.flow_label"), flowLabel)
+            .build();
+        }else{
+            match = PiCriterion.builder()
+            .matchTernary(
+                PiMatchFieldId.of("hdr.ipv6.dst_addr"), 
+                    dstAddr.toOctets(), 
+                    dst_mask_bytes)
+            .matchExact(
+                PiMatchFieldId.of("hdr.ipv6.flow_label"), flowLabel)
+            .build();
+        }
+
+        final PiAction action = PiAction.builder()
+                    .withId(PiActionId.of("IngressPipeImpl.set_next_hop"))
+                    .withParameter(new PiActionParam(
+                            // Action param name.
+                            PiActionParamId.of("next_hop"),
+                            // Action param value.
+                            nextHopMac.toBytes()))
+                    .build();
+        
+        final FlowRule rule1 = Utils.buildFlowRule(routerId, appId, tableId, match, action);
+
+        flowRuleService.applyFlowRules(rule1);
+       
+    }    
+    
     //--------------------------------------------------------------------------
     // UTILITY METHODS
     //--------------------------------------------------------------------------
@@ -589,5 +703,37 @@ public class Ipv6RoutingComponent{
         }else if(criteria.equals("bandwith")){
             this.prioritize = 1;
         }
+    }
+
+    /**
+     * Receives an int with the number of the most relevant bits of a mask, 
+     * and returns a byte array with said mask.
+     * The total length of the byte array is 16 (same as an IPv6 address), 
+     * and the mask is placed in the most significant bits.
+     *
+     * @param mask an integer representing the number of most relevant bits
+     * @return a byte array of length 16 with the mask
+     */
+    public byte[] convertIntToByteArray(int mask) {
+        // Create a byte array of length 16
+        byte[] byteArray = new byte[16];
+        
+        // Calculate the number of full bytes and remaining bits
+        int fullBytes = mask / 8;
+        int remainingBits = mask % 8;
+
+        // Set the full bytes to 0xFF (all bits set)
+        for (int i = 0; i < fullBytes; i++) {
+            byteArray[i] = (byte) 0xFF;
+        }
+
+        // Set the remaining bits in the next byte, if there are any
+        if (remainingBits > 0) {
+            byteArray[fullBytes] = (byte) (0xFF << (8 - remainingBits));
+        }
+
+        // The rest of the byteArray is already 0 by default
+        //log.info("\nReceived Mask: {} \nConverted to: {}", mask, byteArray);
+        return byteArray;
     }
 }
