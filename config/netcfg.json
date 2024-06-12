@@ -37,6 +37,7 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:03",
         "uN": "fcbb:bb00:03::",
+        "uDX": "fcbb:bb00:03:fd00::",
         "isCore": false,
         "subNetIP": "2001:1:3::0" 
       }
@@ -50,6 +51,7 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:04",
         "uN": "fcbb:bb00:04::",
+        "uDX": "fcbb:bb00:04:fd00::",
         "isCore": false,
         "subNetIP": "2001:1:4::0" 
       }
@@ -63,6 +65,7 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:05",
         "uN": "fcbb:bb00:05::",
+        "uDX": "fcbb:bb00:05:fd00::",
         "isCore": false,
         "subNetIP": "2001:1:5::0" 
       }
@@ -76,6 +79,7 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:06",
         "uN": "fcbb:bb00:06::",
+        "uDX": "fcbb:bb00:06:fd00::",
         "isCore": false,
         "subNetIP": "2001:1:6::0" 
       }
@@ -89,6 +93,7 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:07",
         "uN": "fcbb:bb00:07::",
+        "uDX": "fcbb:bb00:07:fd00::",
         "isCore": false,
         "subNetIP": "2001:1:7::0" 
       }
@@ -102,6 +107,7 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:08",
         "uN": "fcbb:bb00:08::",
+        "uDX": "fcbb:bb00:08:fd00::",
         "isCore": false,
         "subNetIP": "2001:1:8::0" 
       }
