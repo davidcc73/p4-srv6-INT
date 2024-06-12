@@ -24,6 +24,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         standard_metadata.egress_spec = port_num;
     }
     action set_multicast_group(group_id_t gid) {
+        log_msg("Multicast group set to:{}", {gid});
         standard_metadata.mcast_grp = gid;
         local_metadata.is_multicast = true;
     }
@@ -72,22 +73,32 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	    hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
     }
 
-    // TODO: implement ecmp with ipv6.src+ipv6.dst+ipv6.flow_label
-    //action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ecmp_selector;
-    direct_counter(CounterType.packets_and_bytes) routing_v6_counter;
-    table routing_v6 {
+    //K-Shortest Path Routing Table
+    direct_counter(CounterType.packets_and_bytes) routing_v6_kShort_counter;
+    table routing_v6_kShort {            
 	    key = {
 	        hdr.ipv6.dst_addr: lpm;
-
-            hdr.ipv6.flow_label : selector;
-            hdr.ipv6.dst_addr : selector;
-            hdr.ipv6.src_addr : selector;
-	    }
+        }
         actions = {
 	        set_next_hop;
         }
-        counters = routing_v6_counter;
-        //implementation = ip6_ecmp_selector;
+        counters = routing_v6_kShort_counter;
+    }
+
+    //ECMP Path Routing Table, ternary match so i can abstract the hosts to their switchs (we use a maks to match the first 64 bits of the address)
+    //action_selector(HashAlgorithm.crc16, 32w64, 32w10) ip6_ECMP_selector;
+    direct_counter(CounterType.packets_and_bytes) routing_v6_ECMP_counter;
+    table routing_v6_ECMP {
+        key = {
+            hdr.ipv6.src_addr   : ternary;
+            hdr.ipv6.dst_addr   : ternary;
+            hdr.ipv6.flow_label : exact;
+        }
+        actions = {
+            set_next_hop;
+        }
+        counters = routing_v6_ECMP_counter;
+        //implementation = ip6_ECMP_selector;
     }
 
     // TODO calc checksum
@@ -144,10 +155,12 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     action srv6_end() {}
 
     action srv6_usid_un() {
+        log_msg("srv6_usid_un action");
         hdr.ipv6.dst_addr = (hdr.ipv6.dst_addr & UN_BLOCK_MASK) | ((hdr.ipv6.dst_addr << 16) & ~((bit<128>)UN_BLOCK_MASK));
     }
 
     action srv6_usid_ua(ipv6_addr_t next_hop) {
+        log_msg("srv6_usid_ua action");
         hdr.ipv6.dst_addr = (hdr.ipv6.dst_addr & UN_BLOCK_MASK) | ((hdr.ipv6.dst_addr << 32) & ~((bit<128>)UN_BLOCK_MASK));
         local_metadata.xconnect = true;
 
@@ -237,7 +250,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + 40;
         hdr.ipv6.next_header = PROTO_IPV6;
-        hdr.ipv6.src_addr = src_addr;
+        hdr.ipv6.src_addr = src_addr;                            //uN of the current device
         hdr.ipv6.dst_addr = s1;
     }
 
@@ -256,7 +269,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         hdr.ipv6.payload_len = hdr.ipv6.payload_len + 40 + 24;
         hdr.ipv6.next_header = PROTO_SRV6;
-        hdr.ipv6.src_addr = src_addr;
+        hdr.ipv6.src_addr = src_addr;                            //uN of the current device
         hdr.ipv6.dst_addr = s1;
 
         hdr.srv6h.setValid();
@@ -419,7 +432,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = acl_counter;
     }
 
-    apply {        
+    apply {
         //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
         if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
@@ -428,8 +441,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         //the value is 0 by default (best effort)
 
         //TODO: it can be more efficient the IP Precedence (priority) is always the 3 leftmost bits of the DSCP value
-        set_priority_from_dscp.apply();                     //set the packet priority based on the DSCP value
-        log_msg("Packet priority set to:{}", {standard_metadata.priority});
+        set_priority_from_dscp.apply();                       //set the packet priority based on the DSCP value
+        if(standard_metadata.priority != 0){log_msg("Packet priority changed to:{}", {standard_metadata.priority});}
 
         //-----------------See if packet should be droped by it's priority and % of queue filled (current size/max size) 
         //if yes, we can just mark to drop and do exit to terminate the packet processing
@@ -447,13 +460,13 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
 
 
-        //-----------------Forwarding
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
             exit;
         }
 
+        //-----------------Forwarding NDP packets
         if (hdr.icmpv6.isValid() && hdr.icmpv6.type == ICMP6_TYPE_NS) {
             ndp_reply_table.apply();
         }
@@ -462,7 +475,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	        drop();
 	    }
 
-	    if (l2_firewall.apply().hit) {                      //just checks is hdr.ethernet.dst_addr is listed in the table
+	    if (l2_firewall.apply().hit) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
             switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
                 srv6_end: {
                     // support for reduced SRH
@@ -480,24 +493,36 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                     routing_v4.apply();
                 }
             }
-
             // SRv6 Encapsulation
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
             } else {
-                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates or not
+                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
             }
-            
-            if (!local_metadata.xconnect) { 
-                routing_v6.apply();              //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
-	        } else {                             //the value of local_metadata.ua_next_hop was changed
-                xconnect_table.apply();          //sets hdr.ethernet.dst_addr to it
+
+            //-----------------Forwarding by IP
+            if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
+                //first we try doing ECMP routing, if it fails we do kShortestPath
+                //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
+                if(!routing_v6_ECMP.apply().hit){
+                    if(!routing_v6_kShort.apply().hit){
+                        log_msg("No route found for IPv6 packet!");
+                    }
+                }
+	        } else {                              //SRv6 ua_next_hop
+                xconnect_table.apply();           //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
-        
-	    if (!local_metadata.skip_l2) {
-            if (!unicast.apply().hit) {         //uses hdr.ethernet.dst_addr to set egress_spec
-                multicast.apply();
+	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined by ndp_reply_table
+            if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
+                log_msg("It's an LLDP multicast packet, not meant to be forwarded");
+            }
+            else{
+                if(!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
+                    if(hdr.ethernet.ether_type == ETHERTYPE_IPV6 || hdr.ethernet.ether_type == ETHERTYPE_LLDP){  //we only care about IPv6 broadcasts to check the table (Neighbor/Router solicitation)
+                        multicast.apply();
+                    }
+                }
 	        }
 	    }
 
@@ -520,11 +545,10 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
         }
 
-        if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) AND THE INSTRUCTION HEADER IS VALID
+        if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) and the INT header is valid
             // clone packet for Telemetry Report Collector
             log_msg("I am sink of this packet and i will clone it");
             local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
-            //local_metadata.perserv_meta.egress_port = standard_metadata.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
             local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
             local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
 

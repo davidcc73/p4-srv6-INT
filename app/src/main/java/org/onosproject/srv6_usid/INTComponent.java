@@ -11,10 +11,8 @@ import java.util.List;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
@@ -22,7 +20,6 @@ import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.PiCriterion.Builder;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
@@ -70,19 +67,10 @@ public class INTComponent {
         private FlowRuleService flowRuleService;
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY)
-        private MastershipService mastershipService;
-
-        @Reference(cardinality = ReferenceCardinality.MANDATORY)
         private GroupService groupService;
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY)
         private DeviceService deviceService;
-
-        @Reference(cardinality = ReferenceCardinality.MANDATORY)
-        private NetworkConfigService networkConfigService;
-
-        @Reference(cardinality = ReferenceCardinality.MANDATORY)
-        private InterfaceService interfaceService;
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY)
         private LinkService linkService;
@@ -157,7 +145,7 @@ public class INTComponent {
                 }
 
                 try{
-                        log.info("Pushing INT rule to device {}", deviceId);  
+                        //log.info("Pushing INT rule to device {}", deviceId);  
                         
                         final FlowRule rule = Utils.buildFlowRule(deviceId, appId, tableId, match, action);
                         flowRuleService.applyFlowRules(rule);
@@ -201,7 +189,7 @@ public class INTComponent {
          */
         public String insertDefaultTableRule(DeviceId deviceId, String pipeline, String control, String table, 
                                                 int arg_value, String action_name) {
-                log.info("Inserting Default rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting Default rule for device {} and table {}", deviceId, table);
 
                 String tableId = pipeline + "." + control + "." + table;
 
@@ -237,7 +225,7 @@ public class INTComponent {
          */
         public String insertRule_process_int_source_sink(DeviceId deviceId, String pipeline, String control, String table,
                         String action_name, int key) {
-                log.info("Inserting a table rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting a table rule for device {} and table {}", deviceId, table);
                 String tableId = pipeline + "." + control + "." + table;
                 String cmp_field=null;
 
@@ -275,7 +263,7 @@ public class INTComponent {
          */
         public String insertRule_process_int_report(DeviceId deviceId, String pipeline, String control, String table,
                         String action_name, int key, String arg_str) {
-                log.info("Inserting a table rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting a table rule for device {} and table {}", deviceId, table);
                 String tableId = pipeline + "." + control + "." + table;
                 PiActionParam param;
                 PiActionParamId paramId;
@@ -325,7 +313,7 @@ public class INTComponent {
          */
         public String insertRule_process_int_source(DeviceId deviceId, String pipeline, String control, String table,
                                                    String action_name, String[] keys, String[] args) {
-                log.info("Inserting a table rule for device {} and table {}", deviceId, table);
+                //log.info("Inserting a table rule for device {} and table {}", deviceId, table);
                 String tableId = pipeline + "." + control + "." + table;
 
 

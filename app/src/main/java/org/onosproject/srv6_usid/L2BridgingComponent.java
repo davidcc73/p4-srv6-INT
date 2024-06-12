@@ -149,8 +149,8 @@ public class L2BridgingComponent {
     }
 
     /**
-     * Inserts an ALL group in the ONOS core to replicate packets on all host
-     * facing ports. This group will be used to broadcast all ARP/NDP requests.
+     * Inserts an ALL group in the ONOS core to replicate packets on all host. 
+     * This group will be used to broadcast all ARP/NDP requests.
      * <p>
      * ALL groups in ONOS are equivalent to P4Runtime packet replication engine
      * (PRE) Multicast groups.
@@ -358,6 +358,7 @@ public class L2BridgingComponent {
                 log.info("{} event! host={}, deviceId={}, port={}",
                          event.type(), host.id(), deviceId, port);
 
+                //set routing_v6 rule
                 learnHost(host, deviceId, port);
             });
         }
@@ -375,9 +376,8 @@ public class L2BridgingComponent {
      * @return set of host facing ports
      */
     private Set<PortNumber> getHostFacingPorts(DeviceId deviceId) {
-        // Get all interfaces configured via netcfg for the given device ID and
-        // return the corresponding device port number. Interface configuration
-        // in the netcfg.json looks like this:
+        // Get all interfaces configured via netcfg for the given device ID and return the corresponding device port number. 
+        // Interface configuration in the netcfg.json looks like this:
         // "device:leaf1/3": {
         //   "interfaces": [
         //     {
@@ -386,11 +386,17 @@ public class L2BridgingComponent {
         //     }
         //   ]
         // }
-        return interfaceService.getInterfaces().stream()
-                .map(Interface::connectPoint)
-                .filter(cp -> cp.deviceId().equals(deviceId))
-                .map(ConnectPoint::port)
-                .collect(Collectors.toSet());
+
+        // The ports were configured in a way that each leaf will broadcast into a spine switch, 
+        // and the spine switches will circulate the packets through their outer links (still between spines) 
+        // with exception of the link between switchs 9 and 14, to avoid a broadcasting loop.
+        // The broadcast ports were configured so that each link works on both directions.
+
+        return interfaceService.getInterfaces().stream()            //gets all interfaces
+                .map(Interface::connectPoint)                       //converts them to ConnectPoint
+                .filter(cp -> cp.deviceId().equals(deviceId))       //only the ones for the given device
+                .map(ConnectPoint::port)                            //converts them to port number
+                .collect(Collectors.toSet());                       //aggregates them in a set
     }
 
     /**
@@ -421,7 +427,7 @@ public class L2BridgingComponent {
      * Sets up L2 bridging on all devices known by ONOS and for which this ONOS
      * node instance is currently master.
      * <p>
-     * This method is called at component activation.
+     * This method is called at component activation, with a delay.
      */
     private void setUpAllDevices() {
         deviceService.getAvailableDevices().forEach(device -> {

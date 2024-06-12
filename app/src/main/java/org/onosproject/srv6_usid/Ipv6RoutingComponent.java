@@ -24,12 +24,16 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.ecmp.ECMPPathService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.Path;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -57,17 +61,28 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.onosproject.srv6_usid.MainComponent;
+import org.onosproject.srv6_usid.Srv6Component;
 import org.onosproject.srv6_usid.common.Srv6DeviceConfig;
 import org.onosproject.srv6_usid.common.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uc.dei.mei.framework.onospath.PathInterface;
+import org.onosproject.ecmp.ECMPPathService;
+
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.crypto.Mac;
+import javax.swing.text.html.parser.Element;
+
+import java.util.HashSet;
 
 import static com.google.common.collect.Streams.stream;
 import static org.onosproject.srv6_usid.AppConstants.INITIAL_SETUP_DELAY;
@@ -83,7 +98,7 @@ import static org.onosproject.srv6_usid.AppConstants.INITIAL_SETUP_DELAY;
         enabled = true,
         service = Ipv6RoutingComponent.class
 )
-public class Ipv6RoutingComponent {
+public class Ipv6RoutingComponent{
 
     private static final Logger log = LoggerFactory.getLogger(Ipv6RoutingComponent.class);
 
@@ -91,6 +106,10 @@ public class Ipv6RoutingComponent {
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private ApplicationId appId;
+    
+    //path calculations will use this variables to decide which algorithm and secundadry weigher to use
+    int prioritize = 0; // 0 = lantency, 1 = bandwith
+    int algorithm = 0; // 0 = KShort, 1 = ECMP
 
     //--------------------------------------------------------------------------
     // ONOS CORE SERVICE BINDING
@@ -122,6 +141,15 @@ public class Ipv6RoutingComponent {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private MainComponent mainComponent;
+    
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private Srv6Component srv6Component;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private PathInterface multiplePathService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private ECMPPathService ecmpPathService;
 
     //--------------------------------------------------------------------------
     // COMPONENT ACTIVATION.
@@ -138,7 +166,7 @@ public class Ipv6RoutingComponent {
         deviceService.addListener(deviceListener);
 
         // Schedule set up for all devices.
-        mainComponent.scheduleTask(this::setUpAllDevices, INITIAL_SETUP_DELAY);
+        mainComponent.scheduleTask(this::setUpAllDevices, INITIAL_SETUP_DELAY);  //commented so setnextl2 could change, and is not needed, the topology is received at runtime via onos cli
 
         log.info("Started");
     }
@@ -199,7 +227,7 @@ public class Ipv6RoutingComponent {
      * @param outPort    the output port
      */
     private FlowRule createL2NextHopRule(DeviceId deviceId, MacAddress nexthopMac,
-                                         PortNumber outPort) {
+                                         PortNumber outPort) {   //maps next MAC to Out Port
 
         final String tableId = "IngressPipeImpl.unicast";
         final PiCriterion match = PiCriterion.builder()
@@ -217,6 +245,72 @@ public class Ipv6RoutingComponent {
 
         return Utils.buildFlowRule(
                 deviceId, appId, tableId, match, action);
+    }
+
+    /**
+     * All L3 paths are recaulculated on each relevant link event!, and there will be a lot of overlap between the 
+     * many paths results and their pushes to the switchs, very ineffecient, but it's a simple way to do it,
+     * and this project uses a simple/static topology so there is no problem for us.
+     * Then sets up the L3 nexthop rules of the devices, along the path to provide forwarding inside the
+     * fabric (we assume the hosts have the subnet IPs of their switchs), So the Hosts are also reached.
+     */
+    public String recalculateAllPaths(){
+        int count_fails = 0;
+        Path minPath;
+        String result = "Success";
+        Set<DeviceId> allDevices = new HashSet<>();
+        log.info("Calculating all paths...");
+
+        // Get all devices in the network (just switchs, not hosts)
+        deviceService.getDevices().forEach(device -> allDevices.add(device.id()));
+
+        // Iterate over all possible pairs devices, THIS LOOP CAN BE OPTIMIZED! 
+        for (DeviceId sourceDevice : allDevices) {
+        for (DeviceId destinationDevice : allDevices) {
+            if(sourceDevice.equals(destinationDevice)) {continue;}
+            //Calculate the path from the current device to the destination device
+            try{
+                if(algorithm == 0){ //KShort
+                    minPath = multiplePathService.getK(sourceDevice, destinationDevice, "geo", "video");
+                }
+                else if(algorithm == 1){ //ECMP         
+                    minPath = ecmpPathService.getPath(sourceDevice, destinationDevice, 2);
+                }
+                else{
+                    log.info("Invalid algorithm");
+                    return "Invalid algorithm";
+                }
+            }catch(NoSuchElementException e){
+                log.info("No path found between {} and {}", sourceDevice, destinationDevice);
+                count_fails++;
+                continue;
+            }
+    
+            //Having the path, we can now push the rules to the switches, 
+            //we go link by link push the rule to current source
+            //(only in one direction, the other will be done by another function call)
+            final Ip6Address ip_final_dst = getMySubNetIP(destinationDevice);
+            final Ip6Address uN_final_dst = getDeviceSid(destinationDevice);
+
+            minPath.links().forEach(link -> {
+                //log.info("Link: {} -> {}", link.src().deviceId(), link.dst().deviceId());
+
+                //Create flow rules and push it to the switch that is source to the current link
+                final MacAddress nextHopMac = getMyStationMac(link.dst().deviceId());
+
+                //USING IP6 ADDRESS (for normal routing)
+                //Always use mask 64, so it also forwards host's traffic into the right switch, that is connected to it (host's IPs are subnets of switch's IP)         
+                insertRoutingRuleKShort(link.src().deviceId(), ip_final_dst, 64, nextHopMac);
+
+                //USING uN Value    (for Srv6 routing) (it's uSID value of the switch)
+                //Always use mask 48
+                insertRoutingRuleKShort(link.src().deviceId(), uN_final_dst, 48, nextHopMac);
+            }
+            );
+        }
+        }
+        if(count_fails != 0){ result = "Failed to calculate path for " + count_fails + " pairs of devices";}
+        return result;
     }
 
     //--------------------------------------------------------------------------
@@ -245,7 +339,7 @@ public class Ipv6RoutingComponent {
             switch (event.type()) {
                 case LINK_ADDED:
                     break;
-                case LINK_UPDATED:
+                case LINK_UPDATED:              //maybe useful for when links break
                 case LINK_REMOVED:
                 default:
                     return false;
@@ -257,10 +351,11 @@ public class Ipv6RoutingComponent {
         }
 
         @Override
-        public void event(LinkEvent event) {
+        public void event(LinkEvent event) {    //see isRelevant() explanation
             DeviceId srcDev = event.subject().src().deviceId();
             DeviceId dstDev = event.subject().dst().deviceId();
 
+            // Being a new link discovered we need to map the MAC of the new devices to their own outports
             if (mastershipService.isLocalMaster(srcDev)) {
                 mainComponent.getExecutorService().execute(() -> {
                     log.info("{} event! Configuring {}... linkSrc={}, linkDst={}",
@@ -342,13 +437,16 @@ public class Ipv6RoutingComponent {
         }
     }
 
-
-    public void insertRoutingRule(DeviceId routerId, Ip6Address ipv6Addr,
+    /*
+     * Creates and Pushes L3 routing rules to the device, so it can forward packets, into the KShortest table
+     * to the next hop MAC address based on its IP and mask.
+     * Existing rules are overwritten, when the match fields coincide.
+     */
+    public void insertRoutingRuleKShort(DeviceId routerId, Ip6Address ipv6Addr,
                                     int mask, MacAddress nextHopMac) {
         log.info("Adding a route on {}...", routerId);
 
-        final String tableId = "IngressPipeImpl.routing_v6";
-        final String actionName = "IngressPipeImpl.routing_v6";
+        final String tableId = "IngressPipeImpl.routing_v6_kShort";
 
         final PiCriterion match = PiCriterion.builder()
                 .matchLpm(
@@ -365,7 +463,7 @@ public class Ipv6RoutingComponent {
                             // Action param value.
                             nextHopMac.toBytes()))
                     .build();
-         flowRuleService.applyFlowRules(Utils
+        flowRuleService.applyFlowRules(Utils
                  .buildFlowRule(routerId, appId, tableId, match, action));
        
     }    
@@ -386,6 +484,20 @@ public class Ipv6RoutingComponent {
                 .map(Srv6DeviceConfig::myStationMac)
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Missing myStationMac config for " + deviceId));
+    }
+
+    /**
+     * Returns the IP address configured in the "subNetIP" property of the
+     * given device config.
+     *
+     * @param deviceId the device ID
+     * @return MyStation MAC address
+     */
+    private Ip6Address getMySubNetIP(DeviceId deviceId) {
+        return getDeviceConfig(deviceId)
+                .map(Srv6DeviceConfig::mySubNetIP)
+                .orElseThrow(() -> new ItemNotFoundException(
+                        "Missing mySubNetIP config for " + deviceId));
     }
 
     /**
@@ -445,7 +557,7 @@ public class Ipv6RoutingComponent {
      * Sets up IPv6 routing on all devices known by ONOS and for which this ONOS
      * node instance is currently master.
      */
-    private synchronized void setUpAllDevices() {
+    private synchronized void setUpAllDevices() {       //acivated at this component boot
         // Set up host routes
         stream(deviceService.getAvailableDevices())
                 .map(Device::id)
@@ -454,6 +566,28 @@ public class Ipv6RoutingComponent {
                     log.info("*** IPV6 ROUTING - Starting initial set up for {}...", deviceId);
                     setUpMyStationTable(deviceId);
                     setUpL2NextHopRules(deviceId);
-                });
+                });        
+    }
+
+    /*
+     * To change the algorithm used to calculate the paths, use this function
+     */
+    public void setAlgorithm(String alg){
+        if(alg.equals("KShort")){
+            this.algorithm = 0;
+        }else if(alg.equals("ECMP")){
+            this.algorithm = 1;
+        }
+    }
+
+    /*
+     * To change the Secundary weight used to calculate the paths, use this function
+     */
+    public void setPrioritize(String criteria){
+        if(criteria.equals("latency")){
+            this.prioritize = 0;
+        }else if(criteria.equals("bandwith")){
+            this.prioritize = 1;
+        }
     }
 }

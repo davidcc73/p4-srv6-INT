@@ -133,7 +133,7 @@ public class PacketPriorityComponent{
         String tableId =  "IngressPipeImpl.set_priority_from_dscp";
         String actionId = "IngressPipeImpl.set_priority_value";
 
-        log.info("Inserting a table rule for device {} and table set_priority_from_dscp", deviceId);
+        //log.info("Inserting a table rule for device {} and table set_priority_from_dscp", deviceId);
 
         final PiAction action = PiAction.builder()
             .withId(PiActionId.of(actionId))                                          // Action name as specified
@@ -145,7 +145,7 @@ public class PacketPriorityComponent{
             .build();
 
         try{
-            log.info("Pushing priority mapping rule to device {}", deviceId);  
+            //log.info("Pushing priority mapping rule to device {}", deviceId);  
             final FlowRule rule = Utils.buildFlowRule(deviceId, appId, tableId, match, action);
             flowRuleService.applyFlowRules(rule);
             result = "Success";        

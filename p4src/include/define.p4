@@ -27,7 +27,7 @@ typedef bit<16>  l4_port_t;
 const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<16> ETHERTYPE_IPV6 = 0x86dd;
 const bit<16> ETHERTYPE_ARP  = 0x0806;
-//const bit<16> ETHERTYPE_LLDP = 0x88cc;
+const bit<16> ETHERTYPE_LLDP = 0x88cc;
 
 const bit<8> PROTO_ICMP = 1;
 const bit<8> PROTO_TCP = 6;

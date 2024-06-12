@@ -10,7 +10,8 @@
         "myStationMac": "00:aa:00:00:00:01",
         "uN": "fcbb:bb00:01::",
         "uDX": "fcbb:bb00:01:fd00::",
-        "isCore": false
+        "isCore": false,
+        "subNetIP": "2001:1:1::0"
       }
     },
     "device:r2": {
@@ -23,7 +24,8 @@
         "myStationMac": "00:aa:00:00:00:02",
         "uN": "fcbb:bb00:02::",
         "uDX": "fcbb:bb00:02:fd00::",
-        "isCore": false
+        "isCore": false,
+        "subNetIP": "2001:1:2::0" 
       }
     },
     "device:r3": {
@@ -35,7 +37,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:03",
         "uN": "fcbb:bb00:03::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:3::0" 
       }
     },
     "device:r4": {
@@ -47,7 +50,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:04",
         "uN": "fcbb:bb00:04::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:4::0" 
       }
     },
     "device:r5": {
@@ -59,7 +63,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:05",
         "uN": "fcbb:bb00:05::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:5::0" 
       }
     },
     "device:r6": {
@@ -71,7 +76,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:06",
         "uN": "fcbb:bb00:06::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:6::0" 
       }
     },
     "device:r7": {
@@ -83,7 +89,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:07",
         "uN": "fcbb:bb00:07::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:7::0" 
       }
     },
     "device:r8": {
@@ -95,7 +102,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:08",
         "uN": "fcbb:bb00:08::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:8::0" 
       }
     },
     "device:r9": {
@@ -108,7 +116,8 @@
         "myStationMac": "00:aa:00:00:00:09",
         "uN": "fcbb:bb00:09::",
         "uA": "fcbb:bb00:09:fa94::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:9::0" 
       }
     },
     "device:r10": {
@@ -121,7 +130,8 @@
         "myStationMac": "00:aa:00:00:00:0a",
         "uN": "fcbb:bb00:0a::",
         "uA": "fcbb:bb00:0a:faa5::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:A::0" 
       }
     },
     "device:r11": {
@@ -133,7 +143,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:0b",
         "uN": "fcbb:bb00:0b::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:B::0" 
       }
     },
     "device:r12": {
@@ -145,7 +156,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:0c",
         "uN": "fcbb:bb00:0c::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:C::0" 
       }
     },
     "device:r13": {
@@ -157,7 +169,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:0d",
         "uN": "fcbb:bb00:0d::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:D::0" 
       }
     },
     "device:r14": {
@@ -169,7 +182,8 @@
       "srv6DeviceConfig": {
         "myStationMac": "00:aa:00:00:00:0e",
         "uN": "fcbb:bb00:0e::",
-        "isCore": true
+        "isCore": false,
+        "subNetIP": "2001:1:E::0" 
       }
     }
   },
@@ -178,29 +192,232 @@
       "interfaces": [
         {
           "name": "r1/2",
-          "ips": [
-            "2001:1:2::ff/64"
-          ]
+          "ips": ["2001:1:1::ff/64"]
+        }
+      ]
+    }
+    ,
+    "device:r1/11": {
+      "interfaces": [
+        {
+          "name": "r1/11",
+          "ips": ["2001:1:1::ff/64"]
         }
       ]
     },
-    "device:r1/3": {
+    "device:r1/12": {
       "interfaces": [
         {
-          "name": "r1/3",
-          "ips": [
-            "2001:1:1::ff/64"
-          ]
+          "name": "r1/12",
+          "ips": ["2001:1:1::ff/64"]
         }
       ]
     },
-    "device:r2/3": {
+    "device:r2/2": {
       "interfaces": [
         {
-          "name": "r2-3",
-          "ips": [
-            "2001:1:2::ff/64"
-          ]
+          "name": "r2/2",
+          "ips": ["2001:1:2::ff/64"]
+        }
+      ]
+    },
+    "device:r2/11": {
+      "interfaces": [
+        {
+          "name": "r2/11",
+          "ips": ["2001:1:2::ff/64"]
+        }
+      ]
+    },
+    "device:r2/12": {
+      "interfaces": [
+        {
+          "name": "r2/12",
+          "ips": ["2001:1:2::ff/64"]
+        }
+      ]
+    },
+    "device:r3/2": {
+      "interfaces": [
+        {
+          "name": "r3/2",
+          "ips": ["2001:1:3::ff/64"]
+        }
+      ]
+    },
+    "device:r4/2": {
+      "interfaces": [
+        {
+          "name": "r4/2",
+          "ips": ["2001:1:4::ff/64"]
+        }
+      ]
+    },
+    "device:r5/4": {
+      "interfaces": [
+        {
+          "name": "r5/4",
+          "ips": ["2001:1:5::ff/64"]
+        }
+      ]
+    },
+    "device:r6/4": {
+      "interfaces": [
+        {
+          "name": "r6/4",
+          "ips": ["2001:1:6::ff/64"]
+        }
+      ]
+    },
+    "device:r7/2": {
+      "interfaces": [
+        {
+          "name": "r7/2",
+          "ips": ["2001:1:7::ff/64"]
+        }
+      ]
+    },
+    "device:r8/2": {
+      "interfaces": [
+        {
+          "name": "r8/2",
+          "ips": ["2001:1:8::ff/64"]
+        }
+      ]
+    },
+    "device:r9/1": {
+      "interfaces": [
+        {
+          "name": "r9/1",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r9/2": {
+      "interfaces": [
+        {
+          "name": "r9/2",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r9/3": {
+      "interfaces": [
+        {
+          "name": "r9/3",
+          "ips": ["2001:1:9::ff/64"]
+        }
+      ]
+    },
+    "device:r10/1": {
+      "interfaces": [
+        {
+          "name": "r10/1",
+          "ips": ["2001:1:a::ff/64"]
+        }
+      ]
+    },
+    "device:r10/5": {
+      "interfaces": [
+        {
+          "name": "r10/5",
+          "ips": ["2001:1:a::ff/64"]
+        }
+      ]
+    },
+    "device:r11/1": {
+      "interfaces": [
+        {
+          "name": "r11/1",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r11/3": {
+      "interfaces": [
+        {
+          "name": "r11/3",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r11/5": {
+      "interfaces": [
+        {
+          "name": "r11/5",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r11/4": {
+      "interfaces": [
+        {
+          "name": "r11/4",
+          "ips": ["2001:1:b::ff/64"]
+        }
+      ]
+    },
+    "device:r12/2": {
+      "interfaces": [
+        {
+          "name": "r12/2",
+          "ips": ["2001:1:c::ff/64"]
+        }
+      ]
+    },
+    "device:r12/3": {
+      "interfaces": [
+        {
+          "name": "r12/3",
+          "ips": ["2001:1:c::ff/64"]
+        }
+      ]
+    },
+    "device:r12/4": {
+      "interfaces": [
+        {
+          "name": "r12/4",
+          "ips": ["2001:1:c::ff/64"]
+        }
+      ]
+    },
+    "device:r12/5": {
+      "interfaces": [
+        {
+          "name": "r12/5",
+          "ips": ["2001:1:c::ff/64"]
+        }
+      ]
+    },
+    "device:r13/2": {
+      "interfaces": [
+        {
+          "name": "r13/2",
+          "ips": ["2001:1:d::ff/64"]
+        }
+      ]
+    },
+    "device:r13/6": {
+      "interfaces": [
+        {
+          "name": "r13/6",
+          "ips": ["2001:1:d::ff/64"]
+        }
+      ]
+    },
+    "device:r14/1": {
+      "interfaces": [
+        {
+          "name": "r14/1",
+          "ips": ["2001:1:e::ff/64"]
+        }
+      ]
+    },
+    "device:r14/5": {
+      "interfaces": [
+        {
+          "name": "r14/5",
+          "ips": ["2001:1:e::ff/64"]
         }
       ]
     }
@@ -208,12 +425,27 @@
   "hosts": {
     "00:00:00:00:00:10/None": {
       "basic": {
-        "name": "h1"
+        "name": "h1_1"
+      }
+    },
+    "00:00:00:00:00:11/None": {
+      "basic": {
+        "name": "h1_2"
       }
     },
     "00:00:00:00:00:20/None": {
       "basic": {
-        "name": "h2"
+        "name": "h2_1"
+      }
+    },
+    "00:00:00:00:00:21/None": {
+      "basic": {
+        "name": "h2_2"
+      }
+    },
+    "00:00:00:00:00:30/None": {
+      "basic": {
+        "name": "h3_1"
       }
     },
     "00:00:00:00:00:05/None": {

@@ -46,29 +46,41 @@ def main(args):
     pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
     if args.l4 == 'tcp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m
+        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m
     elif args.l4 == 'udp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / args.m
+        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / args.m
     pkt.show2()
 
     for i in range(args.c):
         sendp(pkt, iface=iface, verbose=False)
-        sleep(1)
+        sleep(args.i)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='sender parser')
     parser.add_argument('--c', help='number of probe packets',
                         type=int, action="store", required=False,
                         default=1)
+    
     parser.add_argument('--ip', help='dst ip',
                         type=str, action="store", required=True)
+    
     parser.add_argument('--port', help="dest port", type=int,
                         action="store", required=True)
+    
     parser.add_argument('--l4', help="layer 4 proto (tcp or udp)",
                         type=str, action="store", required=True)
+    
     parser.add_argument('--m', help="message", type=str,
                         action='store', required=False, default="")
-    parser.add_argument('--dscp', help="message", type=int,
+    
+    parser.add_argument('--dscp', help="DSCP value", type=int,
                         action='store', required=False, default=0)
+    
+    parser.add_argument('--flow_label', help="flow_label value", type=int,
+                        action='store', required=False, default=0)
+    
+    parser.add_argument('--i', help="interval to send packets (second)", type=float,
+                        action='store', required=False, default=1.0)
+    
     args = parser.parse_args()
     main(args)

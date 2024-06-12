@@ -191,6 +191,7 @@ public class Srv6Component {
 
         final int mask = 64;
 
+        //table srv6_localsid_table
         PiCriterion match = PiCriterion.builder()
                 .matchLpm(
                         PiMatchFieldId.of("hdr.ipv6.dst_addr"),
@@ -210,7 +211,7 @@ public class Srv6Component {
         flowRuleService.applyFlowRules(Utils
                  .buildFlowRule(routerId, appId, uATableId, match, action));
 
-
+        //table xconnect_table
         match = PiCriterion.builder()
                     .matchLpm(
                                 PiMatchFieldId.of("local_metadata.ua_next_hop"),
@@ -238,7 +239,7 @@ public class Srv6Component {
      * @param deviceId     device ID
      * @param destIp       target IP address for the SRv6 policy
      * @param prefixLength prefix length for the target IP
-     * @param segmentList  list of SRv6 SIDs that make up the path
+     * @param segmentList  list of SRv6 SIDs that make up the path, also the final IP at the end
      */
     public void insertSrv6InsertRule(DeviceId deviceId, Ip6Address destIp, int prefixLength,
                                      List<Ip6Address> segmentList) {
@@ -252,6 +253,7 @@ public class Srv6Component {
 
         List<PiActionParam> actionParams = Lists.newArrayList();
 
+        //This argument will set the source IP to the uN of the current device
         PiActionParamId paramId = PiActionParamId.of("src_addr");
         PiActionParam param = new PiActionParam(paramId, myUSid.toOctets());
         actionParams.add(param);
@@ -386,6 +388,17 @@ public class Srv6Component {
     private Ip6Address getMyUDX(DeviceId deviceId) {
         return getDeviceConfig(deviceId)
                 .map(Srv6DeviceConfig::myUDX)
+                .orElse(null);
+    }
+
+    /**
+     * Returns subNetIP for the given device.
+     * @param deviceId the device ID
+     * @return subNetIP for the device
+     */
+    private Ip6Address getMySubNetIP(DeviceId deviceId) {   //only on this class just to not create a new class for this, the same for the netcfg.json
+        return getDeviceConfig(deviceId)
+                .map(Srv6DeviceConfig::mySubNetIP)
                 .orElse(null);
     }
 }
