@@ -34,7 +34,7 @@ import org.onosproject.srv6_usid.Ipv6RoutingComponent;
  */
 @Service
 @Command(scope = "onos", name = "route-insert",
-         description = "Insert a t_insert rule into the IPv6 KShort Routing table")
+         description = "Insert a t_insert rule into the IPv6 Routing table")
 public class RouteInsertCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
@@ -42,23 +42,29 @@ public class RouteInsertCommand extends AbstractShellCommand {
     @Completion(DeviceIdCompleter.class)
     String uri = null;
 
-    @Argument(index = 1, name = "ipv6NetAddress",
+    @Argument(index = 1, name = "table",
+            description = "to each table the command is for",
+            required = true, multiValued = false)
+    String table = null;
+
+    @Argument(index = 2, name = "ipv6NetAddress",
             description = "IPv6 address",
             required = true, multiValued = false)
     String ipv6NetAddr = null;
 
-    @Argument(index = 2, name = "mask",
-            description = "IPv6 mask",
+    @Argument(index = 3, name = "dst_mask",
+            description = "IPv6 dst_mask",
             required = false, multiValued = false)
-    int mask = 64;
+    int dst_mask = 64;
 
-    @Argument(index = 3, name = "macDstAddr",
+    @Argument(index = 4, name = "macDstAddr",
             description = "MAC destination address",
             required = true, multiValued = false)
     String macDstAddr = null;
 
     @Override
     protected void doExecute() {
+        int max_FlowLabel = 3;
         DeviceService deviceService = get(DeviceService.class);
         Ipv6RoutingComponent app = get(Ipv6RoutingComponent.class);
 
@@ -73,7 +79,17 @@ public class RouteInsertCommand extends AbstractShellCommand {
 
         print("Installing route on device %s", uri);
 
-        app.insertRoutingRuleKShort(device.id(), destIp, mask, nextHop);
+        if(table.equals("KShort")){
+             app.insertRoutingRuleKShort(device.id(), destIp, dst_mask, nextHop);
+        }else if(table.equals("ECMP")){
+            for(int currentFlowLabel = 0; currentFlowLabel <= max_FlowLabel; currentFlowLabel++){ 
+                //mask 0, to forward host traffic to them, no matter the source of it
+                app.insertRoutingRuleECMP(device.id(), Ip6Address.valueOf("0:0:0::0"), destIp, 0, dst_mask, currentFlowLabel, nextHop);
+            }
+        }
+        else{
+            print("Invalid table");
+        }  
 
     }
 

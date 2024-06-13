@@ -19,3 +19,7 @@ influx
 > use int
 > show measurements
 > select * from flow_latency
+
+#Check some values
+SELECT * FROM flow_latency ORDER BY time DESC LIMIT 20
+
