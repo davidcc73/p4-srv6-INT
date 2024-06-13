@@ -13,9 +13,12 @@ stop_sniffing = False
 INFLUX_HOST = 'localhost'
 INFLUX_DB = 'int'
 
+#We work with reports that have this structure: 
+#[Eth][IPv6][UDP][INT RAPORT HDR][ETH][IPv6 (SRv6, Optional)][IPv6][UDP/TCP][INT HDR][INT DATA]
+
 def handle_pkt(pkt,c):   #individually triggered by each sniffed packet
     print("got a TCP/UDP packet")
-    pkt.show2()
+    #pkt.show2()         #for debugging
     if INTREP in pkt :
         print("\n\n********* Receiving Telemetry Report ********")
         flow_info = c.parser_int_pkt(pkt)

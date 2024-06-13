@@ -67,7 +67,7 @@ control process_int_report (
                                     ipv6_addr_t mon_ip, 
                                     l4_port_t mon_port) {
         // INT Raport structure
-        // [Eth][IPv6][UDP][INT RAPORT HDR][ETH][IPv6][UDP/TCP][INT HDR][INT DATA]
+        // [Eth][IPv6][UDP][INT RAPORT HDR][ETH][IPv6 (SRv6, Optional)][IPv6][UDP/TCP][INT HDR][INT DATA]
         //Report Ethernet Header
         hdr.report_ethernet.setValid();
         hdr.report_ethernet.dst_addr = mon_mac;

@@ -69,6 +69,7 @@ EGRESS_TSTAMP_BIT =         0b00000100
 L2_PORT_IDS_BIT =           0b00000010
 EGRESS_PORT_TX_UTIL_BIT =   0b00000001
 
+#Class to store the parsed info from the INT reports
 class FlowInfo():
     def __init__(self):
         # flow information
@@ -77,6 +78,7 @@ class FlowInfo():
         self.src_port = None
         self.dst_port = None
         self.ip_proto = None
+        self.flow_label = None
 
         # flow hop count and flow total latency
         self.hop_cnt  = 0
@@ -113,6 +115,7 @@ class FlowInfo():
         print("src_port %s" % (self.src_port))
         print("dst_port %s" % (self.dst_port))
         print("ip_proto %s" % (self.ip_proto))
+        print("flow_label %s" % (self.flow_label))
 
         print("hop_cnt %s" % (self.hop_cnt))
         print("flow_latency %s" % (self.flow_latency))
@@ -155,6 +158,7 @@ class Collector():
         flow_info.src_ip = ip_pkt.src
         flow_info.dst_ip = ip_pkt.dst
         flow_info.ip_proto = ip_pkt.nh
+        flow_info.flow_label = ip_pkt.fl
 
         if UDP in ip_pkt:
             flow_info.src_port = ip_pkt[UDP].sport
@@ -215,12 +219,26 @@ class Collector():
     def parser_int_pkt(self,pkt):
         if INTREP not in pkt:
             return
-        int_rep_pkt = pkt[INTREP]
-        # int_rep_pkt.show()
+        int_rep_pkt = pkt[INTREP]                                           #Get whole packet after the first UDP/TCP header
+        #int_rep_pkt.show2()
 
-        flow_info = FlowInfo()
-        # parse five tuple (src_ip,dst_ip,src_port,dst_port,ip_proto)
-        self.parse_flow_info(flow_info,int_rep_pkt[IPv6])
+        flow_info = FlowInfo()                                              #variable to store collected data
+
+        #The INT report may contain multiple IPv6 headers, The SRv6 Header (Optional) and the Original IPv6 packet Header
+        #We need the Original IPv6 packet Header to get the flow information (always the last one in the packet)
+        ipv6_headers = []
+        pkt_tmp = int_rep_pkt
+        while pkt_tmp:
+            if IPv6 in pkt_tmp:
+                ipv6_headers.append(pkt_tmp[IPv6])
+                pkt_tmp = pkt_tmp[IPv6].payload
+            else:
+                pkt_tmp = pkt_tmp.payload
+
+
+        # parse 6 tuple (src_ip, dst_ip, src_port, dst_port, ip_proto, flow_label)
+        self.parse_flow_info(flow_info, ipv6_headers[-1])  
+
         # int metadata
         int_shim_pkt = INTShim(int_rep_pkt.load)
         self.parse_int_metadata(flow_info,int_shim_pkt)
@@ -228,6 +246,7 @@ class Collector():
 
         return flow_info
 
+    #Function to export the collected data to InfluxDB
     def export_influxdb(self,flow_info):
         if self.influx_client is None:
             print("collector.influx_client is Uninitialized")
@@ -237,7 +256,7 @@ class Collector():
             return
         
         metric_timestamp = int(time.time()*1000000000)
-													   
+
         metrics = []
         if flow_info.flow_latency:
             metrics.append({
@@ -247,15 +266,16 @@ class Collector():
                         'dst_ip': str(flow_info.dst_ip),
                         'src_port': flow_info.src_port,
                         'dst_port': flow_info.dst_port,
-                        'protocol': flow_info.ip_proto
+                        'protocol': flow_info.ip_proto,
+                        'flow_label': flow_info.flow_label
                     },
                     'time': metric_timestamp,
                     'fields': {
-																		 
+
                         'value': int(flow_info.flow_latency) #in ns
                     }
                 })
-																 
+
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.egress_tstamps) > 0 and len(flow_info.hop_latencies) > 0:
             for i in range(flow_info.hop_cnt):
@@ -264,13 +284,13 @@ class Collector():
                     'tags': {
                         'switch_id': flow_info.switch_ids[i]
                     },
-															  
+
                     'time': metric_timestamp,
                     'fields': {
                         'value': flow_info.hop_latencies[i]
                     }
                 })
-																	   
+
 
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.queue_ids) > 0:
@@ -281,7 +301,7 @@ class Collector():
                         'switch_id': flow_info.switch_ids[i],
                         'queue_id': flow_info.queue_ids[i]
                     },
-															   
+
                     'time': metric_timestamp,
                     'fields': {
                         'value': flow_info.queue_occups[i]
@@ -304,6 +324,5 @@ class Collector():
                         'value': abs(flow_info.egress_tstamps[i+1] - flow_info.ingress_tstamps[i])
                     }
                 })
-																	 
         
         self.influx_client.write_points(points=metrics, protocol="json")
