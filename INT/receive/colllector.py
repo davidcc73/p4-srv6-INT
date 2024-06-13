@@ -235,9 +235,9 @@ class Collector():
             else:
                 pkt_tmp = pkt_tmp.payload
 
-
         # parse 6 tuple (src_ip, dst_ip, src_port, dst_port, ip_proto, flow_label)
         self.parse_flow_info(flow_info, ipv6_headers[-1])  
+
 
         # int metadata
         int_shim_pkt = INTShim(int_rep_pkt.load)
