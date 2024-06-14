@@ -149,6 +149,11 @@ class TutorialTopo(Topo):
         h3_1 = self.addHost('h3_1', cls=IPv6Host, mac="00:00:00:00:00:30",
                             ipv6='2001:1:3::1/64', ipv6_gw='2001:1:3::ff')
         
+        
+        # IPv6 hosts attached to r5
+        h5_1 = self.addHost('h5_1', cls=IPv6Host, mac="00:00:00:00:00:50",
+                            ipv6='2001:1:5::1/64', ipv6_gw='2001:1:5::ff')
+        
         # IPv6 hosts attached to r7
         h7_1 = self.addHost('h7_1', cls=IPv6Host, mac="00:00:00:00:00:70",
                             ipv6='2001:1:7::1/64', ipv6_gw='2001:1:7::ff')
@@ -175,6 +180,8 @@ class TutorialTopo(Topo):
         self.addLink(h2_2, r2, port2=12)
 
         self.addLink(h3_1, r3, port2=11)
+        
+        self.addLink(h5_1, r5, port2=11)
 
         self.addLink(h7_1, r7, port2=11)
         self.addLink(h7_2, r7, port2=12)
