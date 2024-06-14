@@ -58,6 +58,9 @@ h2_1 ping h2_2
 
 h3_1 ping h1_2
 
+h7_1 ping h7_2
+h7_3 ping h3_1
+
 h8_1 ping h8_2
 h8_3 ping h8_4
 
