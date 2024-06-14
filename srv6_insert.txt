@@ -2,11 +2,12 @@
 #if a device, detects an (uN, uA, uDX) value instruction (see netcfg.json for the configuration) => change next hop IP, MAC, etc
 
 #uN----------------
-On each hop the inst on the dst_IP is read (fcbb:bb00:x:y:z:...) when it gets to the switch represented by 
+On each hop the insert on the dst_IP is read (fcbb:bb00:x:y:z:...) when it gets to the switch represented by 
 (fcbb:bb00:x) the forwarding uses a mask of 48 bits, is applyed a transfromation that removes the x value
 (16 bit shift of all at it's right) and saves it as (fcbb:bb00:y:z:...) to be used to determine the next hop value  
 
-The final switch must always be in the instruction as the last hop, the other switches are optional
+The final switch must always be in the instruction as the last hop, the other switches are optional,
+the uN instruction can include at the most 4 switches, including the final one
 
 #uA----------------
 uA instructions need to previosly be pushed to the switch that will use them, 
