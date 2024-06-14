@@ -130,7 +130,7 @@ class TutorialTopo(Topo):
         #add it's info to config\netcong.txt at (hosts), so ONOS can detect the IPv6Host (the mac)
         #at config\netcong.txt, add the port of the switch facing the new host to "ports" so it receives broadcast packets
         #add it's info to config\hosts_routing_tables.txt, so ONOS can map the IPs to the MACs
-        #if the host is added to a new switch make sure that said switch contains a (uDX) defined in the netcfg.json file, so SRv6 can be (d)encapsulate
+        #if the host is added to a new switch make sure that said switch contains a (uDX) defined in the netcfg.json file, so SRv6 can be (d)encapsulated
         #IPs must respect the subnet of their switch, see netcfg.json to see which subnet IP ONOS assumes each switch has
         
         # IPv6 hosts attached to r1
