@@ -152,6 +152,12 @@ class TutorialTopo(Topo):
         # IPv6 hosts attached to r8
         h8_1 = self.addHost('h8_1', cls=IPv6Host, mac="00:00:00:00:00:80",
                             ipv6='2001:1:8::1/64', ipv6_gw='2001:1:8::ff')
+        h8_2 = self.addHost('h8_2', cls=IPv6Host, mac="00:00:00:00:00:81",
+                            ipv6='2001:1:8::2/64', ipv6_gw='2001:1:8::ff')
+        h8_3 = self.addHost('h8_3', cls=IPv6Host, mac="00:00:00:00:00:82",
+                            ipv6='2001:1:8::3/64', ipv6_gw='2001:1:8::ff')
+        h8_4 = self.addHost('h8_4', cls=IPv6Host, mac="00:00:00:00:00:83",
+                            ipv6='2001:1:8::4/64', ipv6_gw='2001:1:8::ff')
         
         # Hosts Links
         self.addLink(h1_1, r1, port2=11)
@@ -163,6 +169,9 @@ class TutorialTopo(Topo):
         self.addLink(h3_1, r3, port2=11)
 
         self.addLink(h8_1, r8, port2=11)
+        self.addLink(h8_2, r8, port2=12)
+        self.addLink(h8_3, r8, port2=13)
+        self.addLink(h8_4, r8, port2=14)
 
 
         #---------------------INT POTION 

@@ -30,3 +30,15 @@ route-insert device:r3 ECMP   2001:1:3::1 128 00:00:00:00:00:30
 #h8_1
 route-insert device:r8 KShort 2001:1:8::1 128 00:00:00:00:00:80
 route-insert device:r8 ECMP   2001:1:8::1 128 00:00:00:00:00:80
+
+#h8_2
+route-insert device:r8 KShort 2001:1:8::2 128 00:00:00:00:00:81
+route-insert device:r8 ECMP   2001:1:8::2 128 00:00:00:00:00:81
+
+#h8_3
+route-insert device:r8 KShort 2001:1:8::3 128 00:00:00:00:00:82
+route-insert device:r8 ECMP   2001:1:8::3 128 00:00:00:00:00:82
+
+#h8_4
+route-insert device:r8 KShort 2001:1:8::4 128 00:00:00:00:00:83
+route-insert device:r8 ECMP   2001:1:8::4 128 00:00:00:00:00:83
