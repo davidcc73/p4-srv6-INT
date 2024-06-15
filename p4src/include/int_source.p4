@@ -92,7 +92,7 @@ control process_int_source (
 
     table tb_int_source {
         key = {
-            //configure for each flow to be monitored
+            //configure for each flow type to be monitored (HTTP, SQL, etc)
             // 4 fields identifying flow
             //include ip src, udp/tcp src and dest too
             hdr.ipv6.src_addr: ternary;
