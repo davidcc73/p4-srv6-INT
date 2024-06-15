@@ -288,7 +288,9 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     direct_counter(CounterType.packets_and_bytes) srv6_encap_table_counter;
     table srv6_encap {      //when the OG packet is IPv6
         key = {
-           hdr.ipv6.dst_addr: lpm;       
+           hdr.ipv6.src_addr: ternary; 
+           hdr.ipv6.dst_addr: ternary;  
+           hdr.ipv6.flow_label: exact;     
         }
         actions = {
             usid_encap_1;
