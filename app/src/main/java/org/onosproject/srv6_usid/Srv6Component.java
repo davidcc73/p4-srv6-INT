@@ -41,6 +41,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.onosproject.srv6_usid.MainComponent;
 import org.onosproject.srv6_usid.common.Srv6DeviceConfig;
 import org.onosproject.srv6_usid.common.Utils;
 import org.slf4j.Logger;
@@ -284,6 +285,42 @@ public class Srv6Component {
                 deviceId, appId, tableId, match, action);
 
         flowRuleService.applyFlowRules(rule);
+    }
+
+    /**
+     * Removes all micro SID encap insert policy from a device that match the specified parameters.
+     *
+     * @param deviceId     device ID
+     * @param srcIp        target src IP address for the SRv6 policy
+     * @param dstIp        target dst IP address for the SRv6 policy
+     * @param srcMask     prefix length for the src target IP
+     * @param dstMask     prefix length for the dst target IP
+     * @param flow_label   target flow label for the SRv6 policy
+     */
+    public void removeSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, 
+                                    int srcMask, int dstMask, int flow_label) {
+
+        String tableId = "IngressPipeImpl.srv6_encap";
+
+        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
+        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
+
+        //-------------------------------------Match
+        PiCriterion match = PiCriterion.builder()
+                .matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes)
+                .matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes)
+                .matchExact(PiMatchFieldId.of("hdr.ipv6.flow_label"), flow_label)
+                .build();
+
+        // The action is not needed for removal but the flow rule still needs a dummy action
+        PiAction dummyAction = PiAction.builder()
+                .withId(PiActionId.of("NoAction"))
+                .build();
+
+        final FlowRule rule = Utils.buildFlowRule(
+                deviceId, appId, tableId, match, dummyAction);
+
+        flowRuleService.removeFlowRules(rule);
     }
 
     /**

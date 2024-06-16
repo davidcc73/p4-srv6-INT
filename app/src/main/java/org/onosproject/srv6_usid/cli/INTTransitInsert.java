@@ -65,6 +65,7 @@ public class INTTransitInsert extends AbstractShellCommand {
                 DeviceService deviceService = get(DeviceService.class);
                 INTComponent app = get(INTComponent.class);
 
+                print("Inserting INT rule into the Transit table...");
                 for(int num = 1; num <= 14; num++) {
                         String uri = "device:r" + num;
                         Device device = deviceService.getDevice(DeviceId.deviceId(uri));
@@ -76,7 +77,7 @@ public class INTTransitInsert extends AbstractShellCommand {
                                 continue;
                         }
 
-                        print("Installing rule on device %s", uri);
+                        //print("Installing rule on device %s", uri);
                         result = app.insertINT_Rule(device.id(), pipeline, control, table, action, 
                                                    intValue, null, 
                                                    cmp_field_on_p4, cmp_criteria);

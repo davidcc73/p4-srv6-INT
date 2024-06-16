@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Command(scope = "onos", name = "srv6-insert",
-        description = "Insert a t_insert rule into the SRv6 Transit table")
+        description = "Insert a rule into the SRv6 Transit table")
 public class Srv6InsertCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID", required = true, multiValued = false)

@@ -30,6 +30,7 @@ public class INTSetRole extends AbstractShellCommand{
         DeviceService deviceService = get(DeviceService.class);
         INTComponent app = get(INTComponent.class);
 
+        print("Setting INT roles for all devices...");
         for(int num = 1; num <= 14; num++) {
             String filename = "/config/INT_Tables/r" + num + ".txt";
             String uri = "device:r" + num;
@@ -54,7 +55,7 @@ public class INTSetRole extends AbstractShellCommand{
                     if (parts[0].equals("mirroring_add")) {
                         int sessionID = Integer.parseInt(parts[1]);
                         long port = Long.parseLong(parts[2]);
-                        print("Installing rule on device %s", uri);
+                        //print("Installing rule on device %s", uri);
                         result = app.createMirroingSession(device.id(), sessionID,  port);
 
                     } else if (parts[0].equals("table_set_default")) {
@@ -64,7 +65,7 @@ public class INTSetRole extends AbstractShellCommand{
                         table = tableParts[2];
                         action = parts[2];
                         arg = Integer.parseInt(parts[3]);
-                        print("Installing rule on device %s", uri);
+                        //print("Installing rule on device %s", uri);
                         result = app.insertDefaultTableRule(device.id(), pipeline, control, table, arg, action);
 
                     } else if (parts[0].equals("table_add")) {
@@ -92,7 +93,7 @@ public class INTSetRole extends AbstractShellCommand{
                             print("ERROR: table_add not supported for table %s", table);
                             continue;
                         }
-                        print("Installing rule on device %s", uri);
+                        //print("Installing rule on device %s", uri);
                     } else {
                         System.out.println("Unsupported operation at file: " + filename + " operation: " + parts[0]);
                         continue;
