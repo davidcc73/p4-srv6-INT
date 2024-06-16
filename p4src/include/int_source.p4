@@ -55,8 +55,8 @@ control process_int_source (
         hdr.intl4_shim.len = INT_HEADER_WORD;                   // This is 3 from 0xC (INT_TOTAL_HEADER_SIZE >> 2)
         hdr.intl4_shim.udp_ip_dscp = hdr.ipv6.dscp;             // although should be first 6 bits of the second byte, BACKUP THE ORIGINAL DSCP VALUE AT THE INT INSTRUCTION HEADER
         hdr.intl4_shim.udp_ip = 0;                              // although should be first 6 bits of the second byte
-        //hdr.intl4_shim.tcp_ip_dscp = hdr.ipv4.dscp;             // TCP
-        //hdr.intl4_shim.tcp_ip = 0;                              // TCP
+        //hdr.intl4_shim.tcp_ip_dscp = hdr.ipv4.dscp;           // TCP
+        //hdr.intl4_shim.tcp_ip = 0;                            // TCP
         
         // insert INT header
         hdr.int_header.setValid();
