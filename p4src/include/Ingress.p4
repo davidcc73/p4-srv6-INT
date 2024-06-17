@@ -446,6 +446,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         standard_metadata.priority = local_metadata.OG_dscp[5:3];
         if(standard_metadata.priority != 0){log_msg("Packet priority changed to:{}", {standard_metadata.priority});}
 
+        //the other 3 bits are the drop precedence, we don't use it
 
 
 
