@@ -36,7 +36,7 @@ def handle_pkt(pkt):
     sys.stdout.flush()
 
 def signal_handler(sig, frame):
-    print("\nTotal packets received:", packet_TCP_UDP_count)
+    print("\nTotal TCP/UDP packets received:", packet_TCP_UDP_count)
     sys.exit(0)
 
 def main():
