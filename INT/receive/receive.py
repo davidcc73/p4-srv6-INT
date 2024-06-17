@@ -2,12 +2,16 @@
 import sys
 import struct
 import os
+import signal
 
 from scapy.all import sniff, sendp, hexdump, get_if_list, get_if_hwaddr
 from scapy.all import Packet, IPOption
 from scapy.all import PacketListField, ShortField, IntField, LongField, BitField, FieldListField, FieldLenField
 from scapy.all import IPv6, TCP, UDP, Raw
 from scapy.layers.inet import _IPOption_HDR, TCP, bind_layers
+
+# Global variable to count packets
+packet_TCP_UDP_count = 0
 
 def get_if():
     ifs = get_if_list()
@@ -22,19 +26,28 @@ def get_if():
     return iface
 
 def handle_pkt(pkt):
+    global packet_TCP_UDP_count
+    packet_TCP_UDP_count += 1
+
     print("got a TCP/UDP packet")
-    if IPv6 in pkt:
-        print("got an IPv6 packet")
 
     print("Original packet received:")
     pkt.show2()
     sys.stdout.flush()
+
+def signal_handler(sig, frame):
+    print("\nTotal packets received:", packet_TCP_UDP_count)
+    sys.exit(0)
 
 def main():
     ifaces = [i for i in os.listdir('/sys/class/net/') if 'eth' in i]
     iface = ifaces[0]
     print("sniffing on %s" % iface)
     sys.stdout.flush()
+    
+    # Register Ctrl+C handler
+    signal.signal(signal.SIGINT, signal_handler)
+
     sniff(iface=iface, filter='inbound and tcp or udp',
           prn = lambda x: handle_pkt(x))
 
