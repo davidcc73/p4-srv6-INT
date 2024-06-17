@@ -21,6 +21,7 @@ import org.onosproject.srv6_usid.PacketPriorityComponent;
 
 /**
  *  Packet Priority rules Insert Command
+ *  Not used in the final version of the project, because priority can be set by reading the 3 leftmost bits of the DSCP field
  */
 @Service
 @Command(scope = "onos", name = "Packet_Priority-set",

@@ -41,7 +41,6 @@ make netcfg                                         #Push mininet topology to ON
 #source /config/Static_Routing_Tables/static_routing_tables.txt    #Push static routing rules to switchs
 
 INT_Role-set                                        #Push INT roles at config\INT_Tables to switchs, 1 file peer device               
-Packet_Priority-set                                 #Push packet priority values to all switchs
 source /config/ua_config.txt
 source /config/INT_Tables/INT_Transit_config.txt    #Push INT instructions to switchs
 source /config/hosts_routing_tables.txt             #Push host routing rules to switchs (between switch and it's hots)

@@ -389,7 +389,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = srv6_encap_v4_table_counter;
     }
 
-    action set_priority_value(bit<3> value) {
+    /*action set_priority_value(bit<3> value) {         //no need to use this, we can set the priority directly
         standard_metadata.priority = value;
     }
     // compare the DSCP value to set the packet priority between 0-7 
@@ -401,7 +401,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             set_priority_value;
             NoAction;
         }
-    }
+    }*/
 
 
     /*
@@ -440,25 +440,12 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 
+        
         //the value is 0 by default (best effort)
-
-        //TODO: it can be more efficient the IP Precedence (priority) is always the 3 leftmost bits of the DSCP value
-        set_priority_from_dscp.apply();                       //set the packet priority based on the DSCP value
+        //set_priority_from_dscp.apply();                       //set the packet priority based on the DSCP value
+        standard_metadata.priority = local_metadata.OG_dscp[5:3];
         if(standard_metadata.priority != 0){log_msg("Packet priority changed to:{}", {standard_metadata.priority});}
 
-        //-----------------See if packet should be droped by it's priority and % of queue filled (current size/max size) 
-        //if yes, we can just mark to drop and do exit to terminate the packet processing
-        /* 
-        THIS IS IMPLEMENTATION DEPENDENT, IN MININET IT IS USELESS
-        if      (standard_metadata.deq_qdepth/max > 0.95 && standard_metadata.priority < 7)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.90 && standard_metadata.priority < 6)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.85 && standard_metadata.priority < 5)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.80 && standard_metadata.priority < 4)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.75 && standard_metadata.priority < 3)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.70 && standard_metadata.priority < 2)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.65 && standard_metadata.priority == 0) {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.60 && standard_metadata.priority == 1) {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        */
 
 
 
