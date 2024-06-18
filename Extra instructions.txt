@@ -37,7 +37,7 @@ sudo make app-build                                 #Recompile P4 code and ONOS 
 make app-reload                                     #Push ONOS apps to ONOS
 make netcfg                                         #Push mininet topology to ONOS
 
-#--------------------at ONOS cli (make onos-cli) wait a few seconds for the devices to be detected
+#--------------------at ONOS cli (sudo make onos-cli) wait a few seconds for the devices to be detected
 #source /config/Static_Routing_Tables/static_routing_tables.txt    #Push static routing rules to switchs
 
 INT_Role-set                                        #Push INT roles at config\INT_Tables to switchs, 1 file peer device               
@@ -50,7 +50,7 @@ source /config/hosts_routing_tables.txt             #Push host routing rules to 
 #Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
 Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
 
-#--------------------at mininet cli (make mn-cli) 
+#--------------------at mininet cli (sudo make mn-cli) 
 #For the hosts be detected in the topology send a packet from them, or ping 2 in the same switch (both will be detected)
 h1_1 ping h1_2
 h2_1 ping h2_2

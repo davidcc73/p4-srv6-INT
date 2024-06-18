@@ -466,6 +466,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	    }
 
 	    if (l2_firewall.apply().hit) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
+            
+            //----------------SRv6 Behavior (SRv6 LocalSID Table) (decapsulate, forward to next segment, manipulate packet, etc.)
             switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
                 srv6_end: {
                     // support for reduced SRH
@@ -483,6 +485,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                     routing_v4.apply();
                 }
             }
+
             // SRv6 Encapsulation
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
@@ -490,7 +493,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
             }
 
-            //-----------------Forwarding by IP
+            //-----------------Forwarding by IP -> MAC address
             if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
                 //first we try doing ECMP routing, if it fails we do kShortestPath
                 //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
@@ -503,6 +506,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 xconnect_table.apply();           //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
+
+        //-----------------Forwarding by MAC address -> Port
 	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined by ndp_reply_table
             if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
                 log_msg("It's an LLDP multicast packet, not meant to be forwarded");
