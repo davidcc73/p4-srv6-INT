@@ -485,6 +485,14 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                     routing_v4.apply();
                 }
             }
+            //----------------Detect recirculation
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_RECIRC) {
+                local_metadata.int_meta.sink = true;        //restore status as being sink, no longer need but it's correct (only sinks lead to recirculations, after cloning)
+                local_metadata.recirculated_srv6_flag = true;
+                standard_metadata.egress_spec = local_metadata.perserv_meta.egress_spec;   //restore egress_spec to the INT collector port
+                log_msg("recirculated packet, restored sink status and Removed SR headers, terminating ingress processing sonner");
+                return;                                     //recirculated just to remove headers used by SRv6, beacuse we are it's sink, so we stop here
+            }
 
             // SRv6 Encapsulation
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
@@ -543,7 +551,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) and the INT header is valid
             // clone packet for Telemetry Report Collector
             log_msg("I am sink of this packet and i will clone it");
-            local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
+            //------------Prepare info for report
+            local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      
             local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
             local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
 

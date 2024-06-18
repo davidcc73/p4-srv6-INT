@@ -47,11 +47,21 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
             }
             else {
                 log_msg("Detected report clone");
+                //-------------Restore data from the clone
                 // it may not be needed to restore all this information, just for the new data and the report
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;      //prepare info for report
                 //standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;      //we will use the REPORT_MIRROR_SESSION_ID one
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
                 standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
+                
+                //-------------If packet contains headers used for SRv6, it must be removed
+                if(hdr.ipv6.next_header == PROTO_IPV6 || hdr.ipv6.next_header == PROTO_SRV6){ //See what is after the outer IPv6 header
+                    //-----Prepare data for the recirculation
+                    log_msg("Seting to recirculate to remove headers used by SRv6, and terminating egress processing");
+                    local_metadata.perserv_meta.egress_spec = standard_metadata.egress_port;    //store the current egress port as spec to later on set back to egress_port  
+                    recirculate_preserving_field_list(CLONE_FL_1);
+                    return;                                                                    //do nothing else, just recirculate  
+                }    
             }
         }
 
@@ -67,7 +77,9 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         //-----------------INT processing portion
         if(hdr.int_header.isValid()) {
             log_msg("at egress INT header detected");
-            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {     //prepare report's info
+
+            //prepare data for report, it's meant to be report if the packet recirculated or is a clone that got here
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE || local_metadata.recirculated_srv6_flag == true) {     //prepare report's info
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
                 standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
@@ -76,10 +88,11 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
             log_msg("adding my INT stats");
             process_int_transit.apply(hdr, local_metadata, standard_metadata);   //(transit) INFO ADDED TO PACKET AT DEPARSER
 
-            if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {   //prepare report
+            if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE || local_metadata.recirculated_srv6_flag == true) {   //prepare report
                 // create int report 
                 log_msg("creating INT report");
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
+
             }else if (local_metadata.int_meta.sink == true) {
                 // restore packet to original state
                 log_msg("restoring packet to original state");
