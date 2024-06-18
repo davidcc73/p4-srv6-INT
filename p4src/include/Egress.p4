@@ -67,7 +67,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
         //-----------------INT processing portion
         if(hdr.int_header.isValid()) {
             log_msg("at egress INT header detected");
-            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {     //prepare report's info
                 standard_metadata.ingress_port = local_metadata.perserv_meta.ingress_port;
                 standard_metadata.egress_port = local_metadata.perserv_meta.egress_port;
                 standard_metadata.deq_qdepth = local_metadata.perserv_meta.deq_qdepth;
@@ -76,7 +76,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
             log_msg("adding my INT stats");
             process_int_transit.apply(hdr, local_metadata, standard_metadata);   //(transit) INFO ADDED TO PACKET AT DEPARSER
 
-            if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+            if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {   //prepare report
                 // create int report 
                 log_msg("creating INT report");
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
