@@ -176,10 +176,10 @@ struct preserving_metadata_t {
     bit<48> egress_global_timestamp;
     bit<32> lf_field_list;
     bit<16> mcast_grp;
-    bit<32> resubmit_flag;
+    bit<1> resubmit_flag;
     bit<16> egress_rid;
     bit<1> checksum_error;
-    bit<32> recirculate_flag;
+    bit<1> recirculate_flag;                   //Used to detect a packet taht recirculated and already did ingress
 }
  
 struct preserving_metadata_CPU_t {
