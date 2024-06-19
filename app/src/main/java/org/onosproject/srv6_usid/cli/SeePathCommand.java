@@ -89,14 +89,6 @@ public class SeePathCommand extends AbstractShellCommand{
         print("starting");
         Path minPath = null;
 
-        /*LinkWeigher weigher = new CustomLinkWeigher();
-        if(geoBoll == true) {
-            weigher = null;
-        }else if(hopBoll == true){
-            weigher = HopCountLinkWeigher.DEFAULT_HOP_COUNT_WEIGHER;
-        }else if(metricBoll == true){
-            weigher = new EnergyLinkWeigher("video", dataSource);
-        }*/
         String weigher = "custom";
         if(geoBoll == true) {
             weigher = "geo";
