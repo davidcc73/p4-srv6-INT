@@ -248,7 +248,7 @@ public class Ipv6RoutingComponent{
     }
 
     /**
-     * All L3 paths are recaulculated on each relevant link event!, and there will be a lot of overlap between the 
+     * All L3 paths are recaulculated on function call, and there will be a lot of overlap between the 
      * many paths results and their pushes to the switchs, very ineffecient, but it's a simple way to do it,
      * and this project uses a simple/static topology so there is no problem for us.
      * Then sets up the L3 nexthop rules of the devices, along the path to provide forwarding inside the
