@@ -46,8 +46,8 @@ def check_header_size(args):
         header_size = len(Ether() / IPv6() / UDP())
 
     # Check if the specified size is enough to include all the headers
-    if args.size < header_size:
-        print(f"Error: Specified size {args.size} bytes is not enough to include all the headers (at least {header_size} bytes needed).")
+    if args.s < header_size:
+        print(f"Error: Specified size {args.s} bytes is not enough to include all the headers (at least {header_size} bytes needed).")
         sys.exit(1)
 
     return header_size
@@ -91,7 +91,7 @@ def main(args):
 
     header_size = check_header_size(args)
 
-    payload_space = args.size - header_size
+    payload_space = args.s - header_size
 
     send_packet(args, pkt, payload_space, iface, addr)
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--i', help="interval to send packets (second)", type=float,
                         action='store', required=False, default=1.0)
         
-    parser.add_argument('--size', help="packet's total size in bytes", type=int,
+    parser.add_argument('--s', help="packet's total size in bytes", type=int,
                         action='store', required=True)
     
     args = parser.parse_args()
