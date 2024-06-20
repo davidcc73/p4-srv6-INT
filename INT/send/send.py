@@ -37,6 +37,21 @@ def get_ipv6_addr(hostname):
         print("Error getting IPv6 address:", e)
         sys.exit(1)
 
+# Check if the specified packet size is enough to include all the headers
+def check_header_size(args):
+    # Calculate the size of headers (Ethernet + IPv6 + TCP/UDP)
+    if args.l4 == 'tcp':
+        header_size = len(Ether() / IPv6() / TCP())
+    elif args.l4 == 'udp':
+        header_size = len(Ether() / IPv6() / UDP())
+
+    # Check if the specified size is enough to include all the headers
+    if args.size < header_size:
+        print(f"Error: Specified size {args.size} bytes is not enough to include all the headers (at least {header_size} bytes needed).")
+        sys.exit(1)
+
+    return header_size
+
 def send_packet(args, pkt, iface):
     for i in range(args.c):
         sendp(pkt, iface=iface, verbose=False)
@@ -51,18 +66,9 @@ def main(args):
     pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
 
-    # Calculate the size of headers (Ethernet + IPv6 + TCP/UDP)
-    if args.l4 == 'tcp':
-        header_size = len(Ether() / IPv6() / TCP())
-    elif args.l4 == 'udp':
-        header_size = len(Ether() / IPv6() / UDP())
+    header_size = check_header_size(args)
 
-    # Check if the specified size is enough to include all the headers
-    if args.size < header_size:
-        print(f"Error: Specified size {args.size} bytes is not enough to include all the headers (at least {header_size} bytes needed).")
-        sys.exit(1)
     remaining_size = args.size - header_size
-
 
     # Prepare the payload with the desired size
     payload = args.m.encode()
