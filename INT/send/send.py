@@ -52,10 +52,34 @@ def check_header_size(args):
 
     return header_size
 
-def send_packet(args, pkt, iface):
+def send_packet(args, pkt_ETHE, payload_space, iface, addr):
     for i in range(args.c):
+        # Reset packet
+        pkt = pkt_ETHE
+
+        # Adjust payload for each packet
+        payload = f"{i + 1}-{args.m}-".encode()  # Convert payload to bytes
+        
+        # Ensure payload length matches payload_space
+        if len(payload) < payload_space:
+            trash_data = b'\x00' * (payload_space - len(payload))
+            payload += trash_data
+        elif len(payload) > payload_space:
+            payload = payload[:payload_space]
+        
+
+        # Construct IPv6 packet with either TCP or UDP
+        if args.l4 == 'tcp':
+            pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / payload
+        elif args.l4 == 'udp':
+            pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / payload
+        
+
+        # Send the constructed packet
         sendp(pkt, iface=iface, verbose=False)
+        # Sleep for specified interval
         sleep(args.i)
+
 
 def main(args):
     addr = get_ipv6_addr(args.ip)  # Get IPv6 address
@@ -65,27 +89,11 @@ def main(args):
     dst_mac = get_dest_mac(addr, iface)
     pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
-
     header_size = check_header_size(args)
 
-    remaining_size = args.size - header_size
+    payload_space = args.size - header_size
 
-    # Prepare the payload with the desired size
-    payload = args.m.encode()
-    if len(payload) < remaining_size:
-        trash_data = b'\x00' * (remaining_size - len(payload))
-        payload += trash_data
-    elif len(payload) > remaining_size:
-        payload = payload[:remaining_size]
-
-    # Prepare the packet
-    if args.l4 == 'tcp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / payload
-    elif args.l4 == 'udp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / payload
-    pkt.show2()
-
-    send_packet(args, pkt, iface)
+    send_packet(args, pkt, payload_space, iface, addr)
 
 
 if __name__ == '__main__':
