@@ -35,6 +35,22 @@ def handle_pkt(pkt):
     pkt.show2()
     sys.stdout.flush()
 
+    # Extract and print the message from the packet
+    if TCP in pkt and pkt[TCP].payload:
+        payload = pkt[TCP].payload.load.decode('utf-8', 'ignore')
+    elif UDP in pkt and pkt[UDP].payload:
+        payload = pkt[UDP].payload.load.decode('utf-8', 'ignore')
+    
+    #print(f"\nPacket payload: {payload}")
+    try:
+        seq_number, message = payload.split('-', 1)
+        print(f"Packet Sequence Number: {seq_number}")
+        print(f"Packet Message: {message}")
+    except ValueError:
+        print(f"Error splitting payload: {payload}")
+
+    sys.stdout.flush()
+
 def signal_handler(sig, frame):
     print("\nTotal TCP/UDP packets received:", packet_TCP_UDP_count)
     sys.exit(0)

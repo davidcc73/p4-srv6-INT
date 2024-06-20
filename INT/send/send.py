@@ -58,7 +58,7 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
         pkt = pkt_ETHE
 
         # Adjust payload for each packet
-        payload = f"{i + 1}-{args.m}-".encode()  # Convert payload to bytes
+        payload = f"{i + 1}-{args.m}".encode()  # Convert payload to bytes
         
         # Ensure payload length matches payload_space
         if len(payload) < payload_space:
@@ -94,7 +94,6 @@ def main(args):
     payload_space = args.size - header_size
 
     send_packet(args, pkt, payload_space, iface, addr)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='sender parser')
