@@ -37,6 +37,50 @@ def get_ipv6_addr(hostname):
         print("Error getting IPv6 address:", e)
         sys.exit(1)
 
+# Check if the specified packet size is enough to include all the headers
+def check_header_size(args):
+    # Calculate the size of headers (Ethernet + IPv6 + TCP/UDP)
+    if args.l4 == 'tcp':
+        header_size = len(Ether() / IPv6() / TCP())
+    elif args.l4 == 'udp':
+        header_size = len(Ether() / IPv6() / UDP())
+
+    # Check if the specified size is enough to include all the headers
+    if args.s < header_size:
+        print(f"Error: Specified size {args.s} bytes is not enough to include all the headers (at least {header_size} bytes needed).")
+        sys.exit(1)
+
+    return header_size
+
+def send_packet(args, pkt_ETHE, payload_space, iface, addr):
+    for i in range(args.c):
+        # Reset packet
+        pkt = pkt_ETHE
+
+        # Adjust payload for each packet
+        payload = f"{i + 1}-{args.m}".encode()  # Convert payload to bytes
+        
+        # Ensure payload length matches payload_space
+        if len(payload) < payload_space:
+            trash_data = b'\x00' * (payload_space - len(payload))
+            payload += trash_data
+        elif len(payload) > payload_space:
+            payload = payload[:payload_space]
+        
+
+        # Construct IPv6 packet with either TCP or UDP
+        if args.l4 == 'tcp':
+            pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / payload
+        elif args.l4 == 'udp':
+            pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / payload
+        
+
+        # Send the constructed packet
+        sendp(pkt, iface=iface, verbose=False)
+        # Sleep for specified interval
+        sleep(args.i)
+
+
 def main(args):
     addr = get_ipv6_addr(args.ip)  # Get IPv6 address
     iface = get_if()
@@ -45,15 +89,11 @@ def main(args):
     dst_mac = get_dest_mac(addr, iface)
     pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
-    if args.l4 == 'tcp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / args.m
-    elif args.l4 == 'udp':
-        pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / args.m
-    pkt.show2()
+    header_size = check_header_size(args)
 
-    for i in range(args.c):
-        sendp(pkt, iface=iface, verbose=False)
-        sleep(args.i)
+    payload_space = args.s - header_size
+
+    send_packet(args, pkt, payload_space, iface, addr)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='sender parser')
@@ -81,6 +121,9 @@ if __name__ == '__main__':
     
     parser.add_argument('--i', help="interval to send packets (second)", type=float,
                         action='store', required=False, default=1.0)
+        
+    parser.add_argument('--s', help="packet's total size in bytes", type=int,
+                        action='store', required=True)
     
     args = parser.parse_args()
     main(args)

@@ -21,6 +21,7 @@ import org.onosproject.srv6_usid.PacketPriorityComponent;
 
 /**
  *  Packet Priority rules Insert Command
+ *  Not used in the final version of the project, because priority can be set by reading the 3 leftmost bits of the DSCP field
  */
 @Service
 @Command(scope = "onos", name = "Packet_Priority-set",
@@ -37,6 +38,7 @@ public class PacketPriorityInsert extends AbstractShellCommand{
         String line = null;
         String[] parts;
 
+        print("Setting Packet Priority for all devices...");
         for(int num = 1; num <= 14; num++) { //send to the 14 devices
             String uri = "device:r" + num;
             String result="placeholder";
@@ -55,7 +57,7 @@ public class PacketPriorityInsert extends AbstractShellCommand{
                     if (parts[0].equals("Packet_Priority-insert")) {
                         key = Integer.parseInt(parts[1]);      //convert to hexadecimal
                         arg = Integer.parseInt(parts[2]);
-                        print("Installing rule on device %s", uri);
+                        //print("Installing rule on device %s", uri);
                         result = app.insertRule_SetDSCP_Priority(device.id(), key,  arg);
 
                         if(result != "Success"){print(result);}

@@ -127,13 +127,11 @@ class TutorialTopo(Topo):
         # Hosts
         #For each host added:
         #add it's info to the file of the switch connected to it at INT_Tables (the ports, to be Source and Sink to it)
-        #add it's info to config\netcong.txt, so ONOS can detect the IPv6Host (the mac)
+        #add it's info to config\netcong.txt at (hosts), so ONOS can detect the IPv6Host (the mac)
         #at config\netcong.txt, add the port of the switch facing the new host to "ports" so it receives broadcast packets
         #add it's info to config\hosts_routing_tables.txt, so ONOS can map the IPs to the MACs
-        #add it's info to config\Routing_Tables\routing_tables.txt, on the switch that connects to it (the other ones know already by the submask of the IP) (add the IP and mac)
-        #if the host is added to a new switch make sure that said switch contains a (uDX) defined in the netcfg.json file, so SRv6 can be (d)encapsulate
-        
-        # IPs must respect the subnet of their switch, see netcfg.json to see which subnet IP ONOS assumes each switch has
+        #if the host is added to a new switch make sure that said switch contains a (uDX) defined in the netcfg.json file, so SRv6 can be (d)encapsulated
+        #IPs must respect the subnet of their switch, see netcfg.json to see which subnet IP ONOS assumes each switch has
         
         # IPv6 hosts attached to r1
         h1_1 = self.addHost('h1_1', cls=IPv6Host, mac="00:00:00:00:00:10",
@@ -152,6 +150,28 @@ class TutorialTopo(Topo):
                             ipv6='2001:1:3::1/64', ipv6_gw='2001:1:3::ff')
         
         
+        # IPv6 hosts attached to r5
+        h5_1 = self.addHost('h5_1', cls=IPv6Host, mac="00:00:00:00:00:50",
+                            ipv6='2001:1:5::1/64', ipv6_gw='2001:1:5::ff')
+        
+        # IPv6 hosts attached to r7
+        h7_1 = self.addHost('h7_1', cls=IPv6Host, mac="00:00:00:00:00:70",
+                            ipv6='2001:1:7::1/64', ipv6_gw='2001:1:7::ff')
+        h7_2 = self.addHost('h7_2', cls=IPv6Host, mac="00:00:00:00:00:71",
+                            ipv6='2001:1:7::2/64', ipv6_gw='2001:1:7::ff')
+        h7_3 = self.addHost('h7_3', cls=IPv6Host, mac="00:00:00:00:00:72",
+                            ipv6='2001:1:7::3/64', ipv6_gw='2001:1:7::ff')
+
+        # IPv6 hosts attached to r8
+        h8_1 = self.addHost('h8_1', cls=IPv6Host, mac="00:00:00:00:00:80",
+                            ipv6='2001:1:8::1/64', ipv6_gw='2001:1:8::ff')
+        h8_2 = self.addHost('h8_2', cls=IPv6Host, mac="00:00:00:00:00:81",
+                            ipv6='2001:1:8::2/64', ipv6_gw='2001:1:8::ff')
+        h8_3 = self.addHost('h8_3', cls=IPv6Host, mac="00:00:00:00:00:82",
+                            ipv6='2001:1:8::3/64', ipv6_gw='2001:1:8::ff')
+        h8_4 = self.addHost('h8_4', cls=IPv6Host, mac="00:00:00:00:00:83",
+                            ipv6='2001:1:8::4/64', ipv6_gw='2001:1:8::ff')
+        
         # Hosts Links
         self.addLink(h1_1, r1, port2=11)
         self.addLink(h1_2, r1, port2=12)
@@ -160,7 +180,17 @@ class TutorialTopo(Topo):
         self.addLink(h2_2, r2, port2=12)
 
         self.addLink(h3_1, r3, port2=11)
+        
+        self.addLink(h5_1, r5, port2=11)
 
+        self.addLink(h7_1, r7, port2=11)
+        self.addLink(h7_2, r7, port2=12)
+        self.addLink(h7_3, r7, port2=13)
+
+        self.addLink(h8_1, r8, port2=11)
+        self.addLink(h8_2, r8, port2=12)
+        self.addLink(h8_3, r8, port2=13)
+        self.addLink(h8_4, r8, port2=14)
 
 
         #---------------------INT POTION 

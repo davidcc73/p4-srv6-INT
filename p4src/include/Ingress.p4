@@ -288,7 +288,9 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     direct_counter(CounterType.packets_and_bytes) srv6_encap_table_counter;
     table srv6_encap {      //when the OG packet is IPv6
         key = {
-           hdr.ipv6.dst_addr: lpm;       
+           hdr.ipv6.src_addr: ternary; 
+           hdr.ipv6.dst_addr: ternary;  
+           hdr.ipv6.flow_label: exact;     
         }
         actions = {
             usid_encap_1;
@@ -387,7 +389,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = srv6_encap_v4_table_counter;
     }
 
-    action set_priority_value(bit<3> value) {
+    /*action set_priority_value(bit<3> value) {         //no need to use this, we can set the priority directly
         standard_metadata.priority = value;
     }
     // compare the DSCP value to set the packet priority between 0-7 
@@ -399,7 +401,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             set_priority_value;
             NoAction;
         }
-    }
+    }*/
 
 
     /*
@@ -438,25 +440,13 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv6.isValid())      {local_metadata.OG_dscp = hdr.ipv6.dscp;}              //no SRv6 or encapsulation of IPv4 with just one segemnt
         else if(hdr.ipv4.isValid())      {local_metadata.OG_dscp = hdr.ipv4.dscp;}              //no encapsulation of IPv4 
+        
         //the value is 0 by default (best effort)
-
-        //TODO: it can be more efficient the IP Precedence (priority) is always the 3 leftmost bits of the DSCP value
-        set_priority_from_dscp.apply();                       //set the packet priority based on the DSCP value
+        //set_priority_from_dscp.apply();                       //set the packet priority based on the DSCP value
+        standard_metadata.priority = local_metadata.OG_dscp[5:3];
         if(standard_metadata.priority != 0){log_msg("Packet priority changed to:{}", {standard_metadata.priority});}
 
-        //-----------------See if packet should be droped by it's priority and % of queue filled (current size/max size) 
-        //if yes, we can just mark to drop and do exit to terminate the packet processing
-        /* 
-        THIS IS IMPLEMENTATION DEPENDENT, IN MININET IT IS USELESS
-        if      (standard_metadata.deq_qdepth/max > 0.95 && standard_metadata.priority < 7)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.90 && standard_metadata.priority < 6)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.85 && standard_metadata.priority < 5)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.80 && standard_metadata.priority < 4)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.75 && standard_metadata.priority < 3)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.70 && standard_metadata.priority < 2)  {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.65 && standard_metadata.priority == 0) {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        else if (standard_metadata.deq_qdepth/max > 0.60 && standard_metadata.priority == 1) {mark_to_drop(); log_msg("Dropped packet with priority:{}",{standard_metadata.priority}); exit();}
-        */
+        //the other 3 bits are the drop precedence, we don't use it
 
 
 
@@ -476,6 +466,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 	    }
 
 	    if (l2_firewall.apply().hit) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
+            
+            //----------------SRv6 Behavior (SRv6 LocalSID Table) (decapsulate, forward to next segment, manipulate packet, etc.)
             switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
                 srv6_end: {
                     // support for reduced SRH
@@ -493,6 +485,15 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                     routing_v4.apply();
                 }
             }
+            //----------------Detect recirculation
+            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_RECIRC) {
+                local_metadata.int_meta.sink = true;        //restore status as being sink, no longer need but it's correct (only sinks lead to recirculations, after cloning)
+                local_metadata.recirculated_srv6_flag = true;
+                standard_metadata.egress_spec = local_metadata.perserv_meta.egress_spec;   //restore egress_spec to the INT collector port
+                log_msg("recirculated packet, restored sink status and Removed SR headers, terminating ingress processing sonner");
+                return;                                     //recirculated just to remove headers used by SRv6, beacuse we are it's sink, so we stop here
+            }
+
             // SRv6 Encapsulation
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
@@ -500,7 +501,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
             }
 
-            //-----------------Forwarding by IP
+            //-----------------Forwarding by IP -> MAC address
             if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
                 //first we try doing ECMP routing, if it fails we do kShortestPath
                 //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
@@ -513,6 +514,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 xconnect_table.apply();           //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
             }
         }
+
+        //-----------------Forwarding by MAC address -> Port
 	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined by ndp_reply_table
             if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
                 log_msg("It's an LLDP multicast packet, not meant to be forwarded");
@@ -548,7 +551,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) and the INT header is valid
             // clone packet for Telemetry Report Collector
             log_msg("I am sink of this packet and i will clone it");
-            local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      //prepare info for report
+            //------------Prepare info for report
+            local_metadata.perserv_meta.ingress_port = standard_metadata.ingress_port;      
             local_metadata.perserv_meta.deq_qdepth = standard_metadata.deq_qdepth;
             local_metadata.perserv_meta.ingress_global_timestamp = standard_metadata.ingress_global_timestamp;
 

@@ -41,6 +41,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.onosproject.srv6_usid.MainComponent;
 import org.onosproject.srv6_usid.common.Srv6DeviceConfig;
 import org.onosproject.srv6_usid.common.Utils;
 import org.slf4j.Logger;
@@ -237,18 +238,28 @@ public class Srv6Component {
      * packets destined to destIp.
      *
      * @param deviceId     device ID
-     * @param destIp       target IP address for the SRv6 policy
-     * @param prefixLength prefix length for the target IP
-     * @param segmentList  list of SRv6 SIDs that make up the path, also the final IP at the end
+     * @param srcIp        target src IP address for the SRv6 policy
+     * @param dstIp        target dst IP address for the SRv6 policy
+     * @param srcMask     prefix length for the src target IP
+     * @param dstMask     prefix length for the dst target IP
+     * @param flow_lable   target flow label for the SRv6 policy
+     * @param segmentList  list of SRv6 SIDs that make up the path, must include last switch before dest
      */
-    public void insertSrv6InsertRule(DeviceId deviceId, Ip6Address destIp, int prefixLength,
-                                     List<Ip6Address> segmentList) {
+    public void insertSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, 
+                                    int srcMask, int dstMask, int flow_lable,
+                                    List<Ip6Address> segmentList) {
 
         String tableId = "IngressPipeImpl.srv6_encap";
         Ip6Address myUSid= getMyUSid(deviceId);
-        
+
+        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
+        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
+
+        //-------------------------------------Match
         PiCriterion match = PiCriterion.builder()
-                .matchLpm(PiMatchFieldId.of("hdr.ipv6.dst_addr"), destIp.toOctets(), prefixLength)
+                .matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes)
+                .matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes)
+                .matchExact(PiMatchFieldId.of("hdr.ipv6.flow_label"), flow_lable)
                 .build();
 
         List<PiActionParam> actionParams = Lists.newArrayList();
@@ -256,16 +267,17 @@ public class Srv6Component {
         //This argument will set the source IP to the uN of the current device
         PiActionParamId paramId = PiActionParamId.of("src_addr");
         PiActionParam param = new PiActionParam(paramId, myUSid.toOctets());
+        
         actionParams.add(param);
 
-        for (int i = 0; i < segmentList.size()-1; i++) {
+        for (int i = 0; i < segmentList.size(); i++) {
             paramId = PiActionParamId.of("s" + (i + 1));
             param = new PiActionParam(paramId, segmentList.get(i).toOctets());
             actionParams.add(param);
         }
 
         PiAction action = PiAction.builder()
-                .withId(PiActionId.of("IngressPipeImpl.usid_encap_" + (segmentList.size() - 1)))
+                .withId(PiActionId.of("IngressPipeImpl.usid_encap_" + (segmentList.size())))
                 .withParameters(actionParams)
                 .build();
 
@@ -273,6 +285,42 @@ public class Srv6Component {
                 deviceId, appId, tableId, match, action);
 
         flowRuleService.applyFlowRules(rule);
+    }
+
+    /**
+     * Removes all micro SID encap insert policy from a device that match the specified parameters.
+     *
+     * @param deviceId     device ID
+     * @param srcIp        target src IP address for the SRv6 policy
+     * @param dstIp        target dst IP address for the SRv6 policy
+     * @param srcMask     prefix length for the src target IP
+     * @param dstMask     prefix length for the dst target IP
+     * @param flow_label   target flow label for the SRv6 policy
+     */
+    public void removeSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, 
+                                    int srcMask, int dstMask, int flow_label) {
+
+        String tableId = "IngressPipeImpl.srv6_encap";
+
+        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
+        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
+
+        //-------------------------------------Match
+        PiCriterion match = PiCriterion.builder()
+                .matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes)
+                .matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes)
+                .matchExact(PiMatchFieldId.of("hdr.ipv6.flow_label"), flow_label)
+                .build();
+
+        // The action is not needed for removal but the flow rule still needs a dummy action
+        PiAction dummyAction = PiAction.builder()
+                .withId(PiActionId.of("NoAction"))
+                .build();
+
+        final FlowRule rule = Utils.buildFlowRule(
+                deviceId, appId, tableId, match, dummyAction);
+
+        flowRuleService.removeFlowRules(rule);
     }
 
     /**
@@ -400,5 +448,38 @@ public class Srv6Component {
         return getDeviceConfig(deviceId)
                 .map(Srv6DeviceConfig::mySubNetIP)
                 .orElse(null);
+    }
+
+
+    /**
+     * Receives an int with the number of the most relevant bits of a mask, 
+     * and returns a byte array with said mask.
+     * The total length of the byte array is 16 (same as an IPv6 address), 
+     * and the mask is placed in the most significant bits.
+     *
+     * @param mask an integer representing the number of most relevant bits
+     * @return a byte array of length 16 with the mask
+     */
+    public byte[] convertIntToByteArray(int mask) {
+        // Create a byte array of length 16
+        byte[] byteArray = new byte[16];
+        
+        // Calculate the number of full bytes and remaining bits
+        int fullBytes = mask / 8;
+        int remainingBits = mask % 8;
+
+        // Set the full bytes to 0xFF (all bits set)
+        for (int i = 0; i < fullBytes; i++) {
+            byteArray[i] = (byte) 0xFF;
+        }
+
+        // Set the remaining bits in the next byte, if there are any
+        if (remainingBits > 0) {
+            byteArray[fullBytes] = (byte) (0xFF << (8 - remainingBits));
+        }
+
+        // The rest of the byteArray is already 0 by default
+        //log.info("\nReceived Mask: {} \nConverted to: {}", mask, byteArray);
+        return byteArray;
     }
 }

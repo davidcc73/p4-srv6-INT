@@ -159,6 +159,7 @@ const bit<8> CLONE_FL_clone3  = 3;
 struct preserving_metadata_t {
     @field_list(CLONE_FL_1)
     bit<9> ingress_port;
+    @field_list(CLONE_FL_1)
     bit<9> egress_spec;
     bit<9> egress_port;
     bit<32> clone_spec;
@@ -176,10 +177,8 @@ struct preserving_metadata_t {
     bit<48> egress_global_timestamp;
     bit<32> lf_field_list;
     bit<16> mcast_grp;
-    bit<32> resubmit_flag;
     bit<16> egress_rid;
     bit<1> checksum_error;
-    bit<32> recirculate_flag;
 }
  
 struct preserving_metadata_CPU_t {
@@ -205,6 +204,7 @@ struct local_metadata_t {
     bool ipv4_update;
 
     bit<6> OG_dscp;                             //0 by default which means Best Effort (0 at Precedence Values)
+    bool recirculated_srv6_flag;                //Used to detect a packet that recirculated to remove Headers used in SRv6, and already did ingress
 
     int_metadata_t int_meta;                    //used by INT
     preserving_metadata_t perserv_meta;         //used by INT

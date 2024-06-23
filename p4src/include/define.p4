@@ -32,9 +32,9 @@ const bit<16> ETHERTYPE_LLDP = 0x88cc;
 const bit<8> PROTO_ICMP = 1;
 const bit<8> PROTO_TCP = 6;
 const bit<8> PROTO_UDP = 17;
+const bit<8> PROTO_IPV6 = 41;
 const bit<8> PROTO_SRV6 = 43;
 const bit<8> PROTO_ICMPV6 = 58;
-const bit<8> PROTO_IPV6 = 41;
 const bit<8> PROTO_IP_IN_IP = 4;
 
 const bit<8> ICMP6_TYPE_NS = 135;

@@ -37,11 +37,10 @@ sudo make app-build                                 #Recompile P4 code and ONOS 
 make app-reload                                     #Push ONOS apps to ONOS
 make netcfg                                         #Push mininet topology to ONOS
 
-#--------------------at ONOS cli (make onos-cli) wait a few seconds for the devices to be detected
+#--------------------at ONOS cli (sudo make onos-cli) wait a few seconds for the devices to be detected
 #source /config/Static_Routing_Tables/static_routing_tables.txt    #Push static routing rules to switchs
 
 INT_Role-set                                        #Push INT roles at config\INT_Tables to switchs, 1 file peer device               
-Packet_Priority-set                                 #Push packet priority values to all switchs
 source /config/ua_config.txt
 source /config/INT_Tables/INT_Transit_config.txt    #Push INT instructions to switchs
 source /config/hosts_routing_tables.txt             #Push host routing rules to switchs (between switch and it's hots)
@@ -51,13 +50,20 @@ source /config/hosts_routing_tables.txt             #Push host routing rules to 
 #Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
 Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
 
-#--------------------at mininet cli (make mn-cli) 
+#--------------------at mininet cli (sudo make mn-cli) 
 #For the hosts be detected in the topology send a packet from them, or ping 2 in the same switch (both will be detected)
 h1_1 ping h1_2
 h2_1 ping h2_2
 
 h3_1 ping h1_2
 
+h7_1 ping h7_2
+h7_3 ping h7_1
+
+h5_1 ping h3_1
+
+h8_1 ping h8_2
+h8_3 ping h8_4
 
 #--------------------Start the INT collector
 Note: make sure the collector (THE SYSTEM RUNNING IT) is syncronized with an ntp or rather manually syn it
@@ -70,65 +76,21 @@ sudo python3 INT/receive/collector_influxdb.py
 python3 /INT/receive/receive.py 
 
 # At h1_1 terminal run with real ips (xterm h1_1 h2_1):  
-h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 2 --c 1000 --i 0.5
+h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 2 --c 1000 --i 0.5 --s 80
 
 # At h1_1 terminal run with real ips (xterm h1_1 h3_1):  
-h1_1 python3 /INT/send/send.py --ip h3_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 2 --c 1000 --i 0.7
+h1_1 python3 /INT/send/send.py --ip h3_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 2 --c 1000 --i 0.7 --s 80
 
 # At h3_1 terminal run with real ips (xterm h2_1 h3_1):  
-h3_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 2 --c 1000 --i 0.7
+h3_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 18 --flow_label 2 --c 1000 --i 0.7 --s 80
 
 
 #The generated telemetry should be visible in the grafana dashboard
 
 
 #--------------------at ONOS cli (make onos-cli)
-#To see the SRv6 commands go to srv6_insert.txt
+#To see the SRv6 commands go to Commands/srv6_insert.txt
 
-
-
-#--------------------at ONOS cli (make onos-cli) To test path calculation
-#----------KShort
-h1_1 h2_1
-path -kshort -geo 00:00:00:00:00:10/None 00:00:00:00:00:20/None
-
-h1_1 h3_1
-path -kshort -geo 00:00:00:00:00:10/None 00:00:00:00:00:30/None
-
-r1 r2
-path -kshort -geo device:r1 device:r2
-
-r9 r7
-path -kshort -geo device:r9 device:r7
-
-r9 r14
-path -kshort -geo device:r9 device:r14
-
-r1 h2_1
-path -kshort -geo device:r1 00:00:00:00:00:20/None
-
-
-#----------ECMP (only works between switchs, not hosts)
-r1 r3       flow_label=2
-path -ecmp device:r1 device:r3 2
-
-r1 r2       flow_label=2
-path -ecmp device:r1 device:r2 2
-
-r1 r7       flow_label=2
-path -ecmp device:r1 device:r7 2
-
-r9 r8       flow_label=1
-path -ecmp device:r9 device:r8 1
-
-r2 r11       flow_label=2
-path -ecmp device:r2 device:r11 2
-
-r1 r12       flow_label=2
-path -ecmp device:r1 device:r12 2
-
-r5 r9       flow_label=2
-path -ecmp device:r5 device:r9 2
 
 
 #--------python3 scrits to create ba chat like traffic between h1 and h2_1 using tcp, 
