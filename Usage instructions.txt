@@ -37,7 +37,7 @@ sudo make app-build                                 #Recompile P4 code and ONOS 
 make app-reload                                     #Push ONOS apps to ONOS
 make netcfg                                         #Push mininet topology to ONOS
 
-#--------------------at ONOS cli (sudo make onos-cli) wait a few seconds for the devices to be detected
+#--------------------at ONOS cli (sudo make onos-cli) wait until ONOS logs stop, so all links are detected
 #source /config/Static_Routing_Tables/static_routing_tables.txt    #Push static routing rules to switchs
 
 INT_Role-set                                        #Push INT roles at config\INT_Tables to switchs, 1 file peer device               
