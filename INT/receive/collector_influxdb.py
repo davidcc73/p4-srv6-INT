@@ -14,7 +14,7 @@ INFLUX_HOST = 'localhost'
 INFLUX_DB = 'int'
 
 #We work with reports that have this structure: 
-#[Eth][IPv6][UDP][INT RAPORT HDR][ETH][IPv6 (SRv6, Optional)][IPv6][UDP/TCP][INT HDR][INT DATA]
+#[Eth][IPv6][UDP][INT REPORT HDR][ETH][IPv6 (SRv6, Optional)][IPv6][UDP/TCP][INT HDR][INT DATA]
 
 def handle_pkt(pkt,c):   #individually triggered by each sniffed packet
     print("got a TCP/UDP packet")
