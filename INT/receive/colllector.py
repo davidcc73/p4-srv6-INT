@@ -79,6 +79,8 @@ class FlowInfo():
         self.dst_port = None
         self.ip_proto = None
         self.flow_label = None
+        self.dscp = None
+        self.size = None
 
         # flow hop count and flow total latency
         self.hop_cnt  = 0
@@ -116,6 +118,8 @@ class FlowInfo():
         print("dst_port %s" % (self.dst_port))
         print("ip_proto %s" % (self.ip_proto))
         print("flow_label %s" % (self.flow_label))
+        print("dscp %s" % (self.dscp))
+        print("size %s bytes" % (self.size))
 
         print("hop_cnt %s" % (self.hop_cnt))
         print("flow_latency %s" % (self.flow_latency))
@@ -154,11 +158,13 @@ class Collector():
     def __init__(self,influx_client) -> None:
         self.influx_client = influx_client
 
-    def parse_flow_info(self,flow_info,ip_pkt):
+    def parse_flow_info(self,flow_info,ip_pkt,packet_sizes):
         flow_info.src_ip = ip_pkt.src
         flow_info.dst_ip = ip_pkt.dst
         flow_info.ip_proto = ip_pkt.nh
         flow_info.flow_label = ip_pkt.fl
+        flow_info.dscp = ip_pkt.tc >> 2         #only 6 leftmost bits are DSCP
+        flow_info.size = packet_sizes.get(str(flow_info.dscp), 0)
 
         if UDP in ip_pkt:
             flow_info.src_port = ip_pkt[UDP].sport
@@ -216,7 +222,7 @@ class Collector():
             if ins_map & EGRESS_PORT_TX_UTIL_BIT:
                 flow_info.egress_tx_utils.append(int.from_bytes(hop_metadata.read(4), byteorder='big'))
 
-    def parser_int_pkt(self,pkt):
+    def parser_int_pkt(self,pkt,packet_sizes):
         if INTREP not in pkt:
             return
         int_rep_pkt = pkt[INTREP]                                           #Get whole packet after the first UDP/TCP header
@@ -236,7 +242,7 @@ class Collector():
                 pkt_tmp = pkt_tmp.payload
 
         # parse 6 tuple (src_ip, dst_ip, src_port, dst_port, ip_proto, flow_label)
-        self.parse_flow_info(flow_info, ipv6_headers[-1])  
+        self.parse_flow_info(flow_info, ipv6_headers[-1], packet_sizes)  
 
 
         # int metadata
@@ -264,18 +270,18 @@ class Collector():
                     'tags': {
                         'src_ip': str(flow_info.src_ip),
                         'dst_ip': str(flow_info.dst_ip),
-                        'src_port': flow_info.src_port,
-                        'dst_port': flow_info.dst_port,
-                        'protocol': flow_info.ip_proto,
                         'flow_label': flow_info.flow_label
                     },
                     'time': metric_timestamp,
                     'fields': {
-
-                        'value': int(flow_info.flow_latency) #in ns
+                        'src_port': flow_info.src_port,
+                        'dst_port': flow_info.dst_port,
+                        'protocol': flow_info.ip_proto,
+                        'size': flow_info.size,
+                        'dscp': flow_info.dscp,
+                        'latency': int(flow_info.flow_latency) 
                     }
                 })
-
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.egress_tstamps) > 0 and len(flow_info.hop_latencies) > 0:
             for i in range(flow_info.hop_cnt):
@@ -287,11 +293,9 @@ class Collector():
 
                     'time': metric_timestamp,
                     'fields': {
-                        'value': flow_info.hop_latencies[i]
+                        'latency': flow_info.hop_latencies[i]
                     }
                 })
-
-
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.queue_ids) > 0:
             for i in range(flow_info.hop_cnt):
@@ -304,10 +308,9 @@ class Collector():
 
                     'time': metric_timestamp,
                     'fields': {
-                        'value': flow_info.queue_occups[i]
+                        'queue': flow_info.queue_occups[i]
                     }
                 })
-																		
 
         if len(flow_info.switch_ids) > 0 and len(flow_info.l1_egress_ports) > 0 and len(flow_info.l1_ingress_ports) > 0:
             for i in range(flow_info.hop_cnt - 1):
@@ -321,7 +324,7 @@ class Collector():
                     },
                     'time': metric_timestamp,
                     'fields': {
-                        'value': abs(flow_info.egress_tstamps[i+1] - flow_info.ingress_tstamps[i])
+                        'latency': abs(flow_info.egress_tstamps[i+1] - flow_info.ingress_tstamps[i])
                     }
                 })
         

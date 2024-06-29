@@ -8,7 +8,7 @@ control process_int_sink (
     action int_sink() {             //NOTE: there is a section on main.p4 egress, that must always mirror this action, to remove the INT from the packets, meant to the CPU
         // restore original headers
        
-        //INT specification says that the Traffic classe field should be restored, FOR THE USE OF IPV6 (AND NOT DSCP), THE SIZE DIFFERENCE MAY CAUSE THE NEED OF SOME ADJUSTMENTS FOR RESTAURATION HERE AND EXTRACTION ON SOURCE
+        //INT specification says that the Traffic classe field should be restored, it was used to signal the usage of INT
         hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
         
         // restore length fields of IPv6 header and UDP header, remove INT shim, instruction, and data
@@ -143,13 +143,16 @@ control process_int_report (
         hdr.report_individual_header.domain_specific_md_bits = 0;
         hdr.report_individual_header.domain_specific_md_status = 0;
 
+        /*Restoring the original DSCP value at the original IPv6 header (It was change to signal the usage of INT)*/
+        hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
+
         //cut out the OG packet body, only the  headers remain
         truncate((bit<32>)hdr.report_ipv6.payload_len + (bit<32>) IPV6_MIN_HEAD_LEN + (bit<32>) ETH_HEADER_LEN);   
     }
 
     table tb_generate_report {
         key = {              //needs at least a key
-            16w0 : exact;    //dummy key to trigger the action
+            1w0 : exact;    //dummy key to trigger the action
         }
         actions = {
             do_report_encapsulation;

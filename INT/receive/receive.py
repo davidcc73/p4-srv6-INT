@@ -64,8 +64,8 @@ def main():
     # Register Ctrl+C handler
     signal.signal(signal.SIGINT, signal_handler)
 
-    sniff(iface=iface, filter='inbound and tcp or udp',
-          prn = lambda x: handle_pkt(x))
+    sniff(iface=iface, filter='inbound and (tcp or udp) and not port 53',       # Also Filter out DNS packets
+        prn=lambda x: handle_pkt(x))
 
 if __name__ == '__main__':
     main()
