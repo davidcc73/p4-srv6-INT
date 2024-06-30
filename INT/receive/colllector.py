@@ -286,14 +286,18 @@ class Collector():
         if len(flow_info.switch_ids) > 0 and len(flow_info.egress_tstamps) > 0 and len(flow_info.hop_latencies) > 0:
             for i in range(flow_info.hop_cnt):
                 metrics.append({
-                    'measurement': 'switch_latency',
+                    'measurement': 'switch_stats',
                     'tags': {
                         'switch_id': flow_info.switch_ids[i]
                     },
 
                     'time': metric_timestamp,
                     'fields': {
-                        'latency': flow_info.hop_latencies[i]
+                        'latency': flow_info.hop_latencies[i],
+                        'src_ip': str(flow_info.src_ip),
+                        'dst_ip': str(flow_info.dst_ip),
+                        'flow_label': flow_info.flow_label,
+                        'size': flow_info.size,
                     }
                 })
 
