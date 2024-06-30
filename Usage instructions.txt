@@ -81,10 +81,10 @@ python3 /INT/receive/receive.py
 h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 0 --s 1311 --flow_label 2 --c 1000 --i 0.5
 
 # At h1_1 terminal run with real ips (xterm h1_1 h3_1):  
-h1_1 python3 /INT/send/send.py --ip h3_1 --l4 udp --port 443 --m INTH1 --dscp 34 --s 420 --flow_label 2 --c 1000 --i 0.7
+h1_1 python3 /INT/send/send.py --ip h3_1 --l4 udp --port 443 --m INTH1 --dscp 34 --s 1260 --flow_label 2 --c 1000 --i 0.03
 
 # At h3_1 terminal run with real ips (xterm h2_1 h3_1):  
-h3_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 35 --s 1398 --flow_label 2 --c 1000 --i 0.7
+h3_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 35 --s 1223 --flow_label 2 --c 1000 --i 0.7
 
 
 #The generated telemetry should be visible in the grafana dashboard
