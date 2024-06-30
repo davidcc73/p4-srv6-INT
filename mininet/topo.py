@@ -16,7 +16,6 @@
 
 
 from mininet.cli import CLI
-from mininet.log import setLogLevel
 from mininet.net import Mininet
 from mininet.node import RemoteController
 from mininet.topo import Topo
@@ -81,45 +80,45 @@ class TutorialTopo(Topo):
         # If intended to send broadcast packets, add the port (that sends) to the "ports" section in config\netcfg.json 
         # usualy the port that connects to the next switch that know how to solve the broadcast or links to it the same way
         self.addLink(r1, r4,  port1 = 1,  port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
-        self.addLink(r1, r9,  port1 = 2,  port2 = 1, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r1, r9,  port1 = 2,  port2 = 1, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
         self.addLink(r2, r3,  port1 = 1,  port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
-        self.addLink(r2, r14, port1 = 2,  port2 = 1, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r2, r14, port1 = 2,  port2 = 1, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r9, r4,   port1 = 2, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
-        self.addLink(r9, r10,  port1 = 3, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r9, r13,  port1 = 4, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r9, r14,  port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r9, r4,   port1 = 2, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
+        self.addLink(r9, r10,  port1 = 3, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r9, r13,  port1 = 4, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r9, r14,  port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
 
-        self.addLink(r14, r10, port1 = 3, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r14, r3,  port1 = 4, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
-        self.addLink(r14, r13, port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r14, r10, port1 = 3, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r14, r3,  port1 = 4, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
+        self.addLink(r14, r13, port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
 
         self.addLink(r4, r5,   port1 = 3, port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
-        self.addLink(r4, r10,  port1 = 4, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r4, r10,  port1 = 4, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r3, r13,  port1 = 3, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r3, r13,  port1 = 3, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
         self.addLink(r3, r6,   port1 = 4, port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
 
-        self.addLink(r10, r5,  port1 = 4, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
-        self.addLink(r10, r11, port1 = 5, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r10, r12, port1 = 6, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r10, r13, port1 = 7, port2 = 4, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r10, r5,  port1 = 4, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
+        self.addLink(r10, r11, port1 = 5, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r10, r12, port1 = 6, port2 = 1, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r10, r13, port1 = 7, port2 = 4, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
 
-        self.addLink(r13, r11, port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r13, r12, port1 = 6, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
-        self.addLink(r13, r6,  port1 = 7, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r13, r11, port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r13, r12, port1 = 6, port2 = 2, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
+        self.addLink(r13, r6,  port1 = 7, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
         self.addLink(r5, r8,   port1 = 3, port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
-        self.addLink(r5, r11,  port1 = 4, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r5, r11,  port1 = 4, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r6, r7,   port1 = 3, port2 = 1,  cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
-        self.addLink(r6, r12,  port1 = 4, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r6, r7,   port1 = 3, port2 = 1, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
+        self.addLink(r6, r12,  port1 = 4, port2 = 3, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
-        self.addLink(r11, r8,  port1 = 4, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
-        self.addLink(r11, r12, port1 = 5, port2 = 4, cls=TCLink, rate=BW_INFRA_INFRA, delay=DL_INFRA_INFRA)
+        self.addLink(r11, r8,  port1 = 4, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
+        self.addLink(r11, r12, port1 = 5, port2 = 4, cls=TCLink, rate=BW_INFRA_INFRA,       delay=DL_INFRA_INFRA)
 
-        self.addLink(r12, r7,  port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE, delay=DL_INFRA_VEHICULE)
+        self.addLink(r12, r7,  port1 = 5, port2 = 2, cls=TCLink, rate=BW_INFRA_VEHICULE,    delay=DL_INFRA_VEHICULE)
 
         self.addLink(r8, r7,   port1 = 3, port2 = 3, cls=TCLink, rate=BW_VEHICULE_VEHICULE, delay=DL_VEHICULE_VEHICULE)
 
