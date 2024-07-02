@@ -62,9 +62,9 @@ public class Srv6InsertCommand extends AbstractShellCommand {
     required = true, multiValued = false)
     int dstMask = 0;
 
-    @Argument(index = 6, name = "labelMask", description = "Mask for the flow label for the SRv6 policy",
+    @Argument(index = 6, name = "flowMask", description = "Mask for the flow label for the SRv6 policy",
     required = true, multiValued = false)
-    int labelMask = 0;
+    int flowMask = 0;
 
     @Argument(index = 7, name = "segments", description = "SRv6 Segments (space separated list); last segment is target IP address",
     required = false, multiValued = true)
@@ -79,6 +79,10 @@ public class Srv6InsertCommand extends AbstractShellCommand {
         Device device = deviceService.getDevice(DeviceId.deviceId(uri));
         if (device == null) {
             print("Device \"%s\" is not found", uri);
+            return;
+        }
+        if (srcMask == 0 && dstMask == 0 && flowMask == 0) {
+            print("At least one mask should be non-zero");
             return;
         }
         
@@ -99,7 +103,7 @@ public class Srv6InsertCommand extends AbstractShellCommand {
                         .map(IpAddress::toString)
                         .collect(Collectors.joining(", ")));
         
-        app.insertSrv6InsertRule(device.id(), srcIp, dstIp, flow_lable, srcMask, dstMask, labelMask, sids);
+        app.insertSrv6InsertRule(device.id(), srcIp, dstIp, flow_lable, srcMask, dstMask, flowMask, sids);
 
     }
 

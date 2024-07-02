@@ -76,6 +76,11 @@ public class Srv6RemoveCommand extends AbstractShellCommand {
             print("Device \"%s\" is not found", uri);
             return;
         }
+
+        if (srcMask == 0 && dstMask == 0 && flowMask == 0) {
+            print("At least one mask should be non-zero");
+            return;
+        }
         
         Ip6Address srcIp = Ip6Address.valueOf(srcIp_value);
         Ip6Address dstIp = Ip6Address.valueOf(dstIp_value);

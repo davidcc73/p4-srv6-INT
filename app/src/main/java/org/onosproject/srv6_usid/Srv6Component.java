@@ -232,6 +232,33 @@ public class Srv6Component {
                     .buildFlowRule(routerId, appId, xconnTableId, match, action));
     }    
 
+    /**
+     * Receives the 3 SRv6 trigger IPs and their respective masks, returns the match Builder.
+     * At least one of the 3 masks must be different from 0.
+     * 
+     * @param srcIp        target src IP address for the SRv6 policy
+     * @param dstIp        target dst IP address for the SRv6 policy
+     * @param flow_label   target flow label for the SRv6 policy
+     * @param srcMask      prefix length for the src target IP
+     * @param dstMask      prefix length for the dst target IP
+     * @param flowMask     prefix length for the flow target IP
+     * @return Builder     the match Builder
+     */
+    public Builder createMatchCriteria(Ip6Address srcIp, Ip6Address dstIp, int flow_label, 
+                                            int srcMask, int dstMask, int flowMask){
+        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
+        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
+
+        byte[] label_byte_array = ByteBuffer.allocate(4).putInt(flow_label).array();
+        byte[] flowMask_bytes   = ByteBuffer.allocate(4).putInt(flowMask).array();
+
+        Builder builder = PiCriterion.builder();
+        if(srcMask  != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes);}
+        if(dstMask  != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes);}
+        if(flowMask != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.flow_label"), label_byte_array, flowMask_bytes);}
+
+        return builder;
+    }
 
 
     /**
@@ -254,19 +281,8 @@ public class Srv6Component {
         String tableId = "IngressPipeImpl.srv6_encap";
         Ip6Address myUSid= getMyUSid(deviceId);
 
-        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
-        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
-
-        byte[] label_byte_array = ByteBuffer.allocate(4).putInt(flow_label).array();
-        byte[] flowMask_bytes   = ByteBuffer.allocate(4).putInt(flowMask).array();
-
         //-------------------------------------Match
-        Builder builder = PiCriterion.builder();
-                            builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes);
-        if(srcMask  != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes);}
-        if(flowMask != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.flow_label"), label_byte_array, flowMask_bytes);}
-        
-        PiCriterion match = builder.build();
+        PiCriterion match = createMatchCriteria(srcIp, dstIp, flow_label, srcMask, dstMask, flowMask).build();
 
         List<PiActionParam> actionParams = Lists.newArrayList();
 
@@ -310,19 +326,8 @@ public class Srv6Component {
 
         String tableId = "IngressPipeImpl.srv6_encap";
 
-        byte[] src_mask_bytes = convertIntToByteArray(srcMask);
-        byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
-
-        byte[] label_byte_array = ByteBuffer.allocate(4).putInt(flow_label).array();
-        byte[] flowMask_bytes   = ByteBuffer.allocate(4).putInt(flowMask).array();
-        
         //-------------------------------------Match
-        Builder builder = PiCriterion.builder();
-                            builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes);
-        if(srcMask  != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes);}
-        if(flowMask != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.flow_label"), label_byte_array, flowMask_bytes);}
-        
-        PiCriterion match = builder.build();
+        PiCriterion match = createMatchCriteria(srcIp, dstIp, flow_label, srcMask, dstMask, flowMask).build();
 
         // The action is not needed for removal but the flow rule still needs a dummy action
         PiAction dummyAction = PiAction.builder()
