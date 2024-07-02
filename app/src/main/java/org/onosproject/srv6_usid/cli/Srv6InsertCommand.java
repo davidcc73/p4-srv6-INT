@@ -50,19 +50,23 @@ public class Srv6InsertCommand extends AbstractShellCommand {
     required = true, multiValued = false)
     String dstIp_value = null;
 
-    @Argument(index = 3, name = "srcMask", description = "Mask for the src IP address for the SRv6 policy",
-    required = true, multiValued = false)
-    int srcMask = 0;
-
-    @Argument(index = 4, name = "dstMask", description = "Mask for the dst IP address for the SRv6 policy",
-    required = true, multiValued = false)
-    int dstMask = 0;
-
-    @Argument(index = 5, name = "flow_lable", description = "Flow_lable for the SRv6 policy",
+    @Argument(index = 3, name = "flow_lable", description = "Flow_lable for the SRv6 policy",
     required = true, multiValued = false)
     int flow_lable = 0;
 
-    @Argument(index = 6, name = "segments", description = "SRv6 Segments (space separated list); last segment is target IP address",
+    @Argument(index = 4, name = "srcMask", description = "Mask for the src IP address for the SRv6 policy",
+    required = true, multiValued = false)
+    int srcMask = 0;
+
+    @Argument(index = 5, name = "dstMask", description = "Mask for the dst IP address for the SRv6 policy",
+    required = true, multiValued = false)
+    int dstMask = 0;
+
+    @Argument(index = 6, name = "labelMask", description = "Mask for the flow label for the SRv6 policy",
+    required = true, multiValued = false)
+    int labelMask = 0;
+
+    @Argument(index = 7, name = "segments", description = "SRv6 Segments (space separated list); last segment is target IP address",
     required = false, multiValued = true)
     @Completion(Srv6SidCompleter.class)
     List<String> segments = null;
@@ -95,7 +99,7 @@ public class Srv6InsertCommand extends AbstractShellCommand {
                         .map(IpAddress::toString)
                         .collect(Collectors.joining(", ")));
         
-        app.insertSrv6InsertRule(device.id(), srcIp, dstIp, srcMask, dstMask, flow_lable, sids);
+        app.insertSrv6InsertRule(device.id(), srcIp, dstIp, flow_lable, srcMask, dstMask, labelMask, sids);
 
     }
 

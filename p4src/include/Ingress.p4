@@ -236,6 +236,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     action usid_encap_1(ipv6_addr_t src_addr, ipv6_addr_t s1) { //only one segment, so the SRH is not used (we change the IPv6 header), only the ipv6_inner to save the OG info
+        log_msg("usid_encap_1 action");
         hdr.ipv6_inner.setValid();
 
         hdr.ipv6_inner.version = 6;
@@ -255,6 +256,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     action usid_encap_2(ipv6_addr_t src_addr, ipv6_addr_t s1, ipv6_addr_t s2) { //two segments, so the SRH is used to store future ones
+        log_msg("usid_encap_2 action");
         hdr.ipv6_inner.setValid();
 
         hdr.ipv6_inner.version = 6;
@@ -290,7 +292,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         key = {
            hdr.ipv6.src_addr: ternary; 
            hdr.ipv6.dst_addr: ternary;  
-           hdr.ipv6.flow_label: exact;     
+           hdr.ipv6.flow_label: ternary;     
         }
         actions = {
             usid_encap_1;
@@ -498,7 +500,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
             } else {
-                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates it or not
+                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates into SRv6 or not
             }
 
             //-----------------Forwarding by IP -> MAC address
@@ -516,7 +518,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         }
 
         //-----------------Forwarding by MAC address -> Port
-	    if (!local_metadata.skip_l2) {            //the egress_spec of the next hop was already defined by ndp_reply_table
+	    if (!local_metadata.skip_l2) {            //the egress_spec for the next hop was not defined by ndp_reply_table
             if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
                 log_msg("It's an LLDP multicast packet, not meant to be forwarded");
             }

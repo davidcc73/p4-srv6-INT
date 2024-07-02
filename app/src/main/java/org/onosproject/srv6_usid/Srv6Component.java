@@ -29,6 +29,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.criteria.PiCriterion;
+import org.onosproject.net.flow.criteria.PiCriterion.Builder;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
@@ -48,7 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.onlab.packet.MacAddress;
 
-
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 
@@ -240,13 +241,14 @@ public class Srv6Component {
      * @param deviceId     device ID
      * @param srcIp        target src IP address for the SRv6 policy
      * @param dstIp        target dst IP address for the SRv6 policy
-     * @param srcMask     prefix length for the src target IP
-     * @param dstMask     prefix length for the dst target IP
-     * @param flow_lable   target flow label for the SRv6 policy
+     * @param flow_label   target flow label for the SRv6 policy
+     * @param srcMask      prefix length for the src target IP
+     * @param dstMask      prefix length for the dst target IP
+     * @param flowMask     prefix length for the flow target IP
      * @param segmentList  list of SRv6 SIDs that make up the path, must include last switch before dest
      */
-    public void insertSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, 
-                                    int srcMask, int dstMask, int flow_lable,
+    public void insertSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, int flow_label,
+                                    int srcMask, int dstMask, int flowMask,
                                     List<Ip6Address> segmentList) {
 
         String tableId = "IngressPipeImpl.srv6_encap";
@@ -255,12 +257,16 @@ public class Srv6Component {
         byte[] src_mask_bytes = convertIntToByteArray(srcMask);
         byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
 
+        byte[] label_byte_array = ByteBuffer.allocate(4).putInt(flow_label).array();
+        byte[] flowMask_bytes   = ByteBuffer.allocate(4).putInt(flowMask).array();
+
         //-------------------------------------Match
-        PiCriterion match = PiCriterion.builder()
-                .matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes)
-                .matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes)
-                .matchExact(PiMatchFieldId.of("hdr.ipv6.flow_label"), flow_lable)
-                .build();
+        Builder builder = PiCriterion.builder();
+                            builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes);
+        if(srcMask  != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes);}
+        if(flowMask != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.flow_label"), label_byte_array, flowMask_bytes);}
+        
+        PiCriterion match = builder.build();
 
         List<PiActionParam> actionParams = Lists.newArrayList();
 
@@ -284,6 +290,7 @@ public class Srv6Component {
         final FlowRule rule = Utils.buildFlowRule(
                 deviceId, appId, tableId, match, action);
 
+        //log.info("Inserting SRv6 rule:\n{}", rule);
         flowRuleService.applyFlowRules(rule);
     }
 
@@ -293,24 +300,29 @@ public class Srv6Component {
      * @param deviceId     device ID
      * @param srcIp        target src IP address for the SRv6 policy
      * @param dstIp        target dst IP address for the SRv6 policy
-     * @param srcMask     prefix length for the src target IP
-     * @param dstMask     prefix length for the dst target IP
      * @param flow_label   target flow label for the SRv6 policy
+     * @param srcMask      prefix length for the src target IP
+     * @param dstMask      prefix length for the dst target IP
+     * @param flowMask     prefix length for the flow label target
      */
-    public void removeSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, 
-                                    int srcMask, int dstMask, int flow_label) {
+    public void removeSrv6InsertRule(DeviceId deviceId, Ip6Address srcIp, Ip6Address dstIp, int flow_label,
+                                    int srcMask, int dstMask, int flowMask) {
 
         String tableId = "IngressPipeImpl.srv6_encap";
 
         byte[] src_mask_bytes = convertIntToByteArray(srcMask);
         byte[] dst_mask_bytes = convertIntToByteArray(dstMask);
 
+        byte[] label_byte_array = ByteBuffer.allocate(4).putInt(flow_label).array();
+        byte[] flowMask_bytes   = ByteBuffer.allocate(4).putInt(flowMask).array();
+        
         //-------------------------------------Match
-        PiCriterion match = PiCriterion.builder()
-                .matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes)
-                .matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes)
-                .matchExact(PiMatchFieldId.of("hdr.ipv6.flow_label"), flow_label)
-                .build();
+        Builder builder = PiCriterion.builder();
+                            builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.dst_addr"), dstIp.toOctets(), dst_mask_bytes);
+        if(srcMask  != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.src_addr"), srcIp.toOctets(), src_mask_bytes);}
+        if(flowMask != 0){  builder.matchTernary(PiMatchFieldId.of("hdr.ipv6.flow_label"), label_byte_array, flowMask_bytes);}
+        
+        PiCriterion match = builder.build();
 
         // The action is not needed for removal but the flow rule still needs a dummy action
         PiAction dummyAction = PiAction.builder()
@@ -320,6 +332,7 @@ public class Srv6Component {
         final FlowRule rule = Utils.buildFlowRule(
                 deviceId, appId, tableId, match, dummyAction);
 
+        //log.info("Removing SRv6 rule:\n{}", rule);
         flowRuleService.removeFlowRules(rule);
     }
 

@@ -50,17 +50,21 @@ public class Srv6RemoveCommand extends AbstractShellCommand {
     required = true, multiValued = false)
     String dstIp_value = null;
 
-    @Argument(index = 3, name = "srcMask", description = "Mask for the src IP address for the SRv6 policy",
+    @Argument(index = 3, name = "flow_lable", description = "Flow_lable for the SRv6 policy",
+    required = true, multiValued = false)
+    int flow_lable = 0;
+
+    @Argument(index = 4, name = "srcMask", description = "Mask for the src IP address for the SRv6 policy",
     required = true, multiValued = false)
     int srcMask = 0;
 
-    @Argument(index = 4, name = "dstMask", description = "Mask for the dst IP address for the SRv6 policy",
+    @Argument(index = 5, name = "dstMask", description = "Mask for the dst IP address for the SRv6 policy",
     required = true, multiValued = false)
     int dstMask = 0;
 
-    @Argument(index = 5, name = "flow_lable", description = "Flow_lable for the SRv6 policy",
+    @Argument(index = 6, name = "flowMask", description = "Mask for the dst IP address for the SRv6 policy",
     required = true, multiValued = false)
-    int flow_lable = 0;
+    int flowMask = 0;
 
     @Override
     protected void doExecute() {
@@ -78,7 +82,7 @@ public class Srv6RemoveCommand extends AbstractShellCommand {
 
         //print("Installing path on device %s", uri);
         
-        app.removeSrv6InsertRule(device.id(), srcIp, dstIp, srcMask, dstMask, flow_lable);
+        app.removeSrv6InsertRule(device.id(), srcIp, dstIp, flow_lable, srcMask, dstMask, flowMask);
 
     }
 
