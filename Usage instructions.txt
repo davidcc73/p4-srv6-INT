@@ -72,22 +72,8 @@ Note: make sure the collector (THE SYSTEM RUNNING IT) is syncronized with an ntp
 sudo python3 INT/receive/collector_influxdb.py 
 
 
-
-#--------------------To create INT traffic, 
-#check if the used DSCP has it's size registered at the /INT/receive/packet_size.json, so INT collector can register it
-
-# At a h2_1 terminal run:
-python3 /INT/receive/receive.py 
-
-# At h1_1 terminal run with real ips (xterm h1_1 h2_1):  
-h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 0 --s 1311 --flow_label 2 --c 1000 --i 0.5
-
-# At h1_1 terminal run with real ips (xterm h1_1 h3_1):  
-h1_1 python3 /INT/send/send.py --ip h3_1 --l4 udp --port 443 --m INTH1 --dscp 34 --s 1260 --flow_label 2 --c 1000 --i 0.03
-
-# At h3_1 terminal run with real ips (xterm h2_1 h3_1):  
-h3_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --m INTH1 --dscp 35 --s 1223 --flow_label 2 --c 1000 --i 0.7
-
+#--------------------To create INT traffic
+#To see some INT generating commands go to Commands/test_INT_Telemetry.txt
 
 #The generated telemetry should be visible in the grafana dashboard
 
