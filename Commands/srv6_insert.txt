@@ -53,6 +53,15 @@ srv6-insert device:r3 2001:1:3::1 2001:1:2::1 2 128 128 255 fcbb:bb00:e:2:fd00::
 srv6-insert device:r1 2001:1:1::1 2001:1:3::1 2 128 128 255 fcbb:bb00:7:3:fd00:: 
 
 
+# use case 7 (only uN) 
+# at r1, send packets any -> h2_1 (flow = any) to pass on r3, r2
+srv6-insert device:r1 2001:1:1::1 2001:1:2::1 2 0 128 0 fcbb:bb00:3:2:fd00::
+
+
+# use case 8 (only uN) 
+# at r1, send packets any -> h2_1 (flow = any) to pass on r2, r7, r2
+srv6-insert device:r1 2001:1:1::1 2001:1:2::1 2 0 128 0 fcbb:bb00:2:7:2:fd00::
+
 
 ------------------------------REMOVE SRv6 INSTRUCTIONS (all rules that match the parameters)
 Commands structure: srv6-remove device IP_src IP_dst flow_label mask_src mask_dst mask_flow
