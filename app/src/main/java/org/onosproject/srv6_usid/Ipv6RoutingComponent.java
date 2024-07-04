@@ -401,6 +401,7 @@ public class Ipv6RoutingComponent{
                     break;
                 case LINK_UPDATED:              //maybe useful for when links break
                 case LINK_REMOVED:
+                log.info("event! ... info={}", event);
                 default:
                     return false;
             }

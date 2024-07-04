@@ -37,7 +37,7 @@ class INTShim(Packet):
         BitField("next_protocol", 0, 2),
         BitField("rsvd", 0, 2),
         BitField("int_length", 0, 8),
-        ShortField("NPT Dependent Field", 0)]
+        ShortField("NPTDependentField", 0)]
 
 class INTMD(Packet):
     name = "INT-MD Header v2.1"
