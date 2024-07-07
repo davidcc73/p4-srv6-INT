@@ -30,7 +30,7 @@ the image was published at docker hub, and is pulled from there, by doing make d
 #--------------------Start ONOS and mininet. Execute this commands in groups, not all at once
 sudo make stop                                      #Delete the mininet and ONOS containers
 sudo mn -c                                          #Delete virtual interfaces that mininet created (mininet must also be installed at host)
-make clean                                          #Delete P4 and ONOS compilations
+sudo make clean                                     #Delete P4 and ONOS compilations
 xhost +                                             #Enable X11 forwarding
 sudo make start                                     #Start ONOS and mininet containers
 sudo make app-build                                 #Recompile P4 code and ONOS apps
@@ -49,8 +49,8 @@ source /config/hosts_routing_tables.txt             #Push host routing rules to 
 
 #SELECT THE ROUTING MODE
 #The P4 code 1º searchs the ECMP table, if it does not find a match, it searches the KShort table
-Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
-#Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
+#Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
+Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
 
 #--------------------at mininet cli (sudo make mn-cli) 
 #For the hosts be detected in the topology send a packet from them, or ping 2 in the same switch (both will be detected)
