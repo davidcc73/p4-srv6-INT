@@ -109,7 +109,7 @@ public class Ipv6RoutingComponent{
     private ApplicationId appId;
     
     //path calculations will use this variables to decide which algorithm and secundadry weigher to use
-    int prioritize = 0; // 0 = lantency, 1 = bandwith
+    int prioritize = 0; // 0 = lantency, 1 = bandwith      //NOT USED
     int algorithm = 0; // 0 = KShort, 1 = ECMP
 
     //--------------------------------------------------------------------------

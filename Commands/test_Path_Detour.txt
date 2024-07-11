@@ -1,0 +1,8 @@
+#--------------------at ONOS cli (make onos-cli) To test path detour
+#source_switch, destination_switch, source_ip, destination_ip, flow_label, current_path, nodes_to_avoid, load_on_nodes_to_avoid (0-1)
+
+Path-Detour-SRv6 device:r1 device:r2 2001:1:1::1 2001:1:2::1 2 9-14-2 9 0.9
+
+Path-Detour-SRv6 device:r1 device:r3 2001:1:1::1 2001:1:3::1 2 9-14-3 9-13 0.9-0.15
+
+Path-Detour-SRv6 device:r1 device:r3 2001:1:1::1 2001:1:3::1 2 9-14-3 3-9-13-14 0.1-0.15-0.1-0.9
