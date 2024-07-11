@@ -57,9 +57,15 @@ def handle_pkt(pkt):
 def signal_handler(sig, frame):
     global sequence_numbers
 
-    # Determine out-of-order packets
-    sorted_sequence_numbers = sorted(sequence_numbers)
-    out_of_order_packets = [seq for seq in sequence_numbers if sequence_numbers.index(seq) != sorted_sequence_numbers.index(seq)]
+    # Determine out-of-order packets by comparing each packet with the previous one
+    out_of_order_packets = []
+    last_seq_num = None
+
+    print("all received:", sequence_numbers)
+    for seq in sequence_numbers:
+        if last_seq_num is not None and seq <= last_seq_num:
+            out_of_order_packets.append(seq)
+        last_seq_num = seq
     
     print("\nTotal TCP/UDP packets received:", packet_TCP_UDP_count)
     print("Out of order packets count:", len(out_of_order_packets))
