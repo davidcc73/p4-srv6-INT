@@ -13,8 +13,8 @@ sudo pip3 install scapy
 sudo pip3 install mininet                #install mininet at host (makes clean ups easier)
 sudo make deps 
 
-#influxdb, to install see the file "prepare inluxdb.txt"
-#grafana, to install see the file "prepare grafana.txt"  url=http://localhost:3000/
+#influxdb, to install see the file "setup/prepare inluxdb.txt"
+#grafana, to install see the file "setup/prepare grafana.txt"  url=http://localhost:3000/
 
 #to help dissecting INT reports, install wirehsark plugin located at "util/wireshark/P4INT_report_IPV6.lua"
 #into /usr/lib/x86_64-linux-gnu/wireshark/plugins/
