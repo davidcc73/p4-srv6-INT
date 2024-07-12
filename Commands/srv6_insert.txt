@@ -7,7 +7,7 @@ On each hop the insert on the dst_IP is read (fcbb:bb00:x:y:z:...) when it gets 
 (16 bit shift of all at it's right) and saves it as (fcbb:bb00:y:z:...) to be used to determine the next hop value  
 
 The final switch must always be in the instruction as the last hop, the other switches are optional,
-the uN instruction can include at the most 4 switches, including the final one
+the uN instruction can include at the most 4 switches, must include the final switch
 
 #uA----------------
 uA instructions need to previosly be pushed to the switch that will use them, 
@@ -61,6 +61,10 @@ srv6-insert device:r1 2001:1:1::1 2001:1:2::1 2 0 128 0 fcbb:bb00:3:2:fd00::
 # use case 8 (only uN) 
 # at r1, send packets any -> h2_1 (flow = any) to pass on r2, r7, r2
 srv6-insert device:r1 2001:1:1::1 2001:1:2::1 2 0 128 0 fcbb:bb00:2:7:2:fd00::
+
+# use case 9 (only uN) 
+# at r1, send packets any -> h2_1 (flow = any) to pass on r7, r1, r8, r2
+srv6-insert device:r1 2001:1:1::1 2001:1:2::1 2 0 128 0 fcbb:bb00:7:1:8:2:fd00::
 
 
 ------------------------------REMOVE SRv6 INSTRUCTIONS (all rules that match the parameters)
