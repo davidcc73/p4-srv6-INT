@@ -11,6 +11,7 @@ tmp/switchID/stratum_bmv2.log
 sudo apt install python3-pip
 sudo pip3 install scapy
 sudo pip3 install mininet                #install mininet at host (makes clean ups easier)
+sudo pip3 install numpy
 sudo make deps 
 
 #influxdb, to install see the file "setup/prepare inluxdb.txt"
@@ -52,6 +53,15 @@ source /config/hosts_routing_tables.txt             #Push host routing rules to 
 #Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
 Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
 
+
+#--------------------Start the INT collector
+Note: make sure the collector (THE SYSTEM RUNNING IT) is syncronized with an ntp or rather manually syn it
+sudo python3 INT/receive/collector_influxdb.py 
+
+#--------------------Start the INT Analyzer
+sudo python3 INT/analyzer/analyzer.py 
+
+
 #--------------------at mininet cli (sudo make mn-cli) 
 #For the hosts be detected in the topology send a packet from them, or ping 2 in the same switch (both will be detected)
 h1_1 ping h1_2
@@ -66,11 +76,6 @@ h5_1 ping h3_1
 
 h8_1 ping h8_2
 h8_3 ping h8_4
-
-#--------------------Start the INT collector
-Note: make sure the collector (THE SYSTEM RUNNING IT) is syncronized with an ntp or rather manually syn it
-sudo python3 INT/receive/collector_influxdb.py 
-
 
 #--------------------To create INT traffic
 #To see some INT generating commands go to Commands/test_INT_Telemetry.txt
