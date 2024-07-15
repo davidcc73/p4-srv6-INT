@@ -63,19 +63,8 @@ sudo python3 INT/analyzer/analyzer.py
 
 
 #--------------------at mininet cli (sudo make mn-cli) 
-#For the hosts be detected in the topology send a packet from them, or ping 2 in the same switch (both will be detected)
-h1_1 ping h1_2
-h2_1 ping h2_2
-
-h3_1 ping h1_2
-
-h7_1 ping h7_2
-h7_3 ping h7_1
-
-h5_1 ping h3_1
-
-h8_1 ping h8_2
-h8_3 ping h8_4
+#For the hosts be detected in the topology send a packet from them, easy way:
+input option "2" in the mininet menu interface
 
 #--------------------To create INT traffic
 #To see some INT generating commands go to Commands/test_INT_Telemetry.txt

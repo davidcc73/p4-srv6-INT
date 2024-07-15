@@ -13,9 +13,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import importlib
+import interface
 
 
-from mininet.cli import CLI
 from mininet.net import Mininet
 from mininet.node import RemoteController
 from mininet.topo import Topo
@@ -211,15 +212,23 @@ def main():
     topo = TutorialTopo()
     controller = RemoteController('c0', ip="127.0.0.1")
 
-
     net = Mininet(topo=topo, controller=None)
     net.addController(controller)
-
     net.start()
 
 
-    CLI(net)
-    net.stop()
+    while True:
+        try:
+            importlib.reload(interface)  # TO MAKE DEGUG EASIES: Reload the module to reflect any changes
+            interface.print_menu()
+            choice = int(input("Enter the number of your choice:"))
+            result = interface.main_menu(net, choice)
+            if not result:          
+                break
+
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            continue
 
 
 if __name__ == "__main__":
