@@ -1,6 +1,6 @@
 #--------------------To create INT traffic, (recommended that packet size is below, 1000, to be sure the INT data added does not exceed the MTU, mid-path)
 # At a h2_1 terminal run:
-python3 /INT/receive/receive.py 
+python3 /INT/receive/receive.py --f LOW_raw_results.csv
 
 # At h1_1 terminal run with real ips (xterm h1_1 h2_1):  
 h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 0  --s 262 --c 1000 --i 0.1

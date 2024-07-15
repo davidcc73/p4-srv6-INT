@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+import argparse
+import csv
 import sys
 import struct
 import os
@@ -14,6 +16,7 @@ from scapy.layers.inet import _IPOption_HDR, TCP, bind_layers
 packet_TCP_UDP_count = 0
 sequence_numbers = []
 
+args = None
 
 def get_if():
     ifs = get_if_list()
@@ -33,9 +36,9 @@ def handle_pkt(pkt):
 
     print("got a TCP/UDP packet")
 
-    print("Original packet received:")
-    pkt.show2()
-    sys.stdout.flush()
+    #print("Original packet received:")
+    #pkt.show2()
+    #sys.stdout.flush()
 
     # Extract and print the message from the packet
     if TCP in pkt and pkt[TCP].payload:
@@ -70,9 +73,51 @@ def signal_handler(sig, frame):
     print("\nTotal TCP/UDP packets received:", packet_TCP_UDP_count)
     print("Out of order packets count:", len(out_of_order_packets))
     print("Out of order packets:", out_of_order_packets)
+
+    save_to_file(packet_TCP_UDP_count, out_of_order_packets)
     sys.exit(0)
 
+def save_to_file(packet_TCP_UDP_count, out_of_order_packets):
+    # Define the directory path inside the container
+    directory = "/INT/results"
+
+    # Define the filename
+    filename = args.f
+    
+    # Combine the directory path and filename
+    full_path = os.path.join(directory, filename)
+    
+    # Write data to specific cells in CSV
+    with open(full_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Write header and values
+        writer.writerow(["Description", "Value"])
+        
+        # Total TCP/UDP packets received
+        writer.writerow(["Total TCP/UDP packets received:", packet_TCP_UDP_count])
+        
+        # Out of order packets count
+        writer.writerow(["Out of order packets count:", len(out_of_order_packets)])
+        
+        # Write out of order packets
+        writer.writerow(["Out of order packets:"])
+        for i, seq in enumerate(out_of_order_packets, start=1):
+            writer.writerow(["", f"Cell {i}: {seq}"])  # Modify this line to write to specific cells
+    
+    print(f"Results saved to {full_path}")
+
+
+
 def main():
+    global args  # Access the global args variable
+    parser = argparse.ArgumentParser(description='receive parser')
+
+    parser.add_argument('--f', help='filename to store results',
+                        type=str, action="store", required=True)
+    args = parser.parse_args()
+
+
     ifaces = [i for i in os.listdir('/sys/class/net/') if 'eth' in i]
     iface = ifaces[0]
     print("sniffing on %s" % iface)
