@@ -8,6 +8,7 @@ tmp/switchID/stratum_bmv2.log
 
 #--------------------At first execution
 #install docker for ubuntu (ubuntu uses a diferent version) https://docs.docker.com/engine/install/ubuntu/
+sudo apt-get install sshpass             #install sshpass to be able to use the make commands
 sudo apt install python3-pip
 sudo pip3 install scapy
 sudo pip3 install mininet                #install mininet at host (makes clean ups easier)
