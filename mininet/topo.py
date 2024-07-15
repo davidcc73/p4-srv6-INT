@@ -219,7 +219,7 @@ def main():
 
     while True:
         try:
-            importlib.reload(interface)  # TO MAKE DEGUG EASIES: Reload the module to reflect any changes
+            importlib.reload(interface)  # TO MAKE DEGUG EASIER: Reload the module to reflect any changes, after any choice
             interface.print_menu()
             choice = int(input("Enter the number of your choice:"))
             result = interface.main_menu(net, choice)
