@@ -118,6 +118,6 @@ public class PathDetourSRv6Command extends AbstractShellCommand{
         result = app.createPathDetourSRv6(srcSwitchDevice.id(), dstSwitchDevice.id(), 
                                             srcIp, dstIp, flow_lable, 
                                             pathIDs, avoidIDs, loadAvoidIDs);
-        if(result != "Success"){print(result);}
+        print(result);
     }
 }

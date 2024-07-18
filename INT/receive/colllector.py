@@ -266,7 +266,7 @@ class Collector():
         metrics = []
         if flow_info.flow_latency:
             metrics.append({
-                    'measurement': 'flow_latency',
+                    'measurement': 'flow_stats',
                     'tags': {
                         'src_ip': str(flow_info.src_ip),
                         'dst_ip': str(flow_info.dst_ip),
@@ -279,7 +279,8 @@ class Collector():
                         'protocol': flow_info.ip_proto,
                         'size': flow_info.size,
                         'dscp': flow_info.dscp,
-                        'latency': int(flow_info.flow_latency) 
+                        'latency': int(flow_info.flow_latency),
+                        'path': '-'.join(map(str, flow_info.switch_ids[::-1]))   #store as string separated by '-' and reverse the list so letfmost were the first hops
                     }
                 })
 
@@ -288,16 +289,15 @@ class Collector():
                 metrics.append({
                     'measurement': 'switch_stats',
                     'tags': {
-                        'switch_id': flow_info.switch_ids[i]
+                        'switch_id': flow_info.switch_ids[i],
+                        'src_ip': str(flow_info.src_ip),
+                        'dst_ip': str(flow_info.dst_ip),
+                        'flow_label': flow_info.flow_label
                     },
-
                     'time': metric_timestamp,
                     'fields': {
                         'latency': flow_info.hop_latencies[i],
-                        'src_ip': str(flow_info.src_ip),
-                        'dst_ip': str(flow_info.dst_ip),
-                        'flow_label': flow_info.flow_label,
-                        'size': flow_info.size,
+                        'size': flow_info.size
                     }
                 })
 
