@@ -529,26 +529,42 @@ def update_max_values_globaly():
 
     # Send query to DB so I can get the current max for packet_procesing_time and count how many packets, remove the -1
     query = f"""
-                SELECT 
-                    COUNT("latency") AS num_packets, 
-                    MAX("latency") AS MAX_latency
+                SELECT MAX("latency") AS MAX_latency
                 FROM switch_stats 
                 WHERE time >= '{minutes_ago_str}' 
                 """
-
     result = apply_query(query)
     #if empty return False
-    if not result:
-        return False
+    if not result: return False
 
-    #Store 2 values in the normalization_limits
+    #extract the values from the query
     for series in result.raw['series']:
-        values = series.get('values')
-        num_packets = values[0][1]                  #no decimals
-        max_latency = values[0][2]                  #nanoseconds
+        values = series.get('values')       #[0][time, MAX_latency]
+        max_latency = values[0][1]          #nanoseconds
 
-        normalization_limits['num_packets'][1] = num_packets
-        normalization_limits['packet_procesing_time'][1] = max_latency
+
+    query = f"""
+                SELECT COUNT("latency") AS total_num_packets
+                FROM flow_stats 
+                WHERE time >= '{minutes_ago_str}' 
+                """
+    result = apply_query(query)
+    #if empty return False
+    if not result: return False
+
+    #extract the values from the query
+    for series in result.raw['series']:
+        values = series.get('values')       #[0][time, total_num_packets]
+        num_packets = values[0][1]          #no decimals
+
+
+
+    #--------------Store 2 values in the normalization_limits
+    normalization_limits['num_packets'][1] = num_packets
+    normalization_limits['packet_procesing_time'][1] = max_latency
+
+    print("Updated global normalization limits:", normalization_limits)
+
 
     return True
 
