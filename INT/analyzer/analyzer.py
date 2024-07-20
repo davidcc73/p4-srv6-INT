@@ -22,8 +22,8 @@ dbname='int'
 
 minutes_ago_str = None                                      #string with the time of the last minute to analyze
 
-sleep_time_seconds = 5
-analisy_window_minutes = 0.1
+sleep_time_seconds = 30
+analisy_window_minutes = 0.5
 static_infra_switches = [9, 10, 11, 12, 13, 14]              #lsit of the switch's id that belong to the static infrastructure
 
 thresholds_overloaded    = 0.75                              #percentage (including) threshold to consider a switch as overloaded
@@ -37,7 +37,7 @@ normalization_limits = {}
 # Define weights for each variable, THE SUM MUST BE 1
 weights = {
     'is_infra_switch': 0.30,           # Weight for switch type
-    'num_packets': 0.80,               # Weight for number of packets
+    'num_packets': 0.40,               # Weight for number of packets
     'avg_packet_procesing_time': 0.20, # Weight for average packet processing time
     'avg_packet_size': 0.10            # Weight for average packet size
 }
@@ -634,8 +634,8 @@ def main():
         search_no_longer_overloaded_switches(session, switch_loads)
         print(MAGENTA+'Active_SRv6_rules after search_no_longer_overloaded_switches:', active_SRv6_rules , END)
 
-        print(GREEN+"Sleeping for", sleep_time_seconds, "seconds"+ END)
-        sleep(sleep_time_seconds)
+        #print(GREEN+"Sleeping for", sleep_time_seconds, "seconds"+ END)
+        #sleep(sleep_time_seconds)
         
         search_overloaded_switches(session, switch_loads)
         print(MAGENTA+'Active_SRv6_rules after search_overloaded_switches:', active_SRv6_rules , END)
