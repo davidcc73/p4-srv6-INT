@@ -433,14 +433,9 @@ public class Srv6Component {
 
                 result = pushSRv6RuleForPath(srcSwitchDeviceId, srcIp, dstIp, flow_label, newPathDeviceIds);
                 if (result == "Success") {
-                    return String.format("Only one path found, but different from current, SRv6 rule pushed: %s", newPathDeviceIds);
+                    log.info("Only one path found, but different from current, SRv6 rule pushed: {}", newPathDeviceIds);
                 }
-                else{
-                    return result;
-                }
-
-
-                
+                return result;
             }
 
             //------------------More that 1 possible path, find the best one

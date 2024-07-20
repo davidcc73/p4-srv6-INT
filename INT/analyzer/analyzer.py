@@ -8,14 +8,22 @@ import time
 import paramiko
 import ipaddress
 
+ORANGE = '\033[38;5;214m'
+RED = '\033[31m'
+BLUE = '\033[34m'
+CYAN = '\033[36m'
+GREEN = '\033[32m'
+MAGENTA = '\033[35m'
+END = "\033[0m"
+
 # Define DB connection parameters
 host='localhost'
 dbname='int'
 
 minutes_ago_str = None                                      #string with the time of the last minute to analyze
 
-sleep_time_seconds = 30
-analisy_window_minutes = 0.5
+sleep_time_seconds = 5
+analisy_window_minutes = 0.1
 static_infra_switches = [9, 10, 11, 12, 13, 14]              #lsit of the switch's id that belong to the static infrastructure
 
 thresholds_overloaded    = 0.75                              #percentage (including) threshold to consider a switch as overloaded
@@ -28,9 +36,9 @@ normalization_limits = {}
 
 # Define weights for each variable, THE SUM MUST BE 1
 weights = {
-    'is_infra_switch': 0.20,           # Weight for switch type
-    'num_packets': 0.30,               # Weight for number of packets
-    'avg_packet_procesing_time': 0.40, # Weight for average packet processing time
+    'is_infra_switch': 0.30,           # Weight for switch type
+    'num_packets': 0.80,               # Weight for number of packets
+    'avg_packet_procesing_time': 0.20, # Weight for average packet processing time
     'avg_packet_size': 0.10            # Weight for average packet size
 }
 
@@ -153,7 +161,50 @@ def get_current_path(flow):
     #print(f"Current path of the flow {src_ip} -> {dst_ip} (Flow label: {flow_label}): {path}")
     return path
 
+def store_SRv6_rule(switch_id, values):
+    #check if there is already a SRv6 rule for the same flow and delete it before adding new on the new key
+    stop = False
+    for key, SRv6_rules in active_SRv6_rules.items():
+        for SRv6_rule in SRv6_rules:
+            #if the flow is the same, remove it
+            if SRv6_rule['srcIP'] == values['srcIP'] and SRv6_rule['dstIP'] == values['dstIP'] and SRv6_rule['flow_label'] == values['flow_label']:
+                SRv6_rules.remove(SRv6_rule)
+                stop = True
+                break
+        if stop:
+            break
+    
+    #add the new rule to switch_id
+    if switch_id not in active_SRv6_rules:
+        active_SRv6_rules[switch_id] = [values]
+    else:
+        active_SRv6_rules[switch_id].append(values)
 
+def remove_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove):
+    
+    #--------Iterate trough all of it's SRv6_args and remove each rule from ONOS
+    for SRv6_rule in SRv6_rules:
+        print(f"Trying to remove rule: {SRv6_rule}")
+        devideID = SRv6_rule['deviceID']                  #device that injects the SRv6 in the packet
+        srcIP = SRv6_rule['srcIP']                        #source IP of the flow
+        dstIP = SRv6_rule['dstIP']                        #destination IP of the flow
+        flow_label = SRv6_rule['flow_label']              #flow label of the flow
+        src_mask = SRv6_rule['src_mask']                  #source mask of the flow
+        dst_mask = SRv6_rule['dst_mask']                  #destination mask of the flow
+        flow_label_mask = SRv6_rule['flow_label_mask']    #flow label mask of the flow
+
+        #This command does not return anything if successful (or if there is no rule with said args)
+        args = (devideID, srcIP, dstIP, flow_label, src_mask, dst_mask, flow_label_mask)
+        command = 'srv6-remove device:r%s %s %s %s %s %s %s' % args
+
+        #remove rule from ONOS
+        output = send_command(session, command)
+        print(output)
+        
+    #all rules created by this switch removed from ONOS, mark to remove after iterating active_SRv6_rules
+    switch_marked_to_remove.append(switch_id)
+
+    return switch_marked_to_remove
 
 def request_SRv6_detour(session, wrost, current_path, bad_switch_loads):
     parsed_current_path = current_path.split('-')
@@ -395,42 +446,24 @@ def get_wrost_flow_on_switch(switch_id):
 def search_no_longer_overloaded_switches(session, switch_loads):
     #--------Iterate through active_SRv6_rules and see if the switchs (keys) have their loads below the thresholds_no_overloaded
     #if so remove said rule via ONOS if all good remove from our list
-
+    load = 0            #It will remain 0 if the switch is not in the list of switch_loads (there is no flow passing through it) 
     switch_marked_to_remove = []
     for switch_id, SRv6_rules in active_SRv6_rules.items():
         
         # Get the load value for the current switch responsible for the current SRv6 rules
+        #List of tuples
         for load_id, load_value in switch_loads:
             if load_id == switch_id:
-                #print(f"Switch ID: {switch_id}, Load: {load_value}")
+                load = load_value
+                print(f"Switch ID: {switch_id}, Load: {load}")
                 break
-        if load_value > thresholds_no_overloaded:
+
+        if load > thresholds_no_overloaded:
             continue
 
-        print(f"Switch {switch_id} is no longer overloaded, removing SRv6 rule")
+        print(BLUE + "Switch" + str(switch_id) + " is no longer overloaded, removing SRv6 rule" + END)
 
-
-        #--------Iterate trough all of it's SRv6_args and remove each rule from ONOS
-        for SRv6_rule in SRv6_rules:
-            print(f"Trying to remove rule: {SRv6_rule}")
-            devideID = SRv6_rule['deviceID']                  #device that injects the SRv6 in the packet
-            srcIP = SRv6_rule['srcIP']                        #source IP of the flow
-            dstIP = SRv6_rule['dstIP']                        #destination IP of the flow
-            flow_label = SRv6_rule['flow_label']              #flow label of the flow
-            src_mask = SRv6_rule['src_mask']                  #source mask of the flow
-            dst_mask = SRv6_rule['dst_mask']                  #destination mask of the flow
-            flow_label_mask = SRv6_rule['flow_label_mask']    #flow label mask of the flow
-
-            #This command does not return anything if successful (or if there is no rule with said args)
-            args = (devideID, srcIP, dstIP, flow_label, src_mask, dst_mask, flow_label_mask)
-            command = 'srv6-remove device:r%s %s %s %s %s %s %s' % args
-
-            #remove rule from ONOS
-            output = send_command(session, command)
-            print(output)
-            
-        #all rules created by this switch removed from ONOS, mark to remove after iterating active_SRv6_rules
-        switch_marked_to_remove.append(switch_id)
+        switch_marked_to_remove = remove_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove)
 
     #iterate the list of switches that had all of their rules removed and remove them from active_SRv6_rules
     for switch_id in switch_marked_to_remove:
@@ -462,7 +495,7 @@ def search_overloaded_switches(session, switch_loads):
         wrost = get_wrost_flow_on_switch(switch_id)
 
         if wrost is None:
-            print("No flow can be detoured on this switch")
+            print(ORANGE + "No flow can be detoured on this switch\033[0m")
             continue
         if wrost in flows_alrady_demanded_detour_on_this_call:
             print("Flow already detoured on this call, skipping switch")
@@ -476,7 +509,6 @@ def search_overloaded_switches(session, switch_loads):
 
         print(result)
         if code != 0:
-            #print("Failed to create detour")
             continue
         else:
             #prepare info to store in active_SRv6_rules 
@@ -491,12 +523,11 @@ def search_overloaded_switches(session, switch_loads):
             flow_label_mask = 255           #flow label mask of the flow
             
             values = {'deviceID': devideID, 'srcIP': srcIP, 'dstIP': dstIP, 'flow_label': flow_label, 'src_mask': src_mask, 'dst_mask': dst_mask, 'flow_label_mask': flow_label_mask}
-            print("created SRv6 rule:",values)
-            #store the SRv6 rule in the dictionary active_SRv6_rules
-            if switch_id not in active_SRv6_rules:
-                active_SRv6_rules[switch_id] = [values]
-            else:
-                active_SRv6_rules[switch_id].append(values)            
+
+            #store the SRv6 rule in the dictionary active_SRv6_rules, switch_id is the switch that was overloaded
+            store_SRv6_rule(switch_id, values)      
+
+            print(CYAN + "created SRv6 rule:" + str(values) + END)
 
 
 
@@ -594,21 +625,22 @@ def main():
         #---------------Get current windows limit values for normalization
         with_data = update_max_values_globaly()
         if not with_data:
-            print("No data to analyze, sleeping for", sleep_time_seconds, "seconds")
+            print(GREEN+"No data to analyze, sleeping for", sleep_time_seconds, "seconds" + END)
             sleep(sleep_time_seconds)
             continue
 
         switch_loads = calculate_switches_load(result)
 
         search_no_longer_overloaded_switches(session, switch_loads)
-        print('active_SRv6_rules after search_no_longer_overloaded_switches:', active_SRv6_rules)
+        print(MAGENTA+'Active_SRv6_rules after search_no_longer_overloaded_switches:', active_SRv6_rules , END)
 
-        #print("Sleeping for 10 seconds SÓ PARA TESTES")
-        #sleep(10) 
+        print(GREEN+"Sleeping for", sleep_time_seconds, "seconds"+ END)
+        sleep(sleep_time_seconds)
         
         search_overloaded_switches(session, switch_loads)
+        print(MAGENTA+'Active_SRv6_rules after search_overloaded_switches:', active_SRv6_rules , END)
 
-        print("Sleeping for", sleep_time_seconds, "seconds")
+        print(GREEN+"Sleeping for", sleep_time_seconds, "seconds"+ END)
         sleep(sleep_time_seconds)
 
 
