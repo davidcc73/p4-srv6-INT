@@ -6,6 +6,8 @@ import sys
 import socket
 import random
 from time import sleep
+from datetime import datetime
+
 
 from scapy.all import sendp, get_if_list, get_if_hwaddr
 from scapy.all import Ether, IPv6, UDP, TCP
@@ -13,7 +15,7 @@ from scapy.all import srp, ICMPv6ND_NS
 
 # Define the directory path inside the container
 result_directory = "/INT/results"
-
+my_IP = None
 args = None
 
 def get_if():
@@ -61,6 +63,12 @@ def check_header_size():
     return header_size
 
 def send_packet(args, pkt_ETHE, payload_space, iface, addr):
+    global my_IP
+    results = {
+        'first_timestamp': None,
+        'failed_packets': 0
+    }
+    
     for i in range(args.c):
         # Reset packet
         pkt = pkt_ETHE
@@ -75,18 +83,29 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
         elif len(payload) > payload_space:
             payload = payload[:payload_space]
         
-
         # Construct IPv6 packet with either TCP or UDP
         if args.l4 == 'tcp':
             pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / payload
         elif args.l4 == 'udp':
             pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / payload
         
+        my_IP = pkt[IPv6].src
+        try:
+            # Send the constructed packet
+            sendp(pkt, iface=iface, verbose=False)
+            # Set the timestamp of the first packet sent
+            if results['first_timestamp'] is None:
+                dt = datetime.now()
+                ts = datetime.timestamp(dt)
+                results['first_timestamp'] = ts             #precision of microseconds
+        except Exception as e:
+            results['failed_packets'] += 1
+            print(f"Packet {i + 1} failed to send: {e}")
 
-        # Send the constructed packet
-        sendp(pkt, iface=iface, verbose=False)
         # Sleep for specified interval
         sleep(args.i)
+    
+    return results
 
 def parse_args():
     global args
@@ -96,8 +115,8 @@ def parse_args():
                         type=int, action="store", required=False,
                         default=1)
     
-    parser.add_argument('--ip_src', help='src ip',
-                        type=str, action="store", required=True)
+    #parser.add_argument('--ip_src', help='src ip',
+    #                    type=str, action="store", required=True)
     
     parser.add_argument('--ip_dst', help='dst ip',
                         type=str, action="store", required=True)
@@ -128,19 +147,25 @@ def parse_args():
     # Non-mandatory flag
     parser.add_argument('--export', help='File to export results', 
                         type=str, action='store', required=False, default=None)
-    # Group of flags that are mandatory if --enable-feature is activated
+    
+    # Group of flags that are mandatory if --enable-feature is used
     parser.add_argument('--me', help='Name of the host running the script', 
                         type=str, action='store', required=False, default=None)
+    parser.add_argument('--iteration', help='Current test iteration number', 
+                        type=int, action='store', required=False, default=None)
+    
     
     args = parser.parse_args()
     if args.export is not None:
         if not args.me:
-            parser.error('--me is required when --export is activated')
+            parser.error('--me is required when --export is used')
+        if not args.iteration:
+            parser.error('--iteration is required when --export is used')
 
-def export_results():
-    global args, result_directory
+def export_results(results):
     # Write in the CSV file a line with the following format: 
-    # iteration, 3 flow args, 'sender', args.c, time_stamp_first_sent
+    global args, result_directory
+    num_packets_successefuly_sent = args.c - results['failed_packets']
 
     # Define the filename
     filename = args.export
@@ -149,9 +174,7 @@ def export_results():
     full_path = os.path.join(result_directory, filename)
     print("Exporting results to", full_path)
     
-    # Ensure the directory exists
     os.makedirs(result_directory, exist_ok=True)
-    # Check if the file exists
     file_exists = os.path.exists(full_path)
     
     # Write data to specific cells in CSV
@@ -160,16 +183,16 @@ def export_results():
         
         # If file does not exist, write the header row
         if not file_exists:
-            header = ["IP Source", "IP Destination", "Flow Label", "End-Point", "Number", "Timestamp"]
+            header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
             writer.writerow(header)
         
         # Prepare the data line
-        timestamp_first_sent = "placeholder"
-        line = [args.ip_src, args.ip_dst, args.flow_label, "sender", args.c, timestamp_first_sent]
+        timestamp_first_sent = results['first_timestamp']
+        line = [args.iteration, my_IP, args.ip_dst, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent]
         
         # Write data
         writer.writerow(line)
-        
+
 
 def main():
     global args
@@ -186,11 +209,11 @@ def main():
 
     payload_space = args.s - header_size
 
-    send_packet(args, pkt, payload_space, iface, addr_dst)
+    results = send_packet(args, pkt, payload_space, iface, addr_dst)
 
     if args.export is not None:
         # Export results
-        export_results()
+        export_results(results)
 
 if __name__ == '__main__':
     main()

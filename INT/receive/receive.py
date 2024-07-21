@@ -4,14 +4,20 @@ import csv
 import sys
 import os
 import signal
+from telnetlib import IP
 
 from scapy.all import sniff, get_if_list
-from scapy.all import TCP, UDP
+from scapy.all import TCP, UDP, IPv6
 from scapy.layers.inet import  TCP
 
 # Global variables to count packets and store sequence numbers
 packet_TCP_UDP_count = 0
+out_of_order_packets = []
 sequence_numbers = []
+results = {}
+
+# Define the directory path inside the container
+result_directory = "/INT/results"
 
 args = None
 
@@ -28,7 +34,7 @@ def get_if():
     return iface
 
 def handle_pkt(pkt):
-    global packet_TCP_UDP_count, sequence_numbers
+    global packet_TCP_UDP_count, sequence_numbers, results
     packet_TCP_UDP_count += 1
 
     print("got a TCP/UDP packet")
@@ -36,6 +42,11 @@ def handle_pkt(pkt):
     #print("Original packet received:")
     #pkt.show2()
     #sys.stdout.flush()
+
+    #store flow info of the packet, and when was first packet received if not already stored
+    if "flow" not in results:
+        results["flow"] = (pkt[IPv6].src, pkt[IPv6].dst, pkt[IPv6].fl)
+        results["first_packet_time"] = pkt.time
 
     # Extract and print the message from the packet
     if TCP in pkt and pkt[TCP].payload:
@@ -55,10 +66,9 @@ def handle_pkt(pkt):
     sys.stdout.flush()
 
 def signal_handler(sig, frame):
-    global sequence_numbers
+    global sequence_numbers, packet_TCP_UDP_count, out_of_order_packets
 
     # Determine out-of-order packets by comparing each packet with the previous one
-    out_of_order_packets = []
     last_seq_num = None
 
     print("all received:", sequence_numbers)
@@ -71,49 +81,69 @@ def signal_handler(sig, frame):
     print("Out of order packets count:", len(out_of_order_packets))
     print("Out of order packets:", out_of_order_packets)
 
-    save_to_file(packet_TCP_UDP_count, out_of_order_packets)
+    export_results()
     sys.exit(0)
 
-def save_to_file(packet_TCP_UDP_count, out_of_order_packets):
-    # Define the directory path inside the container
-    directory = "/INT/results"
+def export_results():
+    global args, results, packet_TCP_UDP_count
 
     # Define the filename
-    filename = args.f
+    filename = args.export
     
     # Combine the directory path and filename
-    full_path = os.path.join(directory, filename)
+    full_path = os.path.join(result_directory, filename)
+    print("Exporting results to", full_path)
+    
+    os.makedirs(result_directory, exist_ok=True)
+    file_exists = os.path.exists(full_path)
     
     # Write data to specific cells in CSV
-    with open(full_path, mode='w', newline='') as file:
+    with open(full_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         
-        # Write header and values
-        writer.writerow(["Description", "Value"])
-        
-        # Total TCP/UDP packets received
-        writer.writerow(["Total TCP/UDP packets received:", packet_TCP_UDP_count])
-        
-        # Out of order packets count
-        writer.writerow(["Out of order packets count:", len(out_of_order_packets)])
-        
-        # Write out of order packets
-        writer.writerow(["Out of order packets:"])
-        for i, seq in enumerate(out_of_order_packets, start=1):
-            writer.writerow(["", f"Cell {i}: {seq}"])  # Modify this line to write to specific cells
-    
-    print(f"Results saved to {full_path}")
+        # If file does not exist, write the header row
+        if not file_exists:
+            header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
+            writer.writerow(header)
 
+    
+        #Prepare CSV line
+        src_ip = results["flow"][0]
+        dst_ip = results["flow"][1]
+        flow_label = results["flow"][2]
+        first_packet_time = results["first_packet_time"]
+        line = [args.iteration, src_ip, dst_ip, flow_label, "receiver", packet_TCP_UDP_count, first_packet_time, len(out_of_order_packets), out_of_order_packets]
+
+        # Write data
+        writer.writerow(line)
+
+def parse_args():    
+    global args
+    parser = argparse.ArgumentParser(description='receiver parser')
+
+    # Non-mandatory flag
+    parser.add_argument('--export', help='File to export results', 
+                        type=str, action='store', required=False, default=None)
+    
+    # Group of flags that are mandatory if --enable-feature is used
+    parser.add_argument('--me', help='Name of the host running the script', 
+                        type=str, action='store', required=False, default=None)
+    parser.add_argument('--iteration', help='Current test iteration number', 
+                        type=int, action='store', required=False, default=None)
+    
+    args = parser.parse_args()
+    if args.export is not None:
+        if not args.me:
+            parser.error('--me is required when --export is used')
+        if not args.iteration:
+            parser.error('--iteration is required when --export is used')
+
+
+    args = parser.parse_args()
 
 
 def main():
-    global args  # Access the global args variable
-    parser = argparse.ArgumentParser(description='receive parser')
-
-    parser.add_argument('--f', help='filename to store results',
-                        type=str, action="store", required=True)
-    args = parser.parse_args()
-
+    parse_args()
 
     ifaces = [i for i in os.listdir('/sys/class/net/') if 'eth' in i]
     iface = ifaces[0]
