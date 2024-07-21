@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import csv
+import fcntl
 import os
 import sys
 import socket
@@ -179,19 +180,27 @@ def export_results(results):
     
     # Write data to specific cells in CSV
     with open(full_path, mode='a', newline='') as file:
-        writer = csv.writer(file)
+        # Acquire an exclusive lock on the file
+        fcntl.flock(file, fcntl.LOCK_EX) 
         
-        # If file does not exist, write the header row
-        if not file_exists:
-            header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
-            writer.writerow(header)
+        try:
+            writer = csv.writer(file)
+            
+            # If file does not exist, write the header row
+            if not file_exists:
+                header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
+                writer.writerow(header)
+            
+            # Prepare the data line
+            timestamp_first_sent = results['first_timestamp']
+            line = [args.iteration, my_IP, args.ip_dst, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent]
+            
+            # Write data
+            writer.writerow(line)
         
-        # Prepare the data line
-        timestamp_first_sent = results['first_timestamp']
-        line = [args.iteration, my_IP, args.ip_dst, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent]
-        
-        # Write data
-        writer.writerow(line)
+        finally:
+            # Release the lock
+            fcntl.flock(file, fcntl.LOCK_UN)
 
 
 def main():

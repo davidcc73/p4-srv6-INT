@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import csv
+import fcntl
 import sys
 import os
 import signal
@@ -99,23 +100,31 @@ def export_results():
     
     # Write data to specific cells in CSV
     with open(full_path, mode='a', newline='') as file:
-        writer = csv.writer(file)
+        # Acquire an exclusive lock on the file
+        fcntl.flock(file, fcntl.LOCK_EX) 
         
-        # If file does not exist, write the header row
-        if not file_exists:
-            header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
-            writer.writerow(header)
+        try:
+            writer = csv.writer(file)
+            
+            # If file does not exist, write the header row
+            if not file_exists:
+                header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
+                writer.writerow(header)
 
-    
-        #Prepare CSV line
-        src_ip = results["flow"][0]
-        dst_ip = results["flow"][1]
-        flow_label = results["flow"][2]
-        first_packet_time = results["first_packet_time"]
-        line = [args.iteration, src_ip, dst_ip, flow_label, "receiver", packet_TCP_UDP_count, first_packet_time, len(out_of_order_packets), out_of_order_packets]
 
-        # Write data
-        writer.writerow(line)
+            #Prepare CSV line
+            src_ip = results["flow"][0]
+            dst_ip = results["flow"][1]
+            flow_label = results["flow"][2]
+            first_packet_time = results["first_packet_time"]
+            line = [args.iteration, src_ip, dst_ip, flow_label, "receiver", packet_TCP_UDP_count, first_packet_time, len(out_of_order_packets), out_of_order_packets]
+
+            # Write data
+            writer.writerow(line)
+        
+        finally:
+            # Release the lock
+            fcntl.flock(file, fcntl.LOCK_UN)
 
 def parse_args():    
     global args
