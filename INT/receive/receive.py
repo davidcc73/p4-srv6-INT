@@ -2,15 +2,12 @@
 import argparse
 import csv
 import sys
-import struct
 import os
 import signal
 
-from scapy.all import sniff, sendp, hexdump, get_if_list, get_if_hwaddr
-from scapy.all import Packet, IPOption
-from scapy.all import PacketListField, ShortField, IntField, LongField, BitField, FieldListField, FieldLenField
-from scapy.all import IPv6, TCP, UDP, Raw
-from scapy.layers.inet import _IPOption_HDR, TCP, bind_layers
+from scapy.all import sniff, get_if_list
+from scapy.all import TCP, UDP
+from scapy.layers.inet import  TCP
 
 # Global variables to count packets and store sequence numbers
 packet_TCP_UDP_count = 0
