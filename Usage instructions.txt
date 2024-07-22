@@ -13,6 +13,7 @@ sudo apt install python3-pip
 sudo pip3 install scapy
 sudo pip3 install mininet                #install mininet at host (makes clean ups easier)
 sudo pip3 install numpy
+sudo pip3 install openpyxl               #to export raw CSV results to excel
 sudo make deps 
 
 #influxdb, to install see the file "setup/prepare inluxdb.txt"
@@ -75,6 +76,10 @@ input option "2" in the mininet menu interface
 
 #--------------------at ONOS cli (make onos-cli)
 #To see the SRv6 commands go to Commands/srv6_insert.txt
+
+
+#--------------------Parse Exported Results, the filename will be used before (_) to create the output file
+sudo python3 INT/process_results.py --f LOW_raw_results.csv
 
 
 
