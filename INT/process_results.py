@@ -46,7 +46,7 @@ def read_raw_results(row):
     flow = (row[1], row[2], int(row[3]))
     Is = row[4]
     number_of_packets = int(row[5])
-    first_packet_time = row[6]          #microseconds
+    first_packet_time = row[6]
     values_end_points = {}
     values_end_points["num_pkt"] = number_of_packets
     values_end_points["time"] = float(first_packet_time)
@@ -152,7 +152,7 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    sheet.append([f"Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "First packet time", "Nº of out of order packets", "Out of order packets"])
+    sheet.append([f"Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "First Packet TimeStamp", "Nº of out of order packets", "Out of order packets"])
     
     # Write results, iteration by iteration
     for iteration in results:
@@ -188,13 +188,14 @@ def set_pkt_loss():
     file_path = os.path.join(dir_path, final_file)
     workbook = load_workbook(file_path)
 
-    #At J1 set the header
-    workbook.active['J1'] = "Packet Loss"
-    workbook.active['K1'] = "Packet Loss (%)"
-
     # Set formula for each sheet
     for sheet in workbook.sheetnames:
         sheet = workbook[sheet]
+
+        #Set new headers
+        sheet['J1'] = "Packet Loss"
+        sheet['K1'] = "Packet Loss (%)"
+
         # Set collumn J to contain a formula to be the subtraction of values of collum E of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
             #if cell from collumn A does not contain an IPv6 address, skip
@@ -220,13 +221,14 @@ def set_fist_pkt_delay():
     dir_path = os.path.join(current_directory, result_directory)
     file_path = os.path.join(dir_path, final_file)
     workbook = load_workbook(file_path)
-
-    #At J1 set the header
-    workbook.active['L1'] = "1º Packet Delay (microseconds)"
     
     # Set formula for each sheet
     for sheet in workbook.sheetnames:
         sheet = workbook[sheet]
+
+        #Set new headers
+        sheet['L1'] = "1º Packet Delay"
+        
         # Set collumn L to contain a formula to be the subtraction of values of collum F of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
             #if cell from collumn A does not contain an IPv6 address, skip
@@ -246,12 +248,14 @@ def set_fist_pkt_delay():
     # Save the workbook
     workbook.save(file_path)
 
-
+def set_averages():
+    # Configure each sheet
+    dir_path = os.path.join(current_directory, result_directory)
 
 def configure_final_file():
     set_pkt_loss()
     set_fist_pkt_delay()
-    #set_averages()
+    set_averages()
 
 def main():
     global args
