@@ -23,6 +23,18 @@ def parse_args():
     
     args = parser.parse_args()
 
+def read_Is_values(line, iteration, flow, Is):
+    line = line + [Is]
+    # Is values, all in the current line
+    for key, Is_value in results[iteration][flow][Is].items():
+        if key == "extra":
+            for extra in Is_value:
+                line = line + list(extra.values())
+        else:
+            line = line + [Is_value]
+
+    return line
+
 def adjust_columns_width():
     global final_file
     #open the workbook
@@ -152,7 +164,7 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    header = ["Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "First Packet TimeStamp", "Nº of out of order packets", "Out of order packets"]
+    header = ["Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "1º Packet (TimeStamp)", "Nº of out of order packets", "Out of order packets"]
     for col_num, value in enumerate(header, 1):
         cell = sheet.cell(row=1, column=col_num, value=value)
         cell.font = Font(bold=True)
@@ -168,22 +180,14 @@ def export_results(OG_file):
 
         # Flow by flow
         for flow in results[iteration]:
-            line1 = list(flow)
+            # Is by Is, sender must be the 1º
+            OG_line = list(flow)
+            line = read_Is_values(OG_line, iteration, flow, "sender")
+            sheet.append(line)
 
-            # Is by Is
-            for Is, Is_values in results[iteration][flow].items():
-                OG_line = line1 + [Is]
-                line = OG_line
-                
-                # Is values, all in the current line
-                for key, Is_value in results[iteration][flow][Is].items():
-                    if key == "extra":
-                        for extra in Is_value:
-                            line = line + list(extra.values())
-                    else:
-                        line = line + [Is_value]
-                
-                sheet.append(line)
+            OG_line = list(flow)
+            line = read_Is_values(OG_line, iteration, flow, "receiver")
+            sheet.append(line)
 
     # Save the workbook
     workbook.save(file_path)
@@ -295,7 +299,6 @@ def set_averages():
 
     # Save the workbook
     workbook.save(file_path)
-
 
 def configure_final_file():
     set_pkt_loss()
