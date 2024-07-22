@@ -79,11 +79,22 @@ def read_raw_results(row):
 
 def read_csv_files(filename):
     first_row = True
+
+    res_path = os.path.join(current_directory, result_directory) 
+    file_path = os.path.join(res_path, filename)
+
+    # Check if the directory exists
+    print(f"res_path: {res_path}")
+    if not os.path.isdir(res_path):
+        sys.exit(1)
+
+    #check file exists
+    if not os.path.isfile(file_path):
+        print(f"File {filename} not found in {file_path}")
+        sys.exit(1)
+        
     print(f"Reading files: {filename}")
 
-    full_path = os.path.join(current_directory, result_directory) 
-
-    file_path = os.path.join(full_path, filename)
     try:
         with open(file_path, 'r', newline='') as csvfile:
             reader = csv.reader(csvfile)
