@@ -5,6 +5,7 @@ import sys
 from pprint import pprint
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font
 
 # Define the directory path
 result_directory = "results"
@@ -84,7 +85,6 @@ def read_csv_files(filename):
     file_path = os.path.join(res_path, filename)
 
     # Check if the directory exists
-    print(f"res_path: {res_path}")
     if not os.path.isdir(res_path):
         sys.exit(1)
 
@@ -152,13 +152,19 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    sheet.append([f"Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "First Packet TimeStamp", "Nº of out of order packets", "Out of order packets"])
-    
+    header = ["Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "First Packet TimeStamp", "Nº of out of order packets", "Out of order packets"]
+    for col_num, value in enumerate(header, 1):
+        cell = sheet.cell(row=1, column=col_num, value=value)
+        cell.font = Font(bold=True)
+
     # Write results, iteration by iteration
     for iteration in results:
         # Write key
         sheet.append([f""])
-        sheet.append([f"Iteration - {iteration}"])
+        sheet.append([None])  # This adds an empty row
+        cell = sheet.cell(row=sheet.max_row, column=1)  # Get the last row and column 1
+        cell.value = f"Iteration - {iteration}"
+        cell.font = Font(bold=True)
 
         # Flow by flow
         for flow in results[iteration]:
@@ -196,6 +202,9 @@ def set_pkt_loss():
         sheet['J1'] = "Packet Loss"
         sheet['K1'] = "Packet Loss (%)"
 
+        sheet['J1'].font = Font(bold=True)
+        sheet['K1'].font = Font(bold=True)
+
         # Set collumn J to contain a formula to be the subtraction of values of collum E of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
             #if cell from collumn A does not contain an IPv6 address, skip
@@ -226,8 +235,9 @@ def set_fist_pkt_delay():
     for sheet in workbook.sheetnames:
         sheet = workbook[sheet]
 
-        #Set new headers
+        #Set new headers as bold text
         sheet['L1'] = "1º Packet Delay"
+        sheet['L1'].font = Font(bold=True)
         
         # Set collumn L to contain a formula to be the subtraction of values of collum F of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
@@ -241,7 +251,7 @@ def set_fist_pkt_delay():
             #print(row)
             
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
-            sheet[f'L{row[0].row}'] = f'=F{row[0].row-1}-F{row[0].row}'     
+            sheet[f'L{row[0].row}'] = f'=F{row[0].row}-F{row[0].row-1}'     
 
             skip = True
 
@@ -251,6 +261,41 @@ def set_fist_pkt_delay():
 def set_averages():
     # Configure each sheet
     dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+
+    # Set formula for each sheet
+    for sheet in workbook.sheetnames:
+        sheet = workbook[sheet]
+
+        #Pass the last line with data, and leave 2 empty lines
+        last_line = sheet.max_row + 4
+
+        #Set new headers
+        sheet[f'A{last_line}'] = "Averages"
+        sheet[f'A{last_line + 1}'] = "Values"
+        sheet[f'B{last_line}'] = "Out of Order Packets (Nº)"
+        sheet[f'C{last_line}'] = "Packet Loss (Nº)"
+        sheet[f'D{last_line}'] = "Packet Loss (%)"
+        sheet[f'E{last_line}'] = "1º Packet Delay"
+
+        sheet[f'A{last_line}'].font = Font(bold=True)
+        sheet[f'A{last_line+1}'].font = Font(bold=True)
+        sheet[f'B{last_line}'].font = Font(bold=True)
+        sheet[f'C{last_line}'].font = Font(bold=True)
+        sheet[f'D{last_line}'].font = Font(bold=True)
+        sheet[f'E{last_line}'].font = Font(bold=True)
+
+        # on the next line for each column, set the average of the column, ignore empty cells
+        sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(G:G, "<>", G:G), 3)'
+        sheet[f'C{last_line + 1}'] = f'=ROUND(AVERAGEIF(J:J, "<>", J:J), 3)'
+        sheet[f'D{last_line + 1}'] = f'=ROUND(AVERAGEIF(K:K, "<>", K:K), 3)'
+        sheet[f'E{last_line + 1}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
+
+
+    # Save the workbook
+    workbook.save(file_path)
+
 
 def configure_final_file():
     set_pkt_loss()
