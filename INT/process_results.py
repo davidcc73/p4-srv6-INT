@@ -22,24 +22,24 @@ def store_results(row):
         number_out_of_order_packets = row[7]
         out_of_order_packets = row[8]
         receiver_data = (number_out_of_order_packets, out_of_order_packets)
-        values_counts = {number_of_packets, first_packet_time, number_of_packets, receiver_data}
+        values_end_points = {number_of_packets, first_packet_time, number_of_packets, receiver_data}
     else:
-        values_counts = {number_of_packets, first_packet_time, number_of_packets}
+        values_end_points = {number_of_packets, first_packet_time, number_of_packets}
 
 
     # Check if the iteration is already in the results dictionary
     if iteration not in results:
-        values_end_points = {Is: values_counts}
-        values_iteration = {flow: values_end_points}
+        values_flow = {Is: values_end_points}
+        values_iteration = {flow: values_flow}
         results[iteration] = values_iteration
     else:
         # Check if the flow is already in the results dictionary
         if flow not in results[iteration]:
-            values_end_points = {Is: values_counts}
-            results[iteration][flow] = values_end_points
+            values_flow = {Is: values_end_points}
+            results[iteration][flow] = values_flow
         else:
             # Add currect Is to the flow
-            results[iteration][flow][Is] = values_counts
+            results[iteration][flow][Is] = values_end_points
 
 def read_csv_files(filename):
     first_row = True
