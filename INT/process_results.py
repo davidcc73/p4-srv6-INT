@@ -6,14 +6,39 @@ from pprint import pprint
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 
-
-
 # Define the directory path
 result_directory = "results"
 final_file = "final_results.xlsx"
 current_directory = os.path.dirname(os.path.abspath(__file__)) 
 args = None
 results = {}
+
+def parse_args():
+    global args
+
+    parser = argparse.ArgumentParser(description='process parser')
+    parser.add_argument('--f', help='CSV files to be processed',
+                        type=str, action="store", required=True, nargs='+')
+    
+    args = parser.parse_args()
+
+def adjust_columns_width():
+    global final_file
+    #open the workbook
+    dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+
+    # Adjust column widths to fit the text
+    for sheetname in workbook.sheetnames:
+        print(f"Adjusting columns width for sheet {sheetname}")
+        sheet = workbook[sheetname]
+        for column_cells in sheet.columns:
+            length = max(len(str(cell.value)) for cell in column_cells)
+            sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = length + 1
+    
+    # Save the workbook
+    workbook.save(file_path)
 
 def read_raw_results(row):
     global results
@@ -71,16 +96,7 @@ def read_csv_files(filename):
     except Exception as e:
         print(f"An error occurred while reading {filename}: {e}")
     print("Done reading file")
-    pprint(results)
-
-def parse_args():
-    global args
-
-    parser = argparse.ArgumentParser(description='process parser')
-    parser.add_argument('--f', help='CSV files to be processed',
-                        type=str, action="store", required=True, nargs='+')
-    
-    args = parser.parse_args()
+    #pprint(results)
 
 def check_files_exist():
     # Check if the directory/files exist
@@ -125,13 +141,13 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    sheet.append([f"Flow src", "Flow dst", "Flow Label", "Is", "Number of packets", "First packet time", "Number of out of order packets", "Out of order packets"])
+    sheet.append([f"Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "First packet time", "Nº of out of order packets", "Out of order packets"])
     
     # Write results, iteration by iteration
     for iteration in results:
         # Write key
         sheet.append([f""])
-        sheet.append([f"Iteration: {iteration}"])
+        sheet.append([f"Iteration - {iteration}"])
 
         # Flow by flow
         for flow in results[iteration]:
@@ -152,14 +168,79 @@ def export_results(OG_file):
                 
                 sheet.append(line)
 
-    # Adjust column widths to fit the text
-    for column_cells in sheet.columns:
-        length = max(len(str(cell.value)) for cell in column_cells)
-        sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = length + 1
-    
+    # Save the workbook
+    workbook.save(file_path)
+
+def set_pkt_loss():
+    # Configure each sheet
+    dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+
+    #At J1 set the header
+    workbook.active['J1'] = "Packet Loss"
+    workbook.active['K1'] = "Packet Loss (%)"
+
+    # Set formula for each sheet
+    for sheet in workbook.sheetnames:
+        sheet = workbook[sheet]
+        # Set collumn J to contain a formula to be the subtraction of values of collum E of the current pair of lines
+        for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
+            #if cell from collumn A does not contain an IPv6 address, skip
+            if row[0].value is None or ":" not in row[0].value:
+                skip = True
+                continue
+            if skip:            #not in the right line of the pair
+                skip = False
+                continue
+            #print(row)
+            
+            # Set the formula, pkt loss, -1 is sender, 0 is receiver
+            sheet[f'J{row[0].row}'] = f'=E{row[0].row-1}-E{row[0].row}'     
+            sheet[f'K{row[0].row}'] = f'=ROUND(J{row[0].row}/E{row[0].row-1}*100, 3)'
+
+            skip = True
 
     # Save the workbook
     workbook.save(file_path)
+
+def set_fist_pkt_delay():
+    # Configure each sheet
+    dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+
+    #At J1 set the header
+    workbook.active['L1'] = "1º Packet Delay (microseconds)"
+    
+    # Set formula for each sheet
+    for sheet in workbook.sheetnames:
+        sheet = workbook[sheet]
+        # Set collumn L to contain a formula to be the subtraction of values of collum F of the current pair of lines
+        for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
+            #if cell from collumn A does not contain an IPv6 address, skip
+            if row[0].value is None or ":" not in row[0].value:
+                skip = True
+                continue
+            if skip:            #not in the right line of the pair
+                skip = False
+                continue
+            #print(row)
+            
+            # Set the formula, pkt loss, -1 is sender, 0 is receiver
+            sheet[f'L{row[0].row}'] = f'=F{row[0].row-1}-F{row[0].row}'     
+
+            skip = True
+
+    # Save the workbook
+    workbook.save(file_path)
+
+
+
+def configure_final_file():
+    set_pkt_loss()
+    set_fist_pkt_delay()
+    #set_averages()
 
 def main():
     global args
@@ -170,6 +251,9 @@ def main():
     for filename in args.f:
         read_csv_files(filename)
         export_results(filename)
+        configure_final_file()
+    
+    adjust_columns_width()
 
 
 if __name__ == "__main__":
