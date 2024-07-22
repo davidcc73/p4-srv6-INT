@@ -91,14 +91,16 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / payload
         
         my_IP = pkt[IPv6].src
+
+        # Set the timestamp of the first packet sent
+        if results['first_timestamp'] is None:
+            dt = datetime.now()
+            ts = datetime.timestamp(dt)
+            results['first_timestamp'] = ts             #precision of microseconds
+        
         try:
             # Send the constructed packet
             sendp(pkt, iface=iface, verbose=False)
-            # Set the timestamp of the first packet sent
-            if results['first_timestamp'] is None:
-                dt = datetime.now()
-                ts = datetime.timestamp(dt)
-                results['first_timestamp'] = ts             #precision of microseconds
         except Exception as e:
             results['failed_packets'] += 1
             print(f"Packet {i + 1} failed to send: {e}")
