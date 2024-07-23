@@ -118,7 +118,7 @@ def export_results():
             writer = csv.writer(file)
             
             # If file does not exist, write the header row
-            if not file_exists:
+            if not os.path.exists(full_path):
                 header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
                 writer.writerow(header)
 
@@ -145,7 +145,7 @@ def parse_args():
     parser.add_argument('--export', help='File to export results', 
                         type=str, action='store', required=False, default=None)
     
-    # Group of flags that are mandatory if --enable-feature is used
+    # Group of flags that are mandatory if --export is used
     parser.add_argument('--me', help='Name of the host running the script', 
                         type=str, action='store', required=False, default=None)
     parser.add_argument('--iteration', help='Current test iteration number', 
@@ -157,10 +157,6 @@ def parse_args():
             parser.error('--me is required when --export is used')
         if not args.iteration:
             parser.error('--iteration is required when --export is used')
-
-
-    args = parser.parse_args()
-
 
 def main():
     parse_args()
