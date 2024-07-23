@@ -21,9 +21,9 @@ results = {}
 result_directory = "/INT/results"
 
 args = None
+#last_packet_time = None  # Initialize to keep track of the time of the last packet
 
 def get_if():
-    ifs = get_if_list()
     iface = None
     for i in get_if_list():
         if "eth0" in i:
@@ -35,7 +35,7 @@ def get_if():
     return iface
 
 def handle_pkt(pkt):
-    global packet_TCP_UDP_count, sequence_numbers, results
+    global packet_TCP_UDP_count, sequence_numbers, results #, last_packet_time
     packet_TCP_UDP_count += 1
 
     print("got a TCP/UDP packet")
@@ -44,12 +44,23 @@ def handle_pkt(pkt):
     #pkt.show2()
     #sys.stdout.flush()
 
+    #----------Calculate and print the interval since the last packet
+    '''
+    if last_packet_time is not None:
+        interval = pkt.time - last_packet_time
+        print(f"Interval since last packet: {interval:.6f} seconds")
+    
+    # Update the last packet time
+    last_packet_time = pkt.time
+    '''
+    
     #store flow info of the packet, and when was first packet received if not already stored
     if "flow" not in results:
         results["flow"] = (pkt[IPv6].src, pkt[IPv6].dst, pkt[IPv6].fl)
         results["first_packet_time"] = pkt.time
+    
 
-    # Extract and print the message from the packet
+    #----------Extract and print the message from the packet
     if TCP in pkt and pkt[TCP].payload:
         payload = pkt[TCP].payload.load.decode('utf-8', 'ignore')
     elif UDP in pkt and pkt[UDP].payload:

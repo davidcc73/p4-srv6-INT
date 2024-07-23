@@ -69,6 +69,8 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
         'first_timestamp': None,
         'failed_packets': 0
     }
+
+    #prev_timestamp = None
     
     for i in range(args.c):
         # Reset packet
@@ -98,6 +100,17 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             ts = datetime.timestamp(dt)
             results['first_timestamp'] = ts             #precision of microseconds
         
+        '''
+        #----------------------Record the current timestamp
+        current_timestamp = datetime.timestamp(datetime.now())
+
+        # Print the interval if previous timestamp exists
+        
+        if prev_timestamp is not None:
+            interval = current_timestamp - prev_timestamp
+            print(f"Interval since last packet: {interval:.6f} seconds, thr expected: {args.i:.6f} seconds")
+        '''
+
         try:
             # Send the constructed packet
             sendp(pkt, iface=iface, verbose=False)
@@ -105,6 +118,10 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             results['failed_packets'] += 1
             print(f"Packet {i + 1} failed to send: {e}")
 
+        # Update previous timestamp
+        #prev_timestamp = current_timestamp
+        
+        
         # Sleep for specified interval
         sleep(args.i)
     
