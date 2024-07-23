@@ -107,18 +107,19 @@ def export_results():
     print("Exporting results to", full_path)
     
     os.makedirs(result_directory, exist_ok=True)
+
+    # Acquire an exclusive lock on the file
+    fcntl.flock(file, fcntl.LOCK_EX) 
     file_exists = os.path.exists(full_path)
     
     # Write data to specific cells in CSV
     with open(full_path, mode='a', newline='') as file:
-        # Acquire an exclusive lock on the file
-        fcntl.flock(file, fcntl.LOCK_EX) 
         
         try:
             writer = csv.writer(file)
             
             # If file does not exist, write the header row
-            if not os.path.exists(full_path):
+            if not file_exists:
                 header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
                 writer.writerow(header)
 
