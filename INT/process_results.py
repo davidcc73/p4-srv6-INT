@@ -171,6 +171,7 @@ def export_results(OG_file):
 
     # Write results, iteration by iteration
     for iteration in results:
+        
         # Write key
         sheet.append([f""])
         sheet.append([None])  # This adds an empty row
@@ -180,6 +181,15 @@ def export_results(OG_file):
 
         # Flow by flow
         for flow in results[iteration]:
+            keys = list(results[iteration][flow].keys())
+            # Check if both types of Is are keys in the dictionary
+            if "sender" not in keys:
+                print(f"Sender not found in iteration {iteration} flow {flow}")
+                sys.exit(1)
+            if "receiver" not in keys:
+                print(f"Receiver not found in iteration {iteration} flow {flow}")
+                sys.exit(1)
+
             # Is by Is, sender must be the 1º
             OG_line = list(flow)
             line = read_Is_values(OG_line, iteration, flow, "sender")
