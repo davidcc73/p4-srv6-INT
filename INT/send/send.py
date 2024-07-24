@@ -115,6 +115,7 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             print(f"Interval since last packet: {interval:.6f} seconds, thr expected: {args.i:.6f} seconds")
         '''
 
+        pre_timestamp = datetime.now()
         try:
             # Send the constructed packet
             sendp(pkt, iface=iface, inter=0, loop=0, verbose=False)
@@ -123,12 +124,17 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             results['failed_packets'] += 1
             print(f"Packet {i + 1} failed to send: {e}")
 
+        pkt_sending_time = datetime.now() - pre_timestamp
+        pkt_sending_time_seconds = pkt_sending_time.total_seconds()
+        #print(f"Packet sent in {pkt_sending_time_seconds} seconds")
+        
         # Update previous timestamp
         #prev_timestamp = current_timestamp
         
-        
-        # Sleep for specified interval
-        sleep(args.i)
+        # Sleep for specified interval - the time it took to send the packet, must be subtracted
+        rounded_number = round(args.i - pkt_sending_time_seconds)
+        t = max(rounded_number, 0)
+        sleep(t)
     
     return results
 
