@@ -71,10 +71,20 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
     }
 
     #prev_timestamp = None
-    
+    l3_layer = IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label)
+
+    # Construct l4 layer, TCP or UDP
+    if args.l4 == 'tcp':
+        l4_layer = TCP(dport=args.port, sport=random.randint(49152, 65535))
+    elif args.l4 == 'udp':
+        l4_layer = UDP(dport=int(args.port), sport=random.randint(49152, 65535))
+
+    Base_pkt = pkt_ETHE / l3_layer / l4_layer 
+    my_IP = Base_pkt[IPv6].src
+
     for i in range(args.c):
         # Reset packet
-        pkt = pkt_ETHE
+        pkt = Base_pkt
 
         # Adjust payload for each packet
         payload = f"{i + 1}-{args.m}".encode()  # Convert payload to bytes
@@ -85,20 +95,14 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             payload += trash_data
         elif len(payload) > payload_space:
             payload = payload[:payload_space]
-        
-        # Construct IPv6 packet with either TCP or UDP
-        if args.l4 == 'tcp':
-            pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / TCP(dport=args.port, sport=random.randint(49152, 65535)) / payload
-        elif args.l4 == 'udp':
-            pkt = pkt / IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label) / UDP(dport=int(args.port), sport=random.randint(49152, 65535)) / payload
-        
-        my_IP = pkt[IPv6].src
+
+        pkt = pkt / payload
 
         # Set the timestamp of the first packet sent
         if results['first_timestamp'] is None:
             dt = datetime.now()
             ts = datetime.timestamp(dt)
-            results['first_timestamp'] = ts             #precision of microseconds
+            results['first_timestamp'] = ts             
         
         '''
         #----------------------Record the current timestamp
@@ -113,7 +117,8 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
 
         try:
             # Send the constructed packet
-            sendp(pkt, iface=iface, verbose=False)
+            sendp(pkt, iface=iface, inter=0, loop=0, verbose=False)
+            #sendpfast(pkt, iface=iface, file_cache=True, pps=0, loop=0)
         except Exception as e:
             results['failed_packets'] += 1
             print(f"Packet {i + 1} failed to send: {e}")
