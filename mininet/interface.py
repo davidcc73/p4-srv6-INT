@@ -53,7 +53,7 @@ def receive_packet_script(me, export_file, iteration, duration):
     command = f"python3 /INT/receive/receive.py"
 
     if export_file != None:
-        command = f"python3 /INT/receive/receive.py --export {export_file} --me {me.name} --iteration {iteration} --duration {duration}"
+        command = command + f" --export {export_file} --me {me.name} --iteration {iteration} --duration {duration}"
 
     command = command + " &"
     print(f"{me.name} running Command: {command}")
@@ -67,28 +67,35 @@ def low_load_test(net):
     create_lock_file(lock_filename)
 
     h1_1 = net.get("h1_1")
-    h2_1 = net.get("h2_1")
-
-    num_iterations_LOW = 5
-    iteration_duration_seconds_LOW =  10  #1 minute, the duration of each iteration of the test
-    receiver_timeout = iteration_duration_seconds_LOW + 10
-
-    i = 0.1
-    num_packets = round(iteration_duration_seconds_LOW / i * 0.5)
-    print(f"Number of packets: {num_packets}")
+    h2_1 = net.get("h2_1")    
     
+    num_iterations_LOW = 1
+    i = 0.1                     #seconds, lower values scapy sending/receiveing the pkt + sleep between emissions becomes inaccurate
+
+    iteration_duration_seconds_LOW =  1 * 30                        #the duration of each iteration of the test
+    num_packets = round(iteration_duration_seconds_LOW / (i + 0.1)) #distribute the packets over the duration of the test (over i intervals) and consider that each packet takes 0.1 sec to send/process at receive
+    
+    receiver_timeout = num_packets * 0.1 * 1.5                 #each packet takes 0.1 seconds, + margin to ensure the receiver script receives all packets
+    iteration_sleep= receiver_timeout * 1.20                 #with margin to ensure the receiver script has written the results and make previous iterations packets have finish trasmitting
+
+    print(f"num_iterations_LOW: {num_iterations_LOW}")
+    print(f"iteration_duration_seconds_LOW: {iteration_duration_seconds_LOW}")
+    print(f"receiver_timeout: {receiver_timeout}")
+    print(f"iteration_sleep: {iteration_sleep}")
+    print(f"Number of packets: {num_packets}")
     print("Starting Low Load Test")
     for iteration in range(1, num_iterations_LOW + 1):
         print(f"Starting iteration {iteration} of {num_iterations_LOW}")
+        
+        #-------------Start the send script on the source hosts (1º longer setup time)
+        send_packet_script(h1_1, "2001:1:2::1", "udp", 443, 1, "INTH1", 0, 262, num_packets, i, file_results, iteration)
 
         #-------------Start the receive script on the destination hosts
         receive_packet_script(h2_1, file_results, iteration, receiver_timeout)
-        
-        #-------------Start the send script on the source hosts
-        send_packet_script(h1_1, "2001:1:2::1", "udp", 443, 1, "INTH1", 0, 262, num_packets, i, file_results, iteration)
 
+        print(f"Waiting for {iteration_sleep} seconds")
         #-------------Keep the test running for a specified duration
-        time.sleep(receiver_timeout + 30)   #30 seconds of margin to ensure the receiver script has written the results
+        time.sleep(iteration_sleep)  
 
 
 def main_menu(net, choice):
@@ -103,7 +110,7 @@ def main_menu(net, choice):
     elif choice == 2:
         detect_all_hosts(net)
     elif choice == 3:
-        low_load_test(net)
+        low_load_test(net)                  #FOR LAST ONE, REMENBER TO CLEAN SRV6 BETWEEN ITERATIONS
     else:
         print("Invalid choice")
     
