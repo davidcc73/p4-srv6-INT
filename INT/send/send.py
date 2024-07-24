@@ -187,39 +187,47 @@ def export_results(results):
     global args, result_directory
     num_packets_successefuly_sent = args.c - results['failed_packets']
 
+    os.makedirs(result_directory, exist_ok=True)
+
     # Define the filename
-    filename = args.export
+    filename_results = args.export
+    lock_filename = f"LOCK_{filename_results}"
     
     # Combine the directory path and filename
-    full_path = os.path.join(result_directory, filename)
-    print("Exporting results to", full_path)
+    full_path_results = os.path.join(result_directory, filename_results)
+    full_path_LOCK = os.path.join(result_directory, lock_filename)
     
-    os.makedirs(result_directory, exist_ok=True)
-    file_exists = os.path.exists(full_path)
     
-    # Write data to specific cells in CSV
-    with open(full_path, mode='a', newline='') as file:
-        # Acquire an exclusive lock on the file
-        fcntl.flock(file, fcntl.LOCK_EX) 
-        
+    # Open the lock file
+    with open(full_path_LOCK, 'w') as lock_file:
         try:
-            writer = csv.writer(file)
+            # Acquire an exclusive lock on the lock file
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
             
-            # If file does not exist, write the header row
-            if not file_exists:
-                header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
-                writer.writerow(header)
-            
-            # Prepare the data line
-            timestamp_first_sent = results['first_timestamp']
-            line = [args.iteration, my_IP, args.ip_dst, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent]
-            
-            # Write data
-            writer.writerow(line)
-        
+            # Check if the results file exists
+            file_exists = os.path.exists(full_path_results)
+
+            # Open the results file for appending
+            print("Exporting results to", full_path_results)
+            with open(full_path_results, mode='a', newline='') as file:
+                # Create a CSV writer object
+                writer = csv.writer(file)
+                
+                # If file does not exist, write the header row
+                if not file_exists:
+                    header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
+                    writer.writerow(header)
+                
+                # Prepare the data line
+                timestamp_first_sent = results['first_timestamp']
+                line = [args.iteration, my_IP, args.ip_dst, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent]
+                
+                # Write data
+                writer.writerow(line)
+                
         finally:
-            # Release the lock
-            fcntl.flock(file, fcntl.LOCK_UN)
+            # Release the lock on the lock file
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 
 def main():

@@ -1,23 +1,95 @@
 
+import os
+import time
 from mininet.cli import CLI
 
+#ECMP will is only configured on ONOS to have rules for Flow labels between 0-4, if not, the packet will not be routed
+num_iterations = 10
+iteration_duration_seconds = 5 * 60  #5 minutes, the duration of each iteration of the test
+
+export_file_LOW = "LOW_raw_results.csv"
+
+def create_lock_file(lock_filename):
+    lock_file_path = os.path.join("/INT/results", lock_filename)
+
+    # Create the lock file if it does not exist
+    if not os.path.exists(lock_file_path):
+        with open(lock_file_path, 'w') as lock_file:
+            lock_file.write('') # Write an empty string to the file
 
 def print_menu():
     menu = """
     ONOS CLI Command Menu:
     0. Stop Mininet
     1. Mininet CLI
-    2. Make all Hosts be detetced by ONOS
+    2. Make all Hosts be detetced by ONOS (needed for packet forwarding)
+    3. Low Load Test
     """
     print(menu)
 
 def detect_all_hosts(net):
     #Iteratte all hosts, so their source switch send their info to ONOS, on how to forward to them
+    print("Make all Hosts be detetced by ONOS")
+    dst_host_ip = '2001:1:1::1'                                          #use as dst IP any host in the network
     for host in net.hosts:
         print(f"Detecting host {host.name}")
-
-        command = f"nohup ping -c 3 -i 0.001 -w 0.001 2001:1:1::1 &"      #use as dst IP any host in the network
+        command = f"nohup ping -c 3 -i 0.001 -w 0.001 "+dst_host_ip+" &"      #use as dst IP any host in the network
         host.cmd(command)
+
+def send_packet_script(me, dst_ip, l4, port, flow_label, msg, dscp, size, count, interval, export_file, iteration):
+    #Best use interval values >=0.1, lower values sleep becomes inaccurate
+    
+    command = f"python3 /INT/send/send.py --ip {dst_ip} --l4 {l4} --port {port} --flow_label {flow_label} --m {msg} --dscp {dscp} --s {size} --c {count} --i {interval}"
+    
+    if export_file != None:
+        command = command + f" --export {export_file} --me {me.name} --iteration {iteration}"
+
+    command = command + " &"
+    print(f"{me.name} running Command: {command}")
+    
+    me.cmd(command)
+
+def receive_packet_script(me, export_file, iteration, duration):
+    command = f"python3 /INT/receive/receive.py"
+
+    if export_file != None:
+        command = f"python3 /INT/receive/receive.py --export {export_file} --me {me.name} --iteration {iteration} --duration {duration}"
+
+    command = command + " &"
+    print(f"{me.name} running Command: {command}")
+
+    me.cmd(command)
+
+def low_load_test(net):
+    file_results = export_file_LOW
+    lock_filename = f"LOCK_{file_results}"
+
+    create_lock_file(lock_filename)
+
+    h1_1 = net.get("h1_1")
+    h2_1 = net.get("h2_1")
+
+    num_iterations_LOW = 5
+    iteration_duration_seconds_LOW =  10  #1 minute, the duration of each iteration of the test
+    receiver_timeout = iteration_duration_seconds_LOW + 10
+
+    i = 0.1
+    num_packets = round(iteration_duration_seconds_LOW / i * 0.5)
+    print(f"Number of packets: {num_packets}")
+    
+    print("Starting Low Load Test")
+    for iteration in range(1, num_iterations_LOW + 1):
+        print(f"Starting iteration {iteration} of {num_iterations_LOW}")
+
+        #-------------Start the receive script on the destination hosts
+        receive_packet_script(h2_1, file_results, iteration, receiver_timeout)
+        
+        #-------------Start the send script on the source hosts
+        send_packet_script(h1_1, "2001:1:2::1", "udp", 443, 1, "INTH1", 0, 262, num_packets, i, file_results, iteration)
+
+        #-------------Keep the test running for a specified duration
+        time.sleep(receiver_timeout + 30)   #30 seconds of margin to ensure the receiver script has written the results
+
 
 def main_menu(net, choice):
 
@@ -29,8 +101,9 @@ def main_menu(net, choice):
         print("To leave the Mininet CLI, type 'exit' or 'quit'")
         CLI(net)
     elif choice == 2:
-        print("Make all Hosts be detetced by ONOS")
         detect_all_hosts(net)
+    elif choice == 3:
+        low_load_test(net)
     else:
         print("Invalid choice")
     
