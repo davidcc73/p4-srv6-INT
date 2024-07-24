@@ -36,7 +36,7 @@ def handle_pkt(pkt):
     global packet_TCP_UDP_count, sequence_numbers, results #, last_packet_time
     packet_TCP_UDP_count += 1
 
-    print("got a TCP/UDP packet")
+    #print("got a TCP/UDP packet")
 
     #print("Original packet received:")
     #pkt.show2()
@@ -68,8 +68,7 @@ def handle_pkt(pkt):
         seq_number, message = payload.split('-', 1)
         seq_number = int(seq_number)  # Ensure the sequence number is an integer
         sequence_numbers.append(seq_number)
-        print(f"Packet Sequence Number: {seq_number}")
-        print(f"Packet Message: {message}")
+        print(f"Packet Sequence Number: {seq_number} Packet Message: {message}")
     except ValueError:
         print(f"Error splitting payload: {payload}")
     
