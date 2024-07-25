@@ -79,7 +79,7 @@ def low_load_test(net):
     iteration_duration_seconds_LOW = 5 * 60                        #the duration of each iteration of the test
     num_packets = round(iteration_duration_seconds_LOW / (i + 0.1)) #distribute the packets over the duration of the test (over i intervals) and consider that each packet takes 0.1 sec to send/process at receive
     
-    receiver_timeout = num_packets * 0.1 * 2      #if i=0.1 => *1.5   if i>=0.001 => *2           #each packet takes 0.1 seconds, + margin to ensure the receiver script receives all packets
+    receiver_timeout = num_packets * 0.1 * 1.8      #if i=0.1 => *1.5   if i>=0.001 => *1.8           #each packet takes 0.1 seconds, + margin to ensure the receiver script receives all packets
     iteration_sleep= receiver_timeout * 1.10                 #with margin to ensure the receiver script has written the results and make previous iterations packets have finish trasmitting
 
     print(f"num_iterations_LOW: {num_iterations_LOW}")
