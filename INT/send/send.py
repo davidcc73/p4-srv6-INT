@@ -247,6 +247,7 @@ def main():
 
     addr_dst = get_ipv6_addr(args.ip_dst)  # Get IPv6 address
     iface = get_if()
+    print("Iteraration: ", args.iteration)
 
     print("sending on interface %s to %s" % (iface, str(addr_dst)))
     dst_mac = get_dest_mac(addr_dst, iface)

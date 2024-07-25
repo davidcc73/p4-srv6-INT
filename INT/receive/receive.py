@@ -4,10 +4,10 @@ import csv
 import fcntl
 import sys
 import os
-
+import threading
+import queue
 from scapy.all import sniff, get_if_list
 from scapy.all import TCP, UDP, IPv6
-from scapy.layers.inet import  TCP
 
 # Global variables to count packets and store sequence numbers
 packet_TCP_UDP_count = 0
@@ -19,6 +19,7 @@ results = {}
 result_directory = "/INT/results"
 
 args = None
+packet_queue = queue.Queue()
 #last_packet_time = None  # Initialize to keep track of the time of the last packet
 
 def get_if():
@@ -33,6 +34,9 @@ def get_if():
     return iface
 
 def handle_pkt(pkt):
+    packet_queue.put(pkt)
+
+def process_packet(pkt):
     global packet_TCP_UDP_count, sequence_numbers, results #, last_packet_time
     packet_TCP_UDP_count += 1
 
@@ -68,30 +72,27 @@ def handle_pkt(pkt):
         seq_number, message = payload.split('-', 1)
         seq_number = int(seq_number)  # Ensure the sequence number is an integer
         sequence_numbers.append(seq_number)
-        print(f"Packet Sequence Number: {seq_number} Packet Message: {message}")
+        #print(f"Packet Sequence Number: {seq_number} Packet Message: {message}")
     except ValueError:
         print(f"Error splitting payload: {payload}")
     
     sys.stdout.flush()
 
-'''
-def a():
-    full_path = os.path.join(result_directory, "receivers.csv")
-    with open(full_path, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        line = [args.me, args.iteration]
-        writer.writerow(line)
-'''
+def packet_processor():
+    while True:
+        pkt = packet_queue.get()
+        if pkt is None:
+            break
+        process_packet(pkt)
+        packet_queue.task_done()
 
 def terminate():
-    print("staring terminate")
+    print("Starting terminate")
 
     global sequence_numbers, packet_TCP_UDP_count, out_of_order_packets
-
     # Determine out-of-order packets by comparing each packet with the previous one
     last_seq_num = None
-
-    print("all received:", sequence_numbers)
+    print("All received:", sequence_numbers)
     for seq in sequence_numbers:
         if last_seq_num is not None and seq <= last_seq_num:
             out_of_order_packets.append(seq)
@@ -101,11 +102,11 @@ def terminate():
     print("Out of order packets count:", len(out_of_order_packets))
     print("Out of order packets:", out_of_order_packets)
 
-    #a()  
     export_results()
     print("Results exported")
 
 def export_results():
+    print("Exporting results")
     global args, results, packet_TCP_UDP_count
     
     os.makedirs(result_directory, exist_ok=True)
@@ -151,6 +152,7 @@ def export_results():
         finally:
             # Release the lock
             fcntl.flock(lock_file, fcntl.LOCK_UN)
+    print("Results exported")
 
 def parse_args():
     global args
@@ -177,13 +179,16 @@ def parse_args():
 
 def main():
     parse_args()
+    print("Iteraration: ", args.iteration)
 
     ifaces = [i for i in os.listdir('/sys/class/net/') if 'eth' in i]
     iface = ifaces[0]
-    print("sniffing on %s" % iface)
+    print(f"Sniffing on {iface}")
     sys.stdout.flush()
     
     # Using sniff with a timeout
+    processor_thread = threading.Thread(target=packet_processor)
+    processor_thread.start()
     print(f"Starting sniffing for {args.duration} seconds...")
     sniff(
         iface=iface, 
@@ -191,6 +196,9 @@ def main():
         prn=lambda x: handle_pkt(x),
         timeout=int(args.duration)
     )
+
+    packet_queue.put(None)
+    processor_thread.join()
         
     # Call terminate explicitly after the timeout
     terminate()

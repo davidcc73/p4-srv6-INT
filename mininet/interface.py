@@ -23,7 +23,7 @@ def print_menu():
     0. Stop Mininet
     1. Mininet CLI
     2. Make all Hosts be detetced by ONOS (needed for packet forwarding)
-    3. Low Load Test
+    3. Low Load Test (Just for debugging, not the final test)
     """
     print(menu)
 
@@ -44,6 +44,7 @@ def send_packet_script(me, dst_ip, l4, port, flow_label, msg, dscp, size, count,
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration}"
 
+    command = command + f" > /INT/results/logs/send-{iteration}.log"
     command = command + " &"
     print(f"{me.name} running Command: {command}")
     
@@ -55,6 +56,7 @@ def receive_packet_script(me, export_file, iteration, duration):
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration} --duration {duration}"
 
+    command = command + f" > /INT/results/logs/receive-{iteration}.log"
     command = command + " &"
     print(f"{me.name} running Command: {command}")
 
@@ -64,19 +66,21 @@ def low_load_test(net):
     file_results = export_file_LOW
     lock_filename = f"LOCK_{file_results}"
 
+    #create logs directory
+    os.makedirs("/INT/results/logs", exist_ok=True)
     create_lock_file(lock_filename)
 
     h1_1 = net.get("h1_1")
     h2_1 = net.get("h2_1")    
     
-    num_iterations_LOW = 1
-    i = 0.1                     #seconds, lower values scapy sending/receiveing the pkt + sleep between emissions becomes inaccurate
+    num_iterations_LOW = 5         #for tests 5 is enough
+    i = 0.001                     #seconds, lower values scapy sending/receiveing the pkt + sleep between emissions becomes inaccurate
 
-    iteration_duration_seconds_LOW =  1 * 30                        #the duration of each iteration of the test
+    iteration_duration_seconds_LOW = 5 * 60                        #the duration of each iteration of the test
     num_packets = round(iteration_duration_seconds_LOW / (i + 0.1)) #distribute the packets over the duration of the test (over i intervals) and consider that each packet takes 0.1 sec to send/process at receive
     
-    receiver_timeout = num_packets * 0.1 * 1.5                 #each packet takes 0.1 seconds, + margin to ensure the receiver script receives all packets
-    iteration_sleep= receiver_timeout * 1.20                 #with margin to ensure the receiver script has written the results and make previous iterations packets have finish trasmitting
+    receiver_timeout = num_packets * 0.1 * 2      #if i=0.1 => *1.5   if i>=0.001 => *2           #each packet takes 0.1 seconds, + margin to ensure the receiver script receives all packets
+    iteration_sleep= receiver_timeout * 1.10                 #with margin to ensure the receiver script has written the results and make previous iterations packets have finish trasmitting
 
     print(f"num_iterations_LOW: {num_iterations_LOW}")
     print(f"iteration_duration_seconds_LOW: {iteration_duration_seconds_LOW}")
