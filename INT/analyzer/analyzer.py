@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 from time import sleep
@@ -37,7 +38,7 @@ normalization_limits = {}
 # Define weights for each variable, THE SUM MUST BE 1
 weights = {
     'is_infra_switch': 0.30,           # Weight for switch type
-    'num_packets': 0.80,               # Weight for number of packets
+    'num_packets': 0.40,               # Weight for number of packets
     'avg_packet_procesing_time': 0.20, # Weight for average packet processing time
     'avg_packet_size': 0.10            # Weight for average packet size
 }
@@ -45,6 +46,13 @@ weights = {
 # To store the currenty in usage SRv6 rules, key(switch that was overloaded) values: list dictionaries with the SRv6 args (strings)
 active_SRv6_rules = {}
 
+current_directory = os.path.dirname(os.path.realpath(__file__))
+log_file = "SRv6 rules.log"
+
+def write_log(message):
+    #Open file and append the message to the log file at the same directory of the script is on
+    with open(os.path.join(current_directory, log_file), 'a') as file:
+        file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
 
 # Function to strip ANSI escape sequences from a string
 def strip_ansi_escape_sequences(string):    
@@ -179,6 +187,8 @@ def store_SRv6_rule(switch_id, values):
         active_SRv6_rules[switch_id] = [values]
     else:
         active_SRv6_rules[switch_id].append(values)
+    
+    write_log(f"Created SRv6 rule => {switch_id}: {values}")
 
 def remove_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove):
     
@@ -200,7 +210,8 @@ def remove_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove):
         #remove rule from ONOS
         output = send_command(session, command)
         print(output)
-        
+        write_log(f"Removed SRv6 rule => {switch_id}: {SRv6_rule}")
+
     #all rules created by this switch removed from ONOS, mark to remove after iterating active_SRv6_rules
     switch_marked_to_remove.append(switch_id)
 

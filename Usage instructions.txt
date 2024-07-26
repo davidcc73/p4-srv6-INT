@@ -60,7 +60,8 @@ Calculate-Routing-Paths ECMP                #If there is no flow label to read, 
 Note: make sure the collector (THE SYSTEM RUNNING IT) is syncronized with an ntp or rather manually syn it
 sudo python3 INT/receive/collector_influxdb.py 
 
-#--------------------Start the INT Analyzer
+#--------------------Start the INT Analyzer, 
+#ATTENTION: If intended to export the Created rules to XCEL via process_results.py, delete /analyzer/SRv6rules.log, so the results are clean
 sudo python3 INT/analyzer/analyzer.py 
 
 
