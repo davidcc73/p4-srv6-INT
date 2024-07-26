@@ -72,7 +72,7 @@ def process_packet(pkt):
         seq_number, message = payload.split('-', 1)
         seq_number = int(seq_number)  # Ensure the sequence number is an integer
         sequence_numbers.append(seq_number)
-        #print(f"Packet Sequence Number: {seq_number} Packet Message: {message}")
+        print(f"Packet Sequence Number: {seq_number} Packet Message: {message}")
     except ValueError:
         print(f"Error splitting payload: {payload}")
     
