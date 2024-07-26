@@ -28,18 +28,17 @@ def parse_args():
     
     # 2 Optional arguments with multiple values, the nº of elements must be the same
     parser.add_argument('--start', help='Timestamp (RFC3339 format) of when each test started (1 peer file)',
-                        type=str, action="store", required=False, nargs='+')
+                        type=str, action="store", required=True, nargs='+')
     parser.add_argument('--end', help='Timestamp (RFC3339 format) of when each test ended (1 peer file)',
-                        type=str, action="store", required=False, nargs='+')
+                        type=str, action="store", required=True, nargs='+')
 
     args = parser.parse_args()
     
     # Check if the number of elements is the same
-    if args.start is not None and args.end is not None:
-        if len(args.start) != len(args.end):
-            parser.error("The number of elements in --start and --end must be the same")
-        if len(args.start) != len(args.f):
-            parser.error("The number of elements in --start and --end must be the same as the number of files")
+    if len(args.start) != len(args.end):
+        parser.error("The number of elements in --start and --end must be the same")
+    if len(args.start) != len(args.f):
+        parser.error("The number of elements in --start and --end must be the same as the number of files")
 
 def apply_query(query):
     # Connect to the InfluxDB client

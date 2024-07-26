@@ -79,7 +79,7 @@ input option "2" in the mininet menu interface
 
 
 #--------------------Parse Exported Results, the filename will be used before (_) to create the output file
-sudo python3 INT/process_results.py --f LOW_raw_results.csv
+sudo python3 INT/process_results.py --f LOW_raw_results.csv --start 2024-07-26T15:31:37.810440+00:00 --end 2024-07-26T15:41:37.810440+00:00
 
 
 
