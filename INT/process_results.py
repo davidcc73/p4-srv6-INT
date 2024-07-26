@@ -287,24 +287,24 @@ def set_averages():
 
         #Set new headers
         sheet[f'A{last_line}'] = "Averages"
-        sheet[f'A{last_line + 1}'] = "Values"
-        sheet[f'B{last_line}'] = "Out of Order Packets (Nº)"
-        sheet[f'C{last_line}'] = "Packet Loss (Nº)"
-        sheet[f'D{last_line}'] = "Packet Loss (%)"
-        sheet[f'E{last_line}'] = "1º Packet Delay"
+        sheet[f'A{last_line + 1}'] = "Out of Order Packets (Nº)"
+        sheet[f'A{last_line + 2}'] = "Packet Loss (Nº)"
+        sheet[f'A{last_line + 3}'] = "Packet Loss (%)"
+        sheet[f'A{last_line + 4}'] = "1º Packet Delay"
+        sheet[f'B{last_line}'] = "Values"
 
         sheet[f'A{last_line}'].font = Font(bold=True)
-        sheet[f'A{last_line+1}'].font = Font(bold=True)
+        sheet[f'A{last_line + 1}'].font = Font(bold=True)
+        sheet[f'A{last_line + 2}'].font = Font(bold=True)
+        sheet[f'A{last_line + 3}'].font = Font(bold=True)
+        sheet[f'A{last_line + 4}'].font = Font(bold=True)
         sheet[f'B{last_line}'].font = Font(bold=True)
-        sheet[f'C{last_line}'].font = Font(bold=True)
-        sheet[f'D{last_line}'].font = Font(bold=True)
-        sheet[f'E{last_line}'].font = Font(bold=True)
 
         # on the next line for each column, set the average of the column, ignore empty cells
         sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(G:G, "<>", G:G), 3)'
-        sheet[f'C{last_line + 1}'] = f'=ROUND(AVERAGEIF(J:J, "<>", J:J), 3)'
-        sheet[f'D{last_line + 1}'] = f'=ROUND(AVERAGEIF(K:K, "<>", K:K), 3)'
-        sheet[f'E{last_line + 1}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
+        sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(J:J, "<>", J:J), 3)'
+        sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(K:K, "<>", K:K), 3)'
+        sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
 
 
     # Save the workbook
