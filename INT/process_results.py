@@ -3,6 +3,7 @@ import csv
 import os
 import sys
 from pprint import pprint
+from influxdb import InfluxDBClient
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
@@ -14,6 +15,10 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 args = None
 results = {}
 
+# Define DB connection parameters
+host='localhost'
+dbname='int'
+
 def parse_args():
     global args
 
@@ -21,7 +26,32 @@ def parse_args():
     parser.add_argument('--f', help='CSV files to be processed',
                         type=str, action="store", required=True, nargs='+')
     
+    # 2 Optional arguments with multiple values, the nº of elements must be the same
+    parser.add_argument('--start', help='Timestamp (RFC3339 format) of when each test started (1 peer file)',
+                        type=str, action="store", required=False, nargs='+')
+    parser.add_argument('--end', help='Timestamp (RFC3339 format) of when each test ended (1 peer file)',
+                        type=str, action="store", required=False, nargs='+')
+
     args = parser.parse_args()
+    
+    # Check if the number of elements is the same
+    if args.start is not None and args.end is not None:
+        if len(args.start) != len(args.end):
+            parser.error("The number of elements in --start and --end must be the same")
+        if len(args.start) != len(args.f):
+            parser.error("The number of elements in --start and --end must be the same as the number of files")
+
+def apply_query(query):
+    # Connect to the InfluxDB client
+    client = InfluxDBClient(host=host, database=dbname)
+    
+    # Execute the query
+    result = client.query(query)
+    
+    # Close the connection
+    client.close()
+
+    return result
 
 def read_Is_values(line, iteration, flow, Is):
     line = line + [Is]
@@ -164,7 +194,7 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    header = ["Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "1º Packet (TimeStamp)", "Nº of out of order packets", "Out of order packets"]
+    header = ["Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "1º Packet Timestamp(seconds,miliseconds)", "Nº of out of order packets", "Out of order packets"]
     for col_num, value in enumerate(header, 1):
         cell = sheet.cell(row=1, column=col_num, value=value)
         cell.font = Font(bold=True)
@@ -286,11 +316,11 @@ def set_averages():
         last_line = sheet.max_row + 4
 
         #Set new headers
-        sheet[f'A{last_line}'] = "Averages"
-        sheet[f'A{last_line + 1}'] = "Out of Order Packets (Nº)"
-        sheet[f'A{last_line + 2}'] = "Packet Loss (Nº)"
-        sheet[f'A{last_line + 3}'] = "Packet Loss (%)"
-        sheet[f'A{last_line + 4}'] = "1º Packet Delay"
+        sheet[f'A{last_line}'] = "Calculations"
+        sheet[f'A{last_line + 1}'] = "AVG Out of Order Packets (Nº)"
+        sheet[f'A{last_line + 2}'] = "AVG Packet Loss (Nº)"
+        sheet[f'A{last_line + 3}'] = "AVG Packet Loss (%)"
+        sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay"
         sheet[f'B{last_line}'] = "Values"
 
         sheet[f'A{last_line}'].font = Font(bold=True)
@@ -310,10 +340,122 @@ def set_averages():
     # Save the workbook
     workbook.save(file_path)
 
+def get_total_count(start, end):
+    query = f"""
+        SELECT COUNT("latency") AS total_count
+        FROM flow_stats
+        WHERE time >= '{start}' AND time <= '{end}'
+    """
+    result = apply_query(query)
+    return result.raw["series"][0]["values"][0][1]  # Extract total_count from the result
+
+def get_switch_counts(start, end):
+    query = f"""
+        SELECT COUNT("latency") AS switch_count
+        FROM switch_stats
+        WHERE time >= '{start}' AND time <= '{end}'
+        GROUP BY switch_id
+    """
+    result = apply_query(query)
+    
+    list = []
+    for row in result.raw["series"]:
+        #tuple pair: id, count
+        list.append((int(row["tags"]["switch_id"]), row["values"][0][1]))
+    #print(list)
+    return list  # Extract switch counts from the result
+
+def calculate_percentages(total_count, switch_counts):
+    percentages = []
+    for row in switch_counts:
+        switch_id = row[0]
+        switch_count = row[1]
+        percentage = (switch_count / total_count) * 100
+        percentages.append({'switch_id': switch_id, 'percentage': percentage})
+    return percentages
+
+def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_processing_latency, percentages):
+    # Write the results in the sheet
+    last_line = sheet.max_row + 1
+
+    # Set new headers
+    sheet[f'A{last_line + 0}'] = "AVG Flows Latency"
+    sheet[f'A{last_line + 1}'] = "AVG Processing Latency"
+    sheet[f'A{last_line + 2}'] = "% of packets to each switch"
+    sheet[f'B{last_line + 2}'] = "Switch IDs"
+    sheet[f'C{last_line + 2}'] = "Percentage"
+
+    sheet[f'A{last_line + 0}'].font = Font(bold=True)
+    sheet[f'A{last_line + 1}'].font = Font(bold=True)
+    sheet[f'A{last_line + 2}'].font = Font(bold=True)
+    sheet[f'B{last_line + 2}'].font = Font(bold=True)
+    sheet[f'C{last_line + 2}'].font = Font(bold=True)
+
+
+    # Write the values
+    sheet[f'B{last_line + 0}'] = AVG_flows_latency
+    sheet[f'B{last_line + 1}'] = AVG_processing_latency
+
+    # Write the percentages
+    for i, row in enumerate(percentages):
+        sheet[f'B{last_line + 3 + i}'] = f"Switch {row['switch_id']}"
+        sheet[f'C{last_line + 3 + i}'] = row['percentage']
+
+    # Save the workbook
+    workbook.save(file_path)
+
+def set_INT_results():
+    # For each sheet and respectice file, see the time interval given, get the values from the DB, and set the values in the sheet
+        
+    # Configure each sheet
+    dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+
+    # Get nº each sheet
+    for i, sheet in enumerate(workbook.sheetnames):
+        print(f"Processing sheet {sheet}, index {i}")
+        sheet = workbook[sheet]
+
+        # Get the start and end times
+        start = args.start[i]
+        end = args.end[i]
+
+        # Get the results from the DB
+        # We need AVG Latency of ALL flows combined (NOT distinguishing between flows)
+        query = f"""
+                    SELECT MEAN("latency")
+                    FROM  flow_stats
+                    WHERE time >= '{start}' AND time <= '{end}'
+                """
+        result = apply_query(query)
+        AVG_flows_latency = result.raw["series"][0]["values"][0][1]
+
+        # We need AVG Latency for processing of ALL packets (NOT distinguishing between switches/flows) 
+        query = f"""
+                    SELECT MEAN("latency")
+                    FROM  switch_stats
+                    WHERE time >= '{start}' AND time <= '{end}'
+                """
+        result = apply_query(query)
+        AVG_processing_latency = result.raw["series"][0]["values"][0][1]
+
+        # % of packets that went to each individual switch (switch_id)
+        total_count = get_total_count(start, end)
+        switch_counts = get_switch_counts(start, end)
+        percentages = calculate_percentages(total_count, switch_counts)
+
+        #print("AVG_flows_latency: ", AVG_flows_latency)
+        #print("AVG_processing_latency: ", AVG_processing_latency)
+        #print("Percentages: ", percentages)
+
+        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_processing_latency, percentages)
+
 def configure_final_file():
     set_pkt_loss()
     set_fist_pkt_delay()
     set_averages()
+    set_INT_results()
 
 def main():
     global args
