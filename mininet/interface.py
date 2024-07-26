@@ -2,6 +2,8 @@
 import os
 import time
 from mininet.cli import CLI
+from datetime import datetime, timezone
+
 
 #ECMP will is only configured on ONOS to have rules for Flow labels between 0-4, if not, the packet will not be routed
 num_iterations = 10
@@ -63,8 +65,11 @@ def receive_packet_script(me, export_file, iteration, duration):
     me.cmd(command)
 
 def low_load_test(net):
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
-    print("Low Load Test, started at: ", time.time())
+    print("Low Load Test, started at:", rfc3339_time)
+
     file_results = export_file_LOW
     lock_filename = f"LOCK_{file_results}"
 
@@ -101,8 +106,11 @@ def low_load_test(net):
         print(f"Waiting for {iteration_sleep} seconds")
         #-------------Keep the test running for a specified duration
         time.sleep(iteration_sleep)  
-    
-    print("Low Load Test finished at: ", time.time())
+
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print("Low Load Test finished at:", rfc3339_time)
 
 
 def main_menu(net, choice):
