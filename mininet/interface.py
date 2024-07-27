@@ -9,8 +9,6 @@ from datetime import datetime, timezone
 num_iterations = 10
 iteration_duration_seconds = 5 * 60  #5 minutes, the duration of each iteration of the test
 
-export_file_LOW = "LOW_raw_results.csv"
-
 def create_lock_file(lock_filename):
     lock_file_path = os.path.join("/INT/results", lock_filename)
 
@@ -18,6 +16,13 @@ def create_lock_file(lock_filename):
     if not os.path.exists(lock_file_path):
         with open(lock_file_path, 'w') as lock_file:
             lock_file.write('') # Write an empty string to the file
+
+def SRv6_used(iteration_sleep, num_iterations_LOW):
+    print("ATTENTION: Running a test with SRv6, this requires that INT analyzer is also run at the same time")
+    print("ATTENTION: The itetation sleep time for this test will be: %f pass it to the INT analyzer script as argument", (iteration_sleep))
+    print("ATTENTION: The number of iterations for this test will be: %d pass it to the INT analyzer script as argument", (num_iterations_LOW))
+    print("ATTENTION: Press Enter to start the test, start the analyzer at the same time, they need to be in sync")
+    input()
 
 def print_menu():
     menu = """
@@ -29,6 +34,29 @@ def print_menu():
     """
     print(menu)
 
+def print_routing_menu():
+    menu = """
+    Routing Method Menu:
+    0. Cancel
+    1. KShort
+    2. ECMP
+    3. ECMP + SRv6
+    """
+
+    while True:
+        print(menu)
+        try:
+            print("Which Routing method is going to be used?")
+            choice = int(input("Enter the number of your choice:"))
+            if choice < 0 or choice > 3:
+                print("Invalid choice. Please enter a valid number")
+                continue
+
+            return choice
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            continue
+
 def detect_all_hosts(net):
     #Iteratte all hosts, so their source switch send their info to ONOS, on how to forward to them
     print("Make all Hosts be detetced by ONOS")
@@ -39,7 +67,6 @@ def detect_all_hosts(net):
         host.cmd(command)
 
 def send_packet_script(me, dst_ip, l4, port, flow_label, msg, dscp, size, count, interval, export_file, iteration):
-    #Best use interval values >=0.1, lower values sleep becomes inaccurate
     
     command = f"python3 /INT/send/send.py --ip {dst_ip} --l4 {l4} --port {port} --flow_label {flow_label} --m {msg} --dscp {dscp} --s {size} --c {count} --i {interval}"
     
@@ -64,11 +91,15 @@ def receive_packet_script(me, export_file, iteration, duration):
 
     me.cmd(command)
 
-def low_load_test(net):
+def low_load_test(net, routing):
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
     print("Low Load Test, started at:", rfc3339_time)
+
+    export_file_LOW = "LOW"
+    export_file_LOW = export_file_LOW + "-" + routing
+    export_file_LOW = export_file_LOW + "_raw_results.csv"
 
     file_results = export_file_LOW
     lock_filename = f"LOCK_{file_results}"
@@ -80,10 +111,10 @@ def low_load_test(net):
     h1_1 = net.get("h1_1")
     h2_1 = net.get("h2_1")    
     
-    num_iterations_LOW = 4        #for tests 4 is enough
+    num_iterations_LOW = 2        #for tests 4 is enough
     i = 0.001                     #seconds, lower values that 0.1, scapy sending/receiveing the pkt + sleep between emissions becomes inaccurate
 
-    iteration_duration_seconds_LOW = 5 * 60                         #the duration of each iteration of the test
+    iteration_duration_seconds_LOW = 1 * 10                         #the duration of each iteration of the test
     num_packets = round(iteration_duration_seconds_LOW / (i + 0.1)) #distribute the packets over the duration of the test (over i intervals) and consider that each packet takes 0.1 sec to send/process at receive
     
     receiver_timeout = num_packets * 0.1 * 1.01         #each packet takes < 0.1 seconds to send/process at receive (may vary on the system), added small margin to ensure the receiver script receives all packets, before stopping
@@ -94,6 +125,10 @@ def low_load_test(net):
     print(f"receiver_timeout: {receiver_timeout}")
     print(f"iteration_sleep: {iteration_sleep}")
     print(f"Number of packets: {num_packets}")
+
+    if routing == "ECMP-SRv6":
+        SRv6_used(iteration_sleep, num_iterations_LOW)
+
     for iteration in range(1, num_iterations_LOW + 1):
         print(f"--------------Starting iteration {iteration} of {num_iterations_LOW}")
         
@@ -114,7 +149,22 @@ def low_load_test(net):
 
 
 def main_menu(net, choice):
+    routing = None
 
+    # Which routing method is going to be used?
+    if choice == 3 or choice == 4 or choice == 5:
+        choise2 = print_routing_menu()
+        if choise2 == 0:
+            return True
+        elif choise2 == 1:
+            routing = "KShort"
+        elif choise2 == 2:
+            routing = "ECMP"
+        elif choise2 == 3:
+            routing = "ECMP-SRv6"
+
+
+    # What will be done
     if   choice == 0:
         print("Stopping Mininet")
         net.stop()
@@ -125,7 +175,7 @@ def main_menu(net, choice):
     elif choice == 2:
         detect_all_hosts(net)
     elif choice == 3:
-        low_load_test(net)                  #FOR LAST ONE, REMENBER TO CLEAN SRV6 BETWEEN ITERATIONS
+        low_load_test(net, routing)                  #FOR LAST ONE, REMENBER TO CLEAN SRV6 BETWEEN ITERATIONS
     else:
         print("Invalid choice")
     
