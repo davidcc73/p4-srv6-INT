@@ -18,15 +18,16 @@ def create_lock_file(lock_filename):
             lock_file.write('') # Write an empty string to the file
 
 def SRv6_used(iteration_sleep, num_iterations_LOW):
-    print("ATTENTION: Running a test with SRv6, this requires that INT analyzer is also run at the same time")
-    print("ATTENTION: The itetation sleep time for this test will be: %f pass it to the INT analyzer script as argument", (iteration_sleep))
-    print("ATTENTION: The number of iterations for this test will be: %d pass it to the INT analyzer script as argument", (num_iterations_LOW))
-    print("ATTENTION: Press Enter to start the test, start the analyzer at the same time, they need to be in sync")
+    print(f"ATTENTION: Running a test with SRv6, this requires that INT analyzer is also run at the same time")
+    print(f"ATTENTION: The iteration sleep time for this test will be: {iteration_sleep} pass it to the INT analyzer script as argument")
+    print(f"ATTENTION: The number of iterations for this test will be: {num_iterations_LOW} pass it to the INT analyzer script as argument")
+    print(f"ATTENTION: Press Enter to start the test, start the analyzer at the same time, they need to be in sync")
     input()
 
 def print_menu():
     menu = """
     ONOS CLI Command Menu:
+    ATTENTION: For clean results, delete the contents of the /INT/results directory before starting the tests
     0. Stop Mininet
     1. Mininet CLI
     2. Make all Hosts be detetced by ONOS (needed for packet forwarding)
@@ -73,7 +74,7 @@ def send_packet_script(me, dst_ip, l4, port, flow_label, msg, dscp, size, count,
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration}"
 
-    command = command + f" > /INT/results/logs/send-{iteration}.log"
+    #command = command + f" > /INT/results/logs/send-{iteration}.log"
     command = command + " &"
     #print(f"{me.name} running Command: {command}")
     
@@ -85,7 +86,7 @@ def receive_packet_script(me, export_file, iteration, duration):
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration} --duration {duration}"
 
-    command = command + f" > /INT/results/logs/receive-{iteration}.log"
+    #command = command + f" > /INT/results/logs/receive-{iteration}.log"
     command = command + " &"
     #print(f"{me.name} running Command: {command}")
 
@@ -109,12 +110,12 @@ def low_load_test(net, routing):
     create_lock_file(lock_filename)
 
     h1_1 = net.get("h1_1")
-    h2_1 = net.get("h2_1")    
+    h3_1 = net.get("h3_1")    
     
-    num_iterations_LOW = 2        #for tests 4 is enough
+    num_iterations_LOW = 4        #for tests 4 is enough
     i = 0.001                     #seconds, lower values that 0.1, scapy sending/receiveing the pkt + sleep between emissions becomes inaccurate
 
-    iteration_duration_seconds_LOW = 1 * 10                         #the duration of each iteration of the test
+    iteration_duration_seconds_LOW = 1 * 60                         #the duration of each iteration of the test
     num_packets = round(iteration_duration_seconds_LOW / (i + 0.1)) #distribute the packets over the duration of the test (over i intervals) and consider that each packet takes 0.1 sec to send/process at receive
     
     receiver_timeout = num_packets * 0.1 * 1.01         #each packet takes < 0.1 seconds to send/process at receive (may vary on the system), added small margin to ensure the receiver script receives all packets, before stopping
@@ -133,10 +134,10 @@ def low_load_test(net, routing):
         print(f"--------------Starting iteration {iteration} of {num_iterations_LOW}")
         
         #-------------Start the send script on the source hosts (1º longer setup time)
-        send_packet_script(h1_1, "2001:1:2::1", "udp", 443, 1, "INTH1", 0, 262, num_packets, i, file_results, iteration)
+        send_packet_script(h1_1, "2001:1:3::1", "udp", 443, 1, "INTH1", 0, 262, num_packets, i, file_results, iteration)
 
         #-------------Start the receive script on the destination hosts
-        receive_packet_script(h2_1, file_results, iteration, receiver_timeout)
+        receive_packet_script(h3_1, file_results, iteration, receiver_timeout)
 
         print(f"Waiting for {iteration_sleep} seconds")
         #-------------Keep the test running for a specified duration

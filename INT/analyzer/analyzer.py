@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import sys
@@ -15,13 +16,17 @@ BLUE = '\033[34m'
 CYAN = '\033[36m'
 GREEN = '\033[32m'
 MAGENTA = '\033[35m'
+PINK = '\033[38;5;205m'
 END = "\033[0m"
 
 # Define DB connection parameters
 host='localhost'
 dbname='int'
 
+args = None
 minutes_ago_str = None                                      #string with the time of the last minute to analyze
+current_iteration = None
+doNotLog = False
 
 sleep_time_seconds = 15
 analisy_window_minutes = 0.25
@@ -47,12 +52,68 @@ weights = {
 active_SRv6_rules = {}
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
-log_file = "SRv6 rules.log"
+
+def parse_args():
+    global args
+
+    parser = argparse.ArgumentParser(description='analyzer parser')
+    parser.add_argument('--routing', help='Which routing method is the topology using, will be used to kown which file the results will be stored',
+                        type=str, action="store", required=False, default=None)
+    parser.add_argument('--num_iterations', help='num of iterations being tested on current execution',
+                        type=int, action="store", required=True, default=None)
+    parser.add_argument('--iterations_timer', help='Time in seconds for each iteration, 0 mens infinite',
+                        type=float, action="store", required=True, default=None)
+
+
+    args = parser.parse_args()
+
+
+    if args.num_iterations <= 0:
+        print("Invalid number of iterations, must be a positive integer")
+        sys.exit(1)
+    if args.iterations_timer < 0:
+        print("Invalid timer for iterations, must be a zero or positive integer")
+        sys.exit(1)
+    if args.num_iterations != 1 and args.iterations_timer == 0:
+        print("Impossible to have more than one iteration without a timer")
+        sys.exit(1)
+
+def delete_old_log():
+    if args.routing is None:
+        return
+
+    log_file = args.routing + "-SRv6 rules.log"
+
+    # Delete the log file if it already exists
+    if os.path.exists(os.path.join(current_directory, log_file)):
+        os.remove(os.path.join(current_directory, log_file))
 
 def write_log(message):
+    if args.routing is None or doNotLog is True:
+        return
+    
+    log_file = args.routing + "-SRv6 rules.log"
+
     #Open file and append the message to the log file at the same directory of the script is on
     with open(os.path.join(current_directory, log_file), 'a') as file:
-        file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
+        file.write(f"{current_iteration} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
+
+def remove_all_active_SRv6_rules(session):
+    global active_SRv6_rules, doNotLog
+    switch_marked_to_remove = []
+    doNotLog = True
+    print(PINK + "Removing all active SRv6 rules" + END)
+
+    for switch_id, SRv6_rules in active_SRv6_rules.items():
+        #Remove all rules from the current switch
+        remove_switch_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove)
+        print(PINK + "Removed active SRv6 rules from switch:" + str(switch_id) + END)
+
+    #iterate the list of switches that had all of their rules removed and remove them from active_SRv6_rules
+    for switch_id in switch_marked_to_remove:
+        del active_SRv6_rules[switch_id]
+    
+    doNotLog = False
 
 # Function to strip ANSI escape sequences from a string
 def strip_ansi_escape_sequences(string):    
@@ -190,7 +251,7 @@ def store_SRv6_rule(switch_id, values):
     
     write_log(f"Created SRv6 rule => {switch_id}: {values}")
 
-def remove_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove):
+def remove_switch_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove):
     
     #--------Iterate trough all of it's SRv6_args and remove each rule from ONOS
     for SRv6_rule in SRv6_rules:
@@ -474,7 +535,7 @@ def search_no_longer_overloaded_switches(session, switch_loads):
 
         print(BLUE + "Switch" + str(switch_id) + " is no longer overloaded, removing SRv6 rule" + END)
 
-        switch_marked_to_remove = remove_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove)
+        switch_marked_to_remove = remove_switch_SRv6_rules(session, switch_id, SRv6_rules, switch_marked_to_remove)
 
     #iterate the list of switches that had all of their rules removed and remove them from active_SRv6_rules
     for switch_id in switch_marked_to_remove:
@@ -610,8 +671,49 @@ def update_max_values_globaly():
 
     return True
 
-def main():
+def analyze(session, alternation_flag):
     global minutes_ago_str 
+
+    # Get the current time and the time some minutes ago
+    now = datetime.now(timezone.utc)
+    minutes_ago = now - timedelta(minutes=analisy_window_minutes)
+    
+    # Format the timestamps, to the same in the DB
+    minutes_ago_str = minutes_ago.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    #---------------Get the stats by switch
+    result = get_stats_by_switch()
+    if not result:
+        print("No data to analyze, sleeping for", sleep_time_seconds, "seconds")
+        sleep(sleep_time_seconds)
+        return alternation_flag
+
+    #---------------Get current windows limit values for normalization
+    with_data = update_max_values_globaly()
+    if not with_data:
+        print(GREEN+"No data to analyze, sleeping for", sleep_time_seconds, "seconds" + END)
+        sleep(sleep_time_seconds)
+        return alternation_flag
+
+    switch_loads = calculate_switches_load(result)
+
+    if alternation_flag:                                                #Search NO-LONGER overloaded switches
+        search_no_longer_overloaded_switches(session, switch_loads)
+        print(MAGENTA+'Active_SRv6_rules after search_no_longer_overloaded_switches:', active_SRv6_rules , END)
+    else:                                                               #Search FOR overloaded switches
+        search_overloaded_switches(session, switch_loads)
+        print(MAGENTA+'Active_SRv6_rules after search_overloaded_switches:', active_SRv6_rules , END)
+
+    alternation_flag = not alternation_flag
+    print(GREEN+"Sleeping for", sleep_time_seconds, "seconds"+ END)
+    sleep(sleep_time_seconds)
+
+    return alternation_flag
+
+def main():
+    global current_iteration, active_SRv6_rules
+
+    current_iteration = 1
     alternation_flag = False
     session = connect_to_onos()
     
@@ -619,41 +721,34 @@ def main():
         print("ONOS Session not established")
         exit()
 
-    while True:
-        # Get the current time and the time some minutes ago
-        now = datetime.now(timezone.utc)
-        minutes_ago = now - timedelta(minutes=analisy_window_minutes)
+    delete_old_log()
+
+    if args.iterations_timer == 0:    # Infinite loop to analyze the data
+        while True:
+            alternation_flag = analyze(session, alternation_flag)
+    
+    while current_iteration <= args.num_iterations:
+        start_iteration = datetime.now()
+        print(f"Starting iteration {current_iteration} of {args.num_iterations} at {start_iteration}")
+
+        # Only loop if not reach the time limit, taking into account the time it will take
+        # to sleep next and get back here (we must be in sync with the start of the next iteration)
+        while datetime.now() - start_iteration + timedelta(seconds=sleep_time_seconds) < timedelta(seconds=args.iterations_timer):
+            alternation_flag = analyze(session, alternation_flag)
         
-        # Format the timestamps, to the same in the DB
-        minutes_ago_str = minutes_ago.strftime('%Y-%m-%dT%H:%M:%SZ')
+        #sleep for the remaining time of the iteration
+        sync_sleep_seconds = args.iterations_timer - (datetime.now() - start_iteration).total_seconds()
+        print(f"Waiting for {sync_sleep_seconds} seconds so be in sync with the next iteration's start")
+        sleep(sync_sleep_seconds)
 
-        #---------------Get the stats by switch
-        result = get_stats_by_switch()
-        if not result:
-            print("No data to analyze, sleeping for", sleep_time_seconds, "seconds")
-            sleep(sleep_time_seconds)
-            continue
+        #reset for the next iteration
+        alternation_flag = False
+        current_iteration += 1
+        remove_all_active_SRv6_rules(session)
 
-        #---------------Get current windows limit values for normalization
-        with_data = update_max_values_globaly()
-        if not with_data:
-            print(GREEN+"No data to analyze, sleeping for", sleep_time_seconds, "seconds" + END)
-            sleep(sleep_time_seconds)
-            continue
-
-        switch_loads = calculate_switches_load(result)
-
-        if alternation_flag:                                                #Search NO-LONGER overloaded switches
-            search_no_longer_overloaded_switches(session, switch_loads)
-            print(MAGENTA+'Active_SRv6_rules after search_no_longer_overloaded_switches:', active_SRv6_rules , END)
-        else:                                                               #Search FOR overloaded switches
-            search_overloaded_switches(session, switch_loads)
-            print(MAGENTA+'Active_SRv6_rules after search_overloaded_switches:', active_SRv6_rules , END)
-
-        alternation_flag = not alternation_flag
-        print(GREEN+"Sleeping for", sleep_time_seconds, "seconds"+ END)
-        sleep(sleep_time_seconds)
+    session.close()
 
 
 if __name__ == "__main__":
+    parse_args()
     main()
