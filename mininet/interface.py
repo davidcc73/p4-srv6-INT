@@ -74,7 +74,7 @@ def send_packet_script(me, dst_ip, l4, port, flow_label, msg, dscp, size, count,
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration}"
 
-    #command = command + f" > /INT/results/logs/send-{iteration}.log"
+    command = command + f" > /INT/results/logs/send-{iteration}.log"
     command = command + " &"
     #print(f"{me.name} running Command: {command}")
     
@@ -86,7 +86,7 @@ def receive_packet_script(me, export_file, iteration, duration):
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration} --duration {duration}"
 
-    #command = command + f" > /INT/results/logs/receive-{iteration}.log"
+    command = command + f" > /INT/results/logs/receive-{iteration}.log"
     command = command + " &"
     #print(f"{me.name} running Command: {command}")
 
@@ -112,7 +112,7 @@ def low_load_test(net, routing):
     h1_1 = net.get("h1_1")
     h3_1 = net.get("h3_1")    
     
-    num_iterations_LOW = 4        #for tests 4 is enough
+    num_iterations_LOW = 3        #for tests 3 is enough
     i = 0.001                     #seconds, lower values that 0.1, scapy sending/receiveing the pkt + sleep between emissions becomes inaccurate
 
     iteration_duration_seconds_LOW = 1 * 60                         #the duration of each iteration of the test
@@ -121,11 +121,11 @@ def low_load_test(net, routing):
     receiver_timeout = num_packets * 0.1 * 1.01         #each packet takes < 0.1 seconds to send/process at receive (may vary on the system), added small margin to ensure the receiver script receives all packets, before stopping
     iteration_sleep= receiver_timeout * 1.01            #with margin to ensure all receivers script have written the results with the concorrent writes prevention
 
-    print(f"num_iterations_LOW: {num_iterations_LOW}")
-    print(f"iteration_duration_seconds_LOW: {iteration_duration_seconds_LOW}")
-    print(f"receiver_timeout: {receiver_timeout}")
-    print(f"iteration_sleep: {iteration_sleep}")
-    print(f"Number of packets: {num_packets}")
+    #print(f"num_iterations_LOW: {num_iterations_LOW}")
+    #print(f"iteration_duration_seconds_LOW: {iteration_duration_seconds_LOW}")
+    #print(f"receiver_timeout: {receiver_timeout}")
+    #print(f"iteration_sleep: {iteration_sleep}")
+    #print(f"Number of packets: {num_packets}")
 
     if routing == "ECMP-SRv6":
         SRv6_used(iteration_sleep, num_iterations_LOW)
