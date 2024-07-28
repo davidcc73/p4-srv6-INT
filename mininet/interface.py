@@ -4,10 +4,12 @@ import time
 from mininet.cli import CLI
 from datetime import datetime, timezone
 
+export_file_LOW = "LOW"
+export_file_MEDIUM = "MEDIUM"
 
 #ECMP will is only configured on ONOS to have rules for Flow labels between 0-4, if not, the packet will not be routed
-num_iterations = 10
-iteration_duration_seconds = 5 * 60  #5 minutes, the duration of each iteration of the test
+num_iterations = 1
+iteration_duration_seconds = 1 * 60  #5 minutes, the duration of each iteration of the test
 
 def create_lock_file(lock_filename):
     lock_file_path = os.path.join("/INT/results", lock_filename)
@@ -32,6 +34,7 @@ def print_menu():
     1. Mininet CLI
     2. Make all Hosts be detetced by ONOS (needed for packet forwarding)
     3. Low Load Test (Just for debugging, not the final test)
+    4. Medium Load Test
     """
     print(menu)
 
@@ -92,17 +95,98 @@ def receive_packet_script(me, export_file, iteration, duration):
 
     me.cmd(command)
 
+def create_Messages_flow(src_host, dst_host, flow_label, file_results, iteration):
+    i = 0.1        
+    l4 = "udp"
+    port = 443
+    msg = "INTH1"
+    dscp = 0
+    size = 262                #Total byte size of the packet
+    dst_IP = dst_host.IP()
+
+    num_packets = round(iteration_duration_seconds / (i + 0.1))
+    receiver_timeout = num_packets * 0.1 * 1.01        
+    iteration_sleep= receiver_timeout * 1.01   
+
+    #-------------Start the send script on the source hosts (1º because it has a longer setup time)
+    send_packet_script(src_host, dst_IP, l4, port, flow_label, msg, dscp, size, num_packets, i, file_results, iteration)
+
+    #-------------Start the receive script on the destination hosts
+    receive_packet_script(dst_host, file_results, iteration, receiver_timeout)
+
+    return iteration_sleep
+
+def create_Audio_flow(src_host, dst_host, flow_label, file_results, iteration):
+    i = 0.1        
+    l4 = "udp"
+    port = 443
+    msg = "INTH1"
+    dscp = 34
+    size = 420                #Total byte size of the packet
+    dst_IP = dst_host.IP()
+
+    num_packets = round(iteration_duration_seconds / (i + 0.1))
+    receiver_timeout = num_packets * 0.1 * 1.01        
+    iteration_sleep= receiver_timeout * 1.01   
+
+    #-------------Start the send script on the source hosts (1º because it has a longer setup time)
+    send_packet_script(src_host, dst_IP, l4, port, flow_label, msg, dscp, size, num_packets, i, file_results, iteration)
+
+    #-------------Start the receive script on the destination hosts
+    receive_packet_script(dst_host, file_results, iteration, receiver_timeout)
+
+    return iteration_sleep
+
+def create_Video_flow(src_host, dst_host, flow_label, file_results, iteration):
+    i = 0.001        
+    l4 = "udp"
+    port = 443
+    msg = "INTH1"
+    dscp = 35
+    size = 874                #Total byte size of the packet
+    dst_IP = dst_host.IP()
+
+    num_packets = round(iteration_duration_seconds / (i + 0.1))
+    receiver_timeout = num_packets * 0.1 * 1.01        
+    iteration_sleep= receiver_timeout * 1.01   
+
+    #-------------Start the send script on the source hosts (1º because it has a longer setup time)
+    send_packet_script(src_host, dst_IP, l4, port, flow_label, msg, dscp, size, num_packets, i, file_results, iteration)
+
+    #-------------Start the receive script on the destination hosts
+    receive_packet_script(dst_host, file_results, iteration, receiver_timeout)
+
+    return iteration_sleep
+
+def create_Emergency_flow(src_host, dst_host, flow_label, file_results, iteration):
+    i = 0.001        
+    l4 = "udp"
+    port = 443
+    msg = "INTH1"
+    dscp = 36
+    size = 483                #Total byte size of the packet
+    dst_IP = dst_host.IP()
+
+    num_packets = round(iteration_duration_seconds / (i + 0.1))
+    receiver_timeout = num_packets * 0.1 * 1.01        
+    iteration_sleep= receiver_timeout * 1.01   
+
+    #-------------Start the send script on the source hosts (1º because it has a longer setup time)
+    send_packet_script(src_host, dst_IP, l4, port, flow_label, msg, dscp, size, num_packets, i, file_results, iteration)
+
+    #-------------Start the receive script on the destination hosts
+    receive_packet_script(dst_host, file_results, iteration, receiver_timeout)
+
+    return iteration_sleep
+
 def low_load_test(net, routing):
+    global export_file_LOW
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
     print("Low Load Test, started at:", rfc3339_time)
 
-    export_file_LOW = "LOW"
-    export_file_LOW = export_file_LOW + "-" + routing
-    export_file_LOW = export_file_LOW + "_raw_results.csv"
-
-    file_results = export_file_LOW
+    file_results = export_file_LOW + "-" + routing + "_raw_results.csv"
     lock_filename = f"LOCK_{file_results}"
 
     #create logs directory
@@ -139,8 +223,8 @@ def low_load_test(net, routing):
         #-------------Start the receive script on the destination hosts
         receive_packet_script(h3_1, file_results, iteration, receiver_timeout)
 
-        print(f"Waiting for {iteration_sleep} seconds")
         #-------------Keep the test running for a specified duration
+        print(f"Waiting for {iteration_sleep} seconds")
         time.sleep(iteration_sleep)  
 
     # Get the current time in FORMAT RFC3339
@@ -148,6 +232,63 @@ def low_load_test(net, routing):
     print("---------------------------")
     print("Low Load Test finished at:", rfc3339_time)
 
+def medium_load_test(net, routing):
+    global export_file_MEDIUM
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print("Medium Load Test, started at:", rfc3339_time)
+
+    file_results = export_file_MEDIUM + "-" + routing + "_raw_results.csv"
+    lock_filename = f"LOCK_{file_results}"
+
+    #create logs directory
+    os.makedirs("/INT/results/logs", exist_ok=True)
+    create_lock_file(lock_filename)
+
+    # Get the hosts
+    h1_1 = net.get("h1_1") 
+    h1_2 = net.get("h1_2") 
+    h2_1 = net.get("h2_1")
+    h2_2 = net.get("h2_2")
+    h3_1 = net.get("h3_1")
+    h7_1 = net.get("h7_1")
+    h8_1 = net.get("h8_1")
+    h8_2 = net.get("h8_2")
+    
+
+    if routing == "ECMP-SRv6":
+        SRv6_used(iteration_sleep, num_iterations_LOW)
+
+    for iteration in range(1, num_iterations + 1):
+        iteration_sleep = 0
+        print(f"--------------Starting iteration {iteration} of {num_iterations}")
+        
+        #--------------Start Message flows
+        tmp = create_Messages_flow(h8_1, h1_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Messages_flow(h2_1, h3_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Audio flows
+        tmp = create_Audio_flow(h1_2, h7_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Video flows
+        tmp = create_Video_flow(h2_2, h8_2, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+
+
+        #-------------Keep the test running for a specified duration
+        print(f"Waiting for {iteration_sleep} seconds")
+        time.sleep(iteration_sleep)  
+
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print("Medium Load Test finished at:", rfc3339_time)
 
 def main_menu(net, choice):
     routing = None
@@ -176,7 +317,9 @@ def main_menu(net, choice):
     elif choice == 2:
         detect_all_hosts(net)
     elif choice == 3:
-        low_load_test(net, routing)                  #FOR LAST ONE, REMENBER TO CLEAN SRV6 BETWEEN ITERATIONS
+        low_load_test(net, routing)                  #FOR LAST ONE, REMENBER TO CLEAN SRV6 BETWEEN TEST CASES
+    elif choice == 4:
+        medium_load_test(net, routing)
     else:
         print("Invalid choice")
     
