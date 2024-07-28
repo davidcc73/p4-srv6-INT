@@ -2,6 +2,8 @@ import argparse
 import csv
 import os
 import sys
+import ast
+
 from pprint import pprint
 from influxdb import InfluxDBClient
 from openpyxl import Workbook, load_workbook
@@ -10,14 +12,19 @@ from openpyxl.styles import Font
 
 # Define the directory path
 result_directory = "results"
+analyzer_directory = "analyzer"
 final_file = "final_results.xlsx"
 current_directory = os.path.dirname(os.path.abspath(__file__)) 
+
 args = None
 results = {}
 
 # Define DB connection parameters
 host='localhost'
 dbname='int'
+
+# SRv6 logs
+log_file = "ECMP-SRv6 rules.log"
 
 def parse_args():
     global args
@@ -26,19 +33,41 @@ def parse_args():
     parser.add_argument('--f', help='CSV files to be processed',
                         type=str, action="store", required=True, nargs='+')
     
-    # 2 Optional arguments with multiple values, the nº of elements must be the same
+    # 2 arguments with multiple values, the nº of elements must be the same between them and the files
     parser.add_argument('--start', help='Timestamp (RFC3339 format) of when each test started (1 peer file)',
                         type=str, action="store", required=True, nargs='+')
     parser.add_argument('--end', help='Timestamp (RFC3339 format) of when each test ended (1 peer file)',
                         type=str, action="store", required=True, nargs='+')
+    
+    # 2 Optional argument, that must be used simultaneously
+    parser.add_argument('--SRv6_index', help='Indexs of the files that have SRv6 logs associated to them (starting from 0)',
+                        type=int, action="store", required=False, nargs='+')
+    parser.add_argument('--SRv6_logs', help='Names of the log files with the SRv6 rules from previous argument (must match the order)',
+                        type=str, action="store", required=False, nargs='+')
 
     args = parser.parse_args()
     
-    # Check if the number of elements is the same
+    # Check if the number of elements start/end is the same
     if len(args.start) != len(args.end):
         parser.error("The number of elements in --start and --end must be the same")
     if len(args.start) != len(args.f):
         parser.error("The number of elements in --start and --end must be the same as the number of files")
+
+
+    # Check if args pairs SRv6_index and SRv6_logs are used together
+    if (args.SRv6_index and not args.SRv6_logs) or (not args.SRv6_index and args.SRv6_logs):
+        parser.error("Both --SRv6_index and --SRv6_logs must be used together")
+
+    # Check if the number of elements is the same in SRv6_index and SRv6_logs
+    if args.SRv6_index and args.SRv6_logs:
+        if len(args.SRv6_index) != len(args.SRv6_logs):
+            parser.error("The number of elements in --SRv6_index and --SRv6_logs must be the same")
+
+    # If index of SRv6 is given, check if it is valid
+    if args.SRv6_index:
+        for index in args.SRv6_index:
+            if index < 0 or index >= len(args.f):
+                parser.error("The SRv6_index: "+ str(index) +" is invalid. It must be between 0 and the number of files-1")
 
 def apply_query(query):
     # Connect to the InfluxDB client
@@ -52,7 +81,7 @@ def apply_query(query):
 
     return result
 
-def read_Is_values(line, iteration, flow, Is):
+def extract_Is_values(line, iteration, flow, Is):
     line = line + [Is]
     # Is values, all in the current line
     for key, Is_value in results[iteration][flow][Is].items():
@@ -150,21 +179,141 @@ def read_csv_files(filename):
     print("Done reading file")
     #pprint(results)
 
+def read_SRv6_line(line):
+    global results
+    #print(f"Reading SRv6 line: {line}")
+
+    new_content = {}
+    part1 = line.split(" - ")
+    part2 = part1[2].split(" => ")
+    operation = part2[0]
+    part3 = part2[1].split(": ")
+    iteration = part1[0]
+    timestamp = part1[1]
+    operation = part2[0]
+    responsible_switch = part3[0]
+    rule_elemets_str = line.split("{")[1]
+    rule_elemets = ast.literal_eval("{"+rule_elemets_str)
+
+    # Convert numebrs in the dictionary to integers
+    rule_elemets["deviceID"] = int(rule_elemets["deviceID"])
+    rule_elemets["flow_label"] = int(rule_elemets["flow_label"])
+    rule_elemets["src_mask"] = int(rule_elemets["src_mask"])
+    rule_elemets["dst_mask"] = int(rule_elemets["dst_mask"])
+    rule_elemets["flow_label_mask"] = int(rule_elemets["flow_label_mask"])
+
+    # Extract some values from the dictionary
+    src_mask = rule_elemets["src_mask"]
+    dst_mask = rule_elemets["dst_mask"]
+    flow_label_mask = rule_elemets["flow_label_mask"]
+
+    if src_mask != 128 or dst_mask != 128 or flow_label_mask != 255:
+        print(f"Error in the masks in the rule: {rule_elemets}, we only work with flow specific rules")
+        sys.exit(1)
+
+
+    #---------------Create the new operation for the dictionary
+    new_content["responsible_switch"] = responsible_switch    # Which switch the load induced the operation
+    new_content["operation"] = operation
+    new_content["timestamp"] = timestamp
+    new_content["rule"] = rule_elemets
+
+    #print("--------------------------------------------------------")
+    #print(f"Iteration: {iteration}, Timestamp: {timestamp}, Operation: {operation}, Responsible switch: {responsible_switch}")
+    #pprint(rule_elemets)
+    #pprint(results)
+    #pprint(new_content)
+
+
+    # Add the results to the dictionary
+    # At this point the iteration is already in the dictionary
+    results_ite = results[iteration]
+    
+    # Check if the operation if "SRv6_Operations" is already in the current iteration
+    if "SRv6_Operations" not in results_ite:
+        results_ite["SRv6_Operations"] = [new_content]   # as a list since there can be multiple operations
+    else:
+        # Add the operation to the dictionary
+        results_ite["SRv6_Operations"].append(new_content)
+
+    #pprint(results)
+
+def read_SRv6_log(index):
+    analyzer_logs_dir = os.path.join(current_directory, analyzer_directory)
+    
+    # Read the SRv6 logs
+    log_file = args.SRv6_logs[index]
+    log_file_path = os.path.join(analyzer_logs_dir, log_file)
+
+    print(f"Reading SRv6 logs from file: {log_file}")
+
+    # Read the SRv6 logs
+    with open(log_file_path, 'r') as file:
+        for line in file:
+            read_SRv6_line(line)
+
 def check_files_exist():
     # Check if the directory/files exist
-    full_path = os.path.join(current_directory, result_directory) 
+    full_res_path = os.path.join(current_directory, result_directory) 
 
-    if not os.path.isdir(full_path):  # Correct condition to check if the directory does not exist
+    if not os.path.isdir(full_res_path):  # Correct condition to check if the directory does not exist
         print(f"Directory {result_directory} does not exist.")
         sys.exit(1)
 
     for filename in args.f:
-        file_path = os.path.join(full_path, filename)
-        #print(f"Checking file: {file_path}")  # Debug print
+        file_path = os.path.join(full_res_path, filename)
         # Check if the file exists
         if not os.path.isfile(file_path):
             print(f"File {filename} not found in {file_path}")
             sys.exit(1)
+
+
+    #---------------Check if the SRv6 logs exist
+
+    full_analy_path = os.path.join(current_directory, analyzer_directory) 
+
+    # Check if the directory exists
+    if not os.path.isdir(full_analy_path):
+        print(f"Directory {analyzer_directory} does not exist.")
+        sys.exit(1)
+    
+    # Check if the log files exist
+    for index in args.SRv6_index:
+        log_file = args.SRv6_logs[index]
+        log_file_path = os.path.join(full_analy_path, log_file)
+        #print(f"Checking SRv6 log file: {log_file_path}")
+
+        if not os.path.isfile(log_file_path):
+            print(f"File {log_file} not found in {log_file_path}")
+            sys.exit(1)
+
+def export_SRv6_rules(sheet, iteration):
+    sheet.append([""])
+
+    # Add the "SRv6 Operations" header
+    header = ["SRv6 Operations"]
+    new_next_row = sheet.max_row + 1
+    for col_num, value in enumerate(header, 1):
+        cell = sheet.cell(row=new_next_row, column=col_num, value=value)
+        cell.font = Font(bold=True)
+    
+    # Add the detailed headers for SRv6 operations
+    header = ["Timestamp", "Operation", "Responsible Switch", "Source", "Destination", "Flow Label"]
+    new_next_row = sheet.max_row + 1
+    for col_num, value in enumerate(header, 1):
+        cell = sheet.cell(row=new_next_row, column=col_num, value=value)
+        cell.font = Font(bold=True)
+
+    # Add the SRv6 operations
+    for operation in results[iteration]["SRv6_Operations"]:
+        new_next_row = sheet.max_row + 1
+        rule_src_IP = operation["rule"]["srcIP"]
+        rule_dst_IP = operation["rule"]["dstIP"]
+        rule_flow_label = operation["rule"]["flow_label"]
+        line = [operation["timestamp"], operation["operation"], operation["responsible_switch"], rule_src_IP, rule_dst_IP, rule_flow_label]
+        sheet.append(line)
+
+    sheet.append([""])
 
 def export_results(OG_file):
     global results
@@ -210,7 +359,10 @@ def export_results(OG_file):
 
         # Flow by flow
         for flow in results[iteration]:
+            if flow == "SRv6_Operations":       #It is not a flow,
+                continue
             keys = list(results[iteration][flow].keys())
+
             # Check if both types of Is are keys in the dictionary
             if "sender" not in keys:
                 print(f"Sender not found in iteration {iteration} flow {flow}")
@@ -221,12 +373,16 @@ def export_results(OG_file):
 
             # Is by Is, sender must be the 1º
             OG_line = list(flow)
-            line = read_Is_values(OG_line, iteration, flow, "sender")
+            line = extract_Is_values(OG_line, iteration, flow, "sender")
             sheet.append(line)
 
             OG_line = list(flow)
-            line = read_Is_values(OG_line, iteration, flow, "receiver")
+            line = extract_Is_values(OG_line, iteration, flow, "receiver")
             sheet.append(line)
+
+        # Write the SRv6 operations of this Iteration if they exist
+        if "SRv6_Operations" in results[iteration]:
+            export_SRv6_rules(sheet, iteration)
 
     # Save the workbook
     workbook.save(file_path)
@@ -248,8 +404,19 @@ def set_pkt_loss():
         sheet['J1'].font = Font(bold=True)
         sheet['K1'].font = Font(bold=True)
 
+        no_formula_section = False
+
         # Set collumn J to contain a formula to be the subtraction of values of collum E of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
+            
+            # Skip the SRv6 Operations section
+            if row[0].value == "SRv6 Operations":
+                no_formula_section = True
+            elif row[0].value and row[0].value.startswith("Iteration -"):
+                no_formula_section = False
+            if no_formula_section:
+                continue
+
             #if cell from collumn A does not contain an IPv6 address, skip
             if row[0].value is None or ":" not in row[0].value:
                 skip = True
@@ -281,9 +448,20 @@ def set_fist_pkt_delay():
         #Set new headers as bold text
         sheet['L1'] = "1º Packet Delay"
         sheet['L1'].font = Font(bold=True)
+
+        no_formula_section = False
         
         # Set collumn L to contain a formula to be the subtraction of values of collum F of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
+
+            # Skip the SRv6 Operations section
+            if row[0].value == "SRv6 Operations":
+                no_formula_section = True
+            elif row[0].value and row[0].value.startswith("Iteration -"):
+                no_formula_section = False
+            if no_formula_section:
+                continue
+
             #if cell from collumn A does not contain an IPv6 address, skip
             if row[0].value is None or ":" not in row[0].value:
                 skip = True
@@ -301,7 +479,7 @@ def set_fist_pkt_delay():
     # Save the workbook
     workbook.save(file_path)
 
-def set_averages():
+def set_caculations():
     # Configure each sheet
     dir_path = os.path.join(current_directory, result_directory)
     file_path = os.path.join(dir_path, final_file)
@@ -453,7 +631,7 @@ def set_INT_results():
 def configure_final_file():
     set_pkt_loss()
     set_fist_pkt_delay()
-    set_averages()
+    set_caculations()
     set_INT_results()
 
 def main():
@@ -461,12 +639,16 @@ def main():
 
     check_files_exist()
 
-    # Read the CSV files
-    for filename in args.f:
+    # Read the CSV and SRv6 files
+    for index, filename in enumerate(args.f):
+        #print(f"Index: {index}, Filename: {filename}")
         read_csv_files(filename)
-        export_results(filename)
-        configure_final_file()
+        if args.SRv6_index is not None:
+            read_SRv6_log(index)
+
+        export_results(filename)  
     
+    configure_final_file()
     adjust_columns_width()
 
 
