@@ -23,6 +23,8 @@ END = "\033[0m"
 host='localhost'
 dbname='int'
 
+file_name_sufix = "-SRv6_rules.log"
+
 args = None
 minutes_ago_str = None                                      #string with the time of the last minute to analyze
 current_iteration = None
@@ -82,7 +84,7 @@ def delete_old_log():
     if args.routing is None:
         return
 
-    log_file = args.routing + "-SRv6 rules.log"
+    log_file = args.routing + file_name_sufix
 
     # Delete the log file if it already exists
     if os.path.exists(os.path.join(current_directory, log_file)):
@@ -92,7 +94,7 @@ def write_log(message):
     if args.routing is None or doNotLog is True:
         return
     
-    log_file = args.routing + "-SRv6 rules.log"
+    log_file = args.routing + file_name_sufix
 
     #Open file and append the message to the log file at the same directory of the script is on
     with open(os.path.join(current_directory, log_file), 'a') as file:
