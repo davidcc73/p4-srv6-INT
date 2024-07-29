@@ -1,6 +1,5 @@
 
 *.jar
-*.log
 *.pyc
 **/tmp
 *.class
@@ -13,3 +12,4 @@
 *.key
 influxdata-archive_compat.key.1
 app/bin/*
+INT/results/logs/*

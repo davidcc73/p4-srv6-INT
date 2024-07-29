@@ -59,7 +59,7 @@ def parse_args():
     global args
 
     parser = argparse.ArgumentParser(description='analyzer parser')
-    parser.add_argument('--routing', help='Which routing method is the topology using, will be used to kown which file the results will be stored',
+    parser.add_argument('--routing', help='Which routing method and test is the topology using, will be used to kown which file the results will be stored (ex:Medium-ECMP)',
                         type=str, action="store", required=False, default=None)
     parser.add_argument('--num_iterations', help='num of iterations being tested on current execution',
                         type=int, action="store", required=True, default=None)
