@@ -4,6 +4,8 @@ import time
 from mininet.cli import CLI
 from datetime import datetime, timezone
 
+import constants
+
 export_file_LOW = "LOW"
 export_file_MEDIUM = "MEDIUM"
 
@@ -102,7 +104,9 @@ def create_Messages_flow(src_host, dst_host, flow_label, file_results, iteration
     msg = "INTH1"
     dscp = 0
     size = 262                #Total byte size of the packet
-    dst_IP = dst_host.IP()
+    dst_IP_and_maks = constants.host_IPs[dst_host.name]
+    dst_IP = dst_IP_and_maks.split("/")[0]
+    #print(f"dst_IP: {dst_IP}")
 
     num_packets = round(iteration_duration_seconds / (i + 0.1))
     receiver_timeout = num_packets * 0.1 * 1.01        
@@ -123,7 +127,9 @@ def create_Audio_flow(src_host, dst_host, flow_label, file_results, iteration):
     msg = "INTH1"
     dscp = 34
     size = 420                #Total byte size of the packet
-    dst_IP = dst_host.IP()
+    dst_IP_and_maks = constants.host_IPs[dst_host.name]
+    dst_IP = dst_IP_and_maks.split("/")[0]
+    #print(f"dst_IP: {dst_IP}")
 
     num_packets = round(iteration_duration_seconds / (i + 0.1))
     receiver_timeout = num_packets * 0.1 * 1.01        
@@ -144,7 +150,9 @@ def create_Video_flow(src_host, dst_host, flow_label, file_results, iteration):
     msg = "INTH1"
     dscp = 35
     size = 874                #Total byte size of the packet
-    dst_IP = dst_host.IP()
+    dst_IP_and_maks = constants.host_IPs[dst_host.name]
+    dst_IP = dst_IP_and_maks.split("/")[0]
+    #print(f"dst_IP: {dst_IP}")
 
     num_packets = round(iteration_duration_seconds / (i + 0.1))
     receiver_timeout = num_packets * 0.1 * 1.01        
@@ -165,7 +173,9 @@ def create_Emergency_flow(src_host, dst_host, flow_label, file_results, iteratio
     msg = "INTH1"
     dscp = 36
     size = 483                #Total byte size of the packet
-    dst_IP = dst_host.IP()
+    dst_IP_and_maks = constants.host_IPs[dst_host.name]
+    dst_IP = dst_IP_and_maks.split("/")[0]
+    #print(f"dst_IP: {dst_IP}")
 
     num_packets = round(iteration_duration_seconds / (i + 0.1))
     receiver_timeout = num_packets * 0.1 * 1.01        

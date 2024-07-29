@@ -15,7 +15,7 @@
 #  limitations under the License.
 import importlib
 import interface
-
+import constants
 
 from mininet.net import Mininet
 from mininet.node import RemoteController
@@ -25,16 +25,19 @@ from mininet.link import TCLink
 from stratum import StratumBmv2Switch
 from host6 import IPv6Host
 
-CPU_PORT = 255
+CPU_PORT = constants.CPU_PORT
 
-BW_INFRA_INFRA = 900                 #Bandwith   (Mbps)              Glass Fiber cable, 10 km
-DL_INFRA_INFRA = 2                   #Delay      (ms) 
+BW_INFRA_INFRA = constants.BW_INFRA_INFRA
+DL_INFRA_INFRA = constants.DL_INFRA_INFRA
 
-BW_INFRA_VEHICULE = 700              #Bandwith   (Mbps)              5G cellular towers, 10 km
-DL_INFRA_VEHICULE = 20               #Delay      (ms)                (10-30 ms)
+BW_INFRA_VEHICULE = constants.BW_INFRA_VEHICULE
+DL_INFRA_VEHICULE = constants.DL_INFRA_VEHICULE
 
-BW_VEHICULE_VEHICULE = 700           #Bandwith   (Mbps)              5G between cars, max 100 meters
-DL_VEHICULE_VEHICULE = 7             #Delay      (ms)                (1-10 ms)
+BW_VEHICULE_VEHICULE = constants.BW_VEHICULE_VEHICULE
+DL_VEHICULE_VEHICULE = constants.DL_VEHICULE_VEHICULE
+
+host_IPs = constants.host_IPs
+
 
 class TutorialTopo(Topo):
     
@@ -135,42 +138,42 @@ class TutorialTopo(Topo):
         
         # IPv6 hosts attached to r1
         h1_1 = self.addHost('h1_1', cls=IPv6Host, mac="00:00:00:00:00:10",
-                            ipv6='2001:1:1::1/64', ipv6_gw='2001:1:1::ff')
+                            ipv6=host_IPs['h1_1'], ipv6_gw='2001:1:1::ff')
         h1_2 = self.addHost('h1_2', cls=IPv6Host, mac="00:00:00:00:00:11",
-                            ipv6='2001:1:1::2/64', ipv6_gw='2001:1:1::ff')
+                            ipv6=host_IPs['h1_2'], ipv6_gw='2001:1:1::ff')
         
         # IPv6 hosts attached to r2
         h2_1 = self.addHost('h2_1', cls=IPv6Host, mac="00:00:00:00:00:20",
-                            ipv6='2001:1:2::1/64', ipv6_gw='2001:1:2::ff')
+                            ipv6=host_IPs['h2_1'], ipv6_gw='2001:1:2::ff')
         h2_2 = self.addHost('h2_2', cls=IPv6Host, mac="00:00:00:00:00:21",
-                            ipv6='2001:1:2::2/64', ipv6_gw='2001:1:2::ff')
+                            ipv6=host_IPs['h2_2'], ipv6_gw='2001:1:2::ff')
         
         # IPv6 hosts attached to r3
         h3_1 = self.addHost('h3_1', cls=IPv6Host, mac="00:00:00:00:00:30",
-                            ipv6='2001:1:3::1/64', ipv6_gw='2001:1:3::ff')
+                            ipv6=host_IPs['h3_1'], ipv6_gw='2001:1:3::ff')
         
         
         # IPv6 hosts attached to r5
         h5_1 = self.addHost('h5_1', cls=IPv6Host, mac="00:00:00:00:00:50",
-                            ipv6='2001:1:5::1/64', ipv6_gw='2001:1:5::ff')
+                            ipv6=host_IPs['h5_1'], ipv6_gw='2001:1:5::ff')
         
         # IPv6 hosts attached to r7
         h7_1 = self.addHost('h7_1', cls=IPv6Host, mac="00:00:00:00:00:70",
-                            ipv6='2001:1:7::1/64', ipv6_gw='2001:1:7::ff')
+                            ipv6=host_IPs['h7_1'], ipv6_gw='2001:1:7::ff')
         h7_2 = self.addHost('h7_2', cls=IPv6Host, mac="00:00:00:00:00:71",
-                            ipv6='2001:1:7::2/64', ipv6_gw='2001:1:7::ff')
+                            ipv6=host_IPs['h7_2'], ipv6_gw='2001:1:7::ff')
         h7_3 = self.addHost('h7_3', cls=IPv6Host, mac="00:00:00:00:00:72",
-                            ipv6='2001:1:7::3/64', ipv6_gw='2001:1:7::ff')
+                            ipv6=host_IPs['h7_3'], ipv6_gw='2001:1:7::ff')
 
         # IPv6 hosts attached to r8
         h8_1 = self.addHost('h8_1', cls=IPv6Host, mac="00:00:00:00:00:80",
-                            ipv6='2001:1:8::1/64', ipv6_gw='2001:1:8::ff')
+                            ipv6=host_IPs['h8_1'], ipv6_gw='2001:1:8::ff')
         h8_2 = self.addHost('h8_2', cls=IPv6Host, mac="00:00:00:00:00:81",
-                            ipv6='2001:1:8::2/64', ipv6_gw='2001:1:8::ff')
+                            ipv6=host_IPs['h8_2'], ipv6_gw='2001:1:8::ff')
         h8_3 = self.addHost('h8_3', cls=IPv6Host, mac="00:00:00:00:00:82",
-                            ipv6='2001:1:8::3/64', ipv6_gw='2001:1:8::ff')
+                            ipv6=host_IPs['h8_3'], ipv6_gw='2001:1:8::ff')
         h8_4 = self.addHost('h8_4', cls=IPv6Host, mac="00:00:00:00:00:83",
-                            ipv6='2001:1:8::4/64', ipv6_gw='2001:1:8::ff')
+                            ipv6=host_IPs['h8_4'], ipv6_gw='2001:1:8::ff')
         
         # Hosts Links
         self.addLink(h1_1, r1, port2=11)
