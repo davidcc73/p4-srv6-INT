@@ -61,7 +61,7 @@ def print_routing_menu():
     0. Cancel
     1. KShort
     2. ECMP
-    3. ECMP + SRv6
+    3. ECMP + SRv6 (Do not use when selecting do the tests in sequence, analyzer may need different sleep times for each test)
     """
 
     while True:
