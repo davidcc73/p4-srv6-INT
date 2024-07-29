@@ -8,10 +8,22 @@ import constants
 
 export_file_LOW = "LOW"
 export_file_MEDIUM = "MEDIUM"
+export_file_HIGH = "HIGH"
+export_file_HIGH_EMERGRNCY = "HIGH+EMERGRNCY"
+
+ORANGE = '\033[38;5;214m'
+RED = '\033[31m'
+BLUE = '\033[34m'
+CYAN = '\033[36m'
+GREEN = '\033[32m'
+MAGENTA = '\033[35m'
+PINK = '\033[38;5;205m'
+END = "\033[0m"
+
 
 #ECMP will is only configured on ONOS to have rules for Flow labels between 0-4, if not, the packet will not be routed
-num_iterations = 1
-iteration_duration_seconds = 1 * 60  #5 minutes, the duration of each iteration of the test
+num_iterations = 2
+iteration_duration_seconds = 1 * 30  #5 minutes, the duration of each iteration of the test
 
 def create_lock_file(lock_filename):
     lock_file_path = os.path.join("/INT/results", lock_filename)
@@ -37,6 +49,9 @@ def print_menu():
     2. Make all Hosts be detetced by ONOS (needed for packet forwarding)
     3. Low Load Test (Just for debugging, not the final test)
     4. Medium Load Test
+    5. High Load Test
+    6. High Load Test with Emergency Flow
+    7. Medium -> High -> High with Emergency Flow Tests in Sequence
     """
     print(menu)
 
@@ -194,7 +209,7 @@ def low_load_test(net, routing):
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
-    print("Low Load Test, started at:", rfc3339_time)
+    print(GREEN + "Low Load Test, started at:" + str(rfc3339_time) + END)
 
     file_results = export_file_LOW + "-" + routing + "_raw_results.csv"
     lock_filename = f"LOCK_{file_results}"
@@ -215,12 +230,6 @@ def low_load_test(net, routing):
     receiver_timeout = num_packets * 0.1 * 1.01         #each packet takes < 0.1 seconds to send/process at receive (may vary on the system), added small margin to ensure the receiver script receives all packets, before stopping
     iteration_sleep= receiver_timeout * 1.01            #with margin to ensure all receivers script have written the results with the concorrent writes prevention
 
-    #print(f"num_iterations_LOW: {num_iterations_LOW}")
-    #print(f"iteration_duration_seconds_LOW: {iteration_duration_seconds_LOW}")
-    #print(f"receiver_timeout: {receiver_timeout}")
-    #print(f"iteration_sleep: {iteration_sleep}")
-    #print(f"Number of packets: {num_packets}")
-
     if routing == "ECMP-SRv6":
         SRv6_used(iteration_sleep, num_iterations_LOW)
 
@@ -240,14 +249,14 @@ def low_load_test(net, routing):
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
-    print("Low Load Test finished at:", rfc3339_time)
+    print(CYAN + "Low Load Test finished at:" + str(rfc3339_time) + END)
 
 def medium_load_test(net, routing):
     global export_file_MEDIUM
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
-    print("Medium Load Test, started at:", rfc3339_time)
+    print(GREEN + "Medium Load Test, started at:" + str(rfc3339_time) + END)
 
     file_results = export_file_MEDIUM + "-" + routing + "_raw_results.csv"
     lock_filename = f"LOCK_{file_results}"
@@ -268,7 +277,7 @@ def medium_load_test(net, routing):
     
 
     if routing == "ECMP-SRv6":
-        SRv6_used(iteration_sleep, num_iterations_LOW)
+        SRv6_used(iteration_sleep, num_iterations)
 
     for iteration in range(1, num_iterations + 1):
         iteration_sleep = 0
@@ -298,13 +307,159 @@ def medium_load_test(net, routing):
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
-    print("Medium Load Test finished at:", rfc3339_time)
+    print(CYAN + "Medium Load Test finished at:" + str(rfc3339_time) + END)
+
+def high_load_test(net, routing):
+    global export_file_HIGH
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print(GREEN + "High Load Test, started at:" + str(rfc3339_time) + END)
+
+    file_results = export_file_HIGH + "-" + routing + "_raw_results.csv"
+    lock_filename = f"LOCK_{file_results}"
+
+    #create logs directory
+    os.makedirs("/INT/results/logs", exist_ok=True)
+    create_lock_file(lock_filename)
+
+    # Get the hosts
+    h1_1 = net.get("h1_1") 
+    h1_2 = net.get("h1_2") 
+    h2_1 = net.get("h2_1")
+    h2_2 = net.get("h2_2")
+    h3_1 = net.get("h3_1")
+    h5_1 = net.get("h5_1")
+    h7_1 = net.get("h7_1")
+    h7_2 = net.get("h7_2")
+    h7_3 = net.get("h7_3")
+    h8_1 = net.get("h8_1")
+    h8_2 = net.get("h8_2")
+    h8_3 = net.get("h8_3")
+    
+
+    if routing == "ECMP-SRv6":
+        SRv6_used(iteration_sleep, num_iterations)
+
+    for iteration in range(1, num_iterations + 1):
+        iteration_sleep = 0
+        print(f"--------------Starting iteration {iteration} of {num_iterations}")
+        
+        #--------------Start Message flows
+        tmp = create_Messages_flow(h8_1, h1_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Messages_flow(h2_1, h3_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Audio flows
+        tmp = create_Audio_flow(h1_2, h7_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Audio_flow(h5_1, h7_2, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Video flows
+        tmp = create_Video_flow(h2_2, h8_2, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Video_flow(h3_1, h8_3, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Video_flow(h3_1, h7_3, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+
+        #-------------Keep the test running for a specified duration
+        print(f"Waiting for {iteration_sleep} seconds")
+        time.sleep(iteration_sleep)  
+
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print(CYAN + "High Load Test finished at:" + str(rfc3339_time) + END)
+
+def high_emergency_load_test(net, routing):
+    global export_file_HIGH_EMERGRNCY
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print(GREEN + "High with Emergency Load Test, started at:" + str(rfc3339_time) + END)
+
+    file_results = export_file_HIGH_EMERGRNCY + "-" + routing + "_raw_results.csv"
+    lock_filename = f"LOCK_{file_results}"
+
+    #create logs directory
+    os.makedirs("/INT/results/logs", exist_ok=True)
+    create_lock_file(lock_filename)
+
+    # Get the hosts
+    h1_1 = net.get("h1_1") 
+    h1_2 = net.get("h1_2") 
+    h2_1 = net.get("h2_1")
+    h2_2 = net.get("h2_2")
+    h3_1 = net.get("h3_1")
+    h5_1 = net.get("h5_1")
+    h7_1 = net.get("h7_1")
+    h7_2 = net.get("h7_2")
+    h7_3 = net.get("h7_3")
+    h8_1 = net.get("h8_1")
+    h8_2 = net.get("h8_2")
+    h8_3 = net.get("h8_3")
+    h8_4 = net.get("h8_4")
+    
+
+    if routing == "ECMP-SRv6":
+        SRv6_used(iteration_sleep, num_iterations)
+
+    for iteration in range(1, num_iterations + 1):
+        iteration_sleep = 0
+        print(f"--------------Starting iteration {iteration} of {num_iterations}")
+        
+        #--------------Start Message flows
+        tmp = create_Messages_flow(h8_1, h1_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Messages_flow(h2_1, h3_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Audio flows
+        tmp = create_Audio_flow(h1_2, h7_1, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Audio_flow(h5_1, h7_2, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Video flows
+        tmp = create_Video_flow(h2_2, h8_2, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Video_flow(h3_1, h8_3, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        tmp = create_Video_flow(h3_1, h7_3, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+        #--------------Start Emergency flows
+        tmp = create_Emergency_flow(h8_4, h1_2, 1, file_results, iteration)
+        iteration_sleep = max(iteration_sleep, tmp)
+
+
+        #-------------Keep the test running for a specified duration
+        print(f"Waiting for {iteration_sleep} seconds")
+        time.sleep(iteration_sleep)  
+
+    # Get the current time in FORMAT RFC3339
+    rfc3339_time = datetime.now(timezone.utc).isoformat()
+    print("---------------------------")
+    print(CYAN + "High with Emergency Load Test finished at:" + str(rfc3339_time) + END)
+
 
 def main_menu(net, choice):
     routing = None
 
     # Which routing method is going to be used?
-    if choice == 3 or choice == 4 or choice == 5:
+    if choice == 3 or choice == 4 or choice == 5 or choice == 6 or choice == 7:
         choise2 = print_routing_menu()
         if choise2 == 0:
             return True
@@ -330,6 +485,20 @@ def main_menu(net, choice):
         low_load_test(net, routing)                  #FOR LAST ONE, REMENBER TO CLEAN SRV6 BETWEEN TEST CASES
     elif choice == 4:
         medium_load_test(net, routing)
+    elif choice == 5:
+        high_load_test(net, routing)
+    elif choice == 6:
+        high_emergency_load_test(net, routing)
+    elif choice == 7:
+        medium_load_test(net, routing)
+        print(ORANGE + "Waiting for 10 seconds between tests scenarios" + END)
+        time.sleep(15)
+
+        high_load_test(net, routing)
+        print(ORANGE + "Waiting for 10 seconds between tests scenarios" + END)
+        time.sleep(15)
+        
+        high_emergency_load_test(net, routing)
     else:
         print("Invalid choice")
     
