@@ -278,14 +278,15 @@ def check_files_exist():
         sys.exit(1)
     
     # Check if the log files exist
-    for index in args.SRv6_index:
-        log_file = args.SRv6_logs[index]
-        log_file_path = os.path.join(full_analy_path, log_file)
-        #print(f"Checking SRv6 log file: {log_file_path}")
+    if args.SRv6_index is not None:
+        for index in args.SRv6_index:
+            log_file = args.SRv6_logs[index]
+            log_file_path = os.path.join(full_analy_path, log_file)
+            #print(f"Checking SRv6 log file: {log_file_path}")
 
-        if not os.path.isfile(log_file_path):
-            print(f"File {log_file} not found in {log_file_path}")
-            sys.exit(1)
+            if not os.path.isfile(log_file_path):
+                print(f"File {log_file} not found in {log_file_path}")
+                sys.exit(1)
 
 def export_SRv6_rules(sheet, iteration):
     sheet.append([""])
@@ -576,7 +577,8 @@ def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_process
     # Write the percentages
     for i, row in enumerate(percentages):
         sheet[f'B{last_line + 3 + i}'] = f"Switch {row['switch_id']}"
-        sheet[f'C{last_line + 3 + i}'] = row['percentage']
+        #limit to 3 decimal places
+        sheet[f'C{last_line + 3 + i}'] = round(row['percentage'], 3)
 
     # Save the workbook
     workbook.save(file_path)
