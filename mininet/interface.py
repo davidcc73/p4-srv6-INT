@@ -22,8 +22,8 @@ END = "\033[0m"
 
 
 #ECMP will is only configured on ONOS to have rules for Flow labels between 0-4, if not, the packet will not be routed
-num_iterations = 2
-iteration_duration_seconds = 1 * 30  #5 minutes, the duration of each iteration of the test
+num_iterations = 10
+iteration_duration_seconds = 5 * 60  #5 minutes, the duration of each iteration of the test
 
 def create_lock_file(lock_filename):
     lock_file_path = os.path.join("/INT/results", lock_filename)
