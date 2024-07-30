@@ -238,11 +238,14 @@ def read_SRv6_line(line):
 
     #pprint(results)
 
-def read_SRv6_log(index):
+def read_SRv6_log(file_index):
     analyzer_logs_dir = os.path.join(current_directory, analyzer_directory)
     
+    #Get the position of the given file_index in args.SRv6_index
+    log_index = args.SRv6_index.index(file_index)
+
     # Read the SRv6 logs
-    log_file = args.SRv6_logs[index]
+    log_file = args.SRv6_logs[log_index]
     log_file_path = os.path.join(analyzer_logs_dir, log_file)
 
     print(f"Reading SRv6 logs from file: {log_file}")
@@ -278,9 +281,8 @@ def check_files_exist():
         sys.exit(1)
     
     # Check if the log files exist
-    if args.SRv6_index is not None:
-        for index in args.SRv6_index:
-            log_file = args.SRv6_logs[index]
+    if args.SRv6_logs is not None:
+        for log_file in args.SRv6_logs:
             log_file_path = os.path.join(full_analy_path, log_file)
             #print(f"Checking SRv6 log file: {log_file_path}")
 
@@ -642,11 +644,12 @@ def main():
     check_files_exist()
 
     # Read the CSV and SRv6 files
-    for index, filename in enumerate(args.f):
-        #print(f"Index: {index}, Filename: {filename}")
+    for file_index, filename in enumerate(args.f):
+        #print(f"file_index: {file_index}, Filename: {filename}")
         read_csv_files(filename)
-        if args.SRv6_index is not None:
-            read_SRv6_log(index)
+        if args.SRv6_index is not None and file_index in args.SRv6_index:
+            #Retrive the SRv6 logs data for the current file
+            read_SRv6_log(file_index)
 
         export_results(filename)  
     
