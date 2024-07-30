@@ -22,6 +22,8 @@ results = {}
 # Define DB connection parameters
 host='localhost'
 dbname='int'
+# Connect to the InfluxDB client
+client = InfluxDBClient(host=host, database=dbname)
 
 # SRv6 logs
 log_file = "ECMP-SRv6 rules.log"
@@ -70,14 +72,15 @@ def parse_args():
                 parser.error("The SRv6_index: "+ str(index) +" is invalid. It must be between 0 and the number of files-1")
 
 def apply_query(query):
-    # Connect to the InfluxDB client
-    client = InfluxDBClient(host=host, database=dbname)
+    global client
+    try:
+        # Execute the query
+        result = client.query(query)
+    except Exception as error:
+        # handle the exception
+        print("An exception occurred:", error)
+
     
-    # Execute the query
-    result = client.query(query)
-    
-    # Close the connection
-    client.close()
 
     return result
 
@@ -111,6 +114,29 @@ def adjust_columns_width():
     # Save the workbook
     workbook.save(file_path)
 
+def get_pkt_size_dscp(flow):
+    #reads the INT DB and sets the pkt size and DSCP collumns
+
+    query = f"""
+        SELECT dscp, size
+        FROM flow_stats
+        WHERE   src_ip = '{flow[0]}'
+        AND     dst_ip = '{flow[1]}'
+        AND     flow_label = '{flow[2]}'
+        ORDER BY time DESC
+        LIMIT 1
+    """
+    
+    r = apply_query(query)
+    
+    dscp = r.raw["series"][0]["values"][0][1]
+    size = r.raw["series"][0]["values"][0][2]
+
+    #print(dscp)
+    #print(size)
+
+    return dscp, size
+
 def read_raw_results(row):
     global results
     iteration = row[0]
@@ -132,17 +158,17 @@ def read_raw_results(row):
 
         values_end_points["extra"] = [extra1, extra2]
 
-
-
     # Check if the iteration is already in the results dictionary
     if iteration not in results:
-        values_flow = {Is: values_end_points}
+        dscp, pkt_size = get_pkt_size_dscp(flow)            #Get the flows info
+        values_flow = {Is: values_end_points, "DSCP": dscp, "Packet Size": pkt_size}
         values_iteration = {flow: values_flow}
         results[iteration] = values_iteration
     else:
         # Check if the flow is already in the results dictionary
         if flow not in results[iteration]:
-            values_flow = {Is: values_end_points}
+            dscp, pkt_size = get_pkt_size_dscp(flow)            #Get the flows info
+            values_flow = {Is: values_end_points, "DSCP": dscp, "Packet Size": pkt_size}
             results[iteration][flow] = values_flow
         else:
             # Add currect Is to the flow
@@ -191,7 +217,7 @@ def read_SRv6_line(line):
     iteration = part1[0]
     timestamp = part1[1]
     operation = part2[0]
-    responsible_switch = part3[0]
+    responsible_switch = int(part3[0])
     rule_elemets_str = line.split("{")[1]
     rule_elemets = ast.literal_eval("{"+rule_elemets_str)
 
@@ -345,7 +371,7 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    header = ["Flow src", "Flow dst", "Flow Label", "Is", "Nº of packets", "1º Packet Timestamp(seconds,miliseconds)", "Nº of out of order packets", "Out of order packets"]
+    header = ["Flow src", "Flow dst", "Flow Label", "DSCP", "Packet Size (Bytes)", "Is", "Nº of packets", "1º Packet Timestamp(seconds,microseconds)", "Nº of out of order packets", "Out of order packets"]
     for col_num, value in enumerate(header, 1):
         cell = sheet.cell(row=1, column=col_num, value=value)
         cell.font = Font(bold=True)
@@ -359,12 +385,14 @@ def export_results(OG_file):
         cell = sheet.cell(row=sheet.max_row, column=1)  # Get the last row and column 1
         cell.value = f"Iteration - {iteration}"
         cell.font = Font(bold=True)
-
         # Flow by flow
         for flow in results[iteration]:
             if flow == "SRv6_Operations":       #It is not a flow,
                 continue
             keys = list(results[iteration][flow].keys())
+
+            DSCP = results[iteration][flow]["DSCP"]
+            pkt_size =  results[iteration][flow]["Packet Size"]
 
             # Check if both types of Is are keys in the dictionary
             if "sender" not in keys:
@@ -375,11 +403,11 @@ def export_results(OG_file):
                 sys.exit(1)
 
             # Is by Is, sender must be the 1º
-            OG_line = list(flow)
+            OG_line = list(flow) + [DSCP, pkt_size]
             line = extract_Is_values(OG_line, iteration, flow, "sender")
             sheet.append(line)
 
-            OG_line = list(flow)
+            OG_line = list(flow) + [DSCP, pkt_size]
             line = extract_Is_values(OG_line, iteration, flow, "receiver")
             sheet.append(line)
 
@@ -401,11 +429,11 @@ def set_pkt_loss():
         sheet = workbook[sheet]
 
         #Set new headers
-        sheet['J1'] = "Packet Loss"
-        sheet['K1'] = "Packet Loss (%)"
+        sheet['L1'] = "Packet Loss"
+        sheet['M1'] = "Packet Loss (%)"
 
-        sheet['J1'].font = Font(bold=True)
-        sheet['K1'].font = Font(bold=True)
+        sheet['L1'].font = Font(bold=True)
+        sheet['M1'].font = Font(bold=True)
 
         no_formula_section = False
 
@@ -430,8 +458,8 @@ def set_pkt_loss():
             #print(row)
             
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
-            sheet[f'J{row[0].row}'] = f'=E{row[0].row-1}-E{row[0].row}'     
-            sheet[f'K{row[0].row}'] = f'=ROUND(J{row[0].row}/E{row[0].row-1}*100, 3)'
+            sheet[f'L{row[0].row}'] = f'=G{row[0].row-1}-G{row[0].row}'     
+            sheet[f'M{row[0].row}'] = f'=ROUND((L{row[0].row}/G{row[0].row-1})*100, 3)'
 
             skip = True
 
@@ -449,8 +477,8 @@ def set_fist_pkt_delay():
         sheet = workbook[sheet]
 
         #Set new headers as bold text
-        sheet['L1'] = "1º Packet Delay"
-        sheet['L1'].font = Font(bold=True)
+        sheet['N1'] = "1º Packet Delay (miliseconds)"
+        sheet['N1'].font = Font(bold=True)
 
         no_formula_section = False
         
@@ -475,7 +503,7 @@ def set_fist_pkt_delay():
             #print(row)
             
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
-            sheet[f'L{row[0].row}'] = f'=F{row[0].row}-F{row[0].row-1}'     
+            sheet[f'N{row[0].row}'] = f'=ROUND((H{row[0].row}-H{row[0].row-1})*1000, 3)'     
 
             skip = True
 
@@ -500,7 +528,7 @@ def set_caculations():
         sheet[f'A{last_line + 1}'] = "AVG Out of Order Packets (Nº)"
         sheet[f'A{last_line + 2}'] = "AVG Packet Loss (Nº)"
         sheet[f'A{last_line + 3}'] = "AVG Packet Loss (%)"
-        sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay"
+        sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay (miliseconds)"
         sheet[f'B{last_line}'] = "Values"
 
         sheet[f'A{last_line}'].font = Font(bold=True)
@@ -511,10 +539,10 @@ def set_caculations():
         sheet[f'B{last_line}'].font = Font(bold=True)
 
         # on the next line for each column, set the average of the column, ignore empty cells
-        sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(G:G, "<>", G:G), 3)'
-        sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(J:J, "<>", J:J), 3)'
-        sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(K:K, "<>", K:K), 3)'
-        sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
+        sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(I:I, "<>", I:I), 3)'
+        sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
+        sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(M:M, "<>", M:M), 3)'
+        sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(N:N, "<>", N:N), 3)'
 
 
     # Save the workbook
@@ -554,13 +582,13 @@ def calculate_percentages(total_count, switch_counts):
         percentages.append({'switch_id': switch_id, 'percentage': percentage})
     return percentages
 
-def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_processing_latency, percentages):
+def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, percentages):
     # Write the results in the sheet
     last_line = sheet.max_row + 1
 
     # Set new headers
-    sheet[f'A{last_line + 0}'] = "AVG Flows Latency"
-    sheet[f'A{last_line + 1}'] = "AVG Processing Latency"
+    sheet[f'A{last_line + 0}'] = "AVG Flows Latency (miliseconds)"
+    sheet[f'A{last_line + 1}'] = "AVG Hop Latency (miliseconds)"
     sheet[f'A{last_line + 2}'] = "% of packets to each switch"
     sheet[f'B{last_line + 2}'] = "Switch IDs"
     sheet[f'C{last_line + 2}'] = "Percentage"
@@ -574,7 +602,7 @@ def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_process
 
     # Write the values
     sheet[f'B{last_line + 0}'] = AVG_flows_latency
-    sheet[f'B{last_line + 1}'] = AVG_processing_latency
+    sheet[f'B{last_line + 1}'] = AVG_hop_latency
 
     # Write the percentages
     for i, row in enumerate(percentages):
@@ -610,7 +638,7 @@ def set_INT_results():
                     WHERE time >= '{start}' AND time <= '{end}'
                 """
         result = apply_query(query)
-        AVG_flows_latency = result.raw["series"][0]["values"][0][1]
+        AVG_flows_latency = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
 
         # We need AVG Latency for processing of ALL packets (NOT distinguishing between switches/flows) 
         query = f"""
@@ -619,7 +647,7 @@ def set_INT_results():
                     WHERE time >= '{start}' AND time <= '{end}'
                 """
         result = apply_query(query)
-        AVG_processing_latency = result.raw["series"][0]["values"][0][1]
+        AVG_hop_latency = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
 
         # % of packets that went to each individual switch (switch_id)
         total_count = get_total_count(start, end)
@@ -627,10 +655,10 @@ def set_INT_results():
         percentages = calculate_percentages(total_count, switch_counts)
 
         #print("AVG_flows_latency: ", AVG_flows_latency)
-        #print("AVG_processing_latency: ", AVG_processing_latency)
+        #print("AVG_hop_latency: ", AVG_hop_latency)
         #print("Percentages: ", percentages)
 
-        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_processing_latency, percentages)
+        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, percentages)
 
 def configure_final_file():
     set_pkt_loss()
@@ -639,8 +667,8 @@ def configure_final_file():
     set_INT_results()
 
 def main():
-    global args
-
+    global args, client
+    
     check_files_exist()
 
     # Read the CSV and SRv6 files
@@ -655,6 +683,8 @@ def main():
     
     configure_final_file()
     adjust_columns_width()
+    
+    client.close()
 
 
 if __name__ == "__main__":
