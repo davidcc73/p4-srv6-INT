@@ -346,6 +346,7 @@ def high_load_test(net, routing):
     h8_1 = net.get("h8_1")
     h8_2 = net.get("h8_2")
     h8_3 = net.get("h8_3")
+    h8_4 = net.get("h8_4")
     
     #See max sleep time between flows types to create
     max_iteration_sleep = max(iteration_sleep["Message"], iteration_sleep["Audio"], iteration_sleep["Video"])
@@ -363,11 +364,16 @@ def high_load_test(net, routing):
         #--------------Start Audio flows
         create_Audio_flow(h1_2, h7_1, 1, file_results, iteration)
         create_Audio_flow(h5_1, h7_2, 1, file_results, iteration)
+        create_Audio_flow(h3_1, h5_1, 1, file_results, iteration)
+        create_Audio_flow(h8_1, h2_1, 1, file_results, iteration)
 
         #--------------Start Video flows
         create_Video_flow(h2_2, h8_2, 1, file_results, iteration)
         create_Video_flow(h3_1, h8_3, 1, file_results, iteration)
         create_Video_flow(h3_1, h7_3, 1, file_results, iteration)
+        create_Video_flow(h2_1, h8_1, 2, file_results, iteration)
+        create_Video_flow(h7_3, h8_4, 1, file_results, iteration)
+        create_Video_flow(h5_1, h2_2, 1, file_results, iteration)
 
 
         #-------------Keep the test running for a specified duration
@@ -416,7 +422,7 @@ def high_emergency_load_test(net, routing):
 
     for iteration in range(1, num_iterations + 1):
         print(f"--------------Starting iteration {iteration} of {num_iterations}")
-        
+
         #--------------Start Message flows
         create_Messages_flow(h8_1, h1_1, 1, file_results, iteration)
         create_Messages_flow(h2_1, h3_1, 1, file_results, iteration)
@@ -424,12 +430,17 @@ def high_emergency_load_test(net, routing):
         #--------------Start Audio flows
         create_Audio_flow(h1_2, h7_1, 1, file_results, iteration)
         create_Audio_flow(h5_1, h7_2, 1, file_results, iteration)
+        create_Audio_flow(h3_1, h5_1, 1, file_results, iteration)
+        create_Audio_flow(h8_1, h2_1, 1, file_results, iteration)
 
         #--------------Start Video flows
         create_Video_flow(h2_2, h8_2, 1, file_results, iteration)
         create_Video_flow(h3_1, h8_3, 1, file_results, iteration)
         create_Video_flow(h3_1, h7_3, 1, file_results, iteration)
-
+        create_Video_flow(h2_1, h8_1, 2, file_results, iteration)
+        create_Video_flow(h7_3, h8_4, 1, file_results, iteration)
+        create_Video_flow(h5_1, h2_2, 1, file_results, iteration)
+        
         #--------------Start Emergency flows
         create_Emergency_flow(h8_4, h1_2, 1, file_results, iteration)
 
