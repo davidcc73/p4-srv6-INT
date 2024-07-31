@@ -548,16 +548,63 @@ def set_caculations():
     # Save the workbook
     workbook.save(file_path)
 
-def get_total_count(start, end):
+def get_byte_sum(start, end):
+    # Initialize the result dictionary to store total byte counts per switch ID
+    sum = {}
+    switch_ids = []
+
+    # Query to get unique switch_id values if it is a tag
+    query = f'''
+            SHOW TAG VALUES 
+            FROM "switch_stats"  
+            WITH KEY = "switch_id"
+            WHERE time >= '{start}' AND time <= '{end}' 
+        '''
+    tmp = apply_query(query)  
+    #pprint(tmp)
+
+    # Extract the switch_id values into a list
+    for row in tmp.raw["series"][0]["values"]:
+        switch_ids.append(int(row[1]))
+
+    #pprint(switch_ids)
+
+    # Loop through each unique switch ID
+    for switch_id in switch_ids:
+        # Formulate the query to get the sum of bytes for the given switch ID and time range
+        query = f"""
+            SELECT SUM("size") AS total_count 
+            FROM flow_stats 
+            WHERE time >= '{start}' AND time <= '{end}' 
+            AND path =~ /(^|-)({switch_id})(-|$|\b)/
+        """
+
+        result = apply_query(query)  # Assume this returns a dictionary with 'total_count'
+        
+        # Add the result to the sum dictionary under the switch_id key
+        #print(f"Switch ID: {switch_id}")
+        #print(result.raw)
+        if not result.raw["series"]:
+            #print("No data found")
+            continue
+        val = result.raw["series"][0]["values"][0][1]
+        sum[switch_id] = {}
+        sum[switch_id]["Byte Sums"] = val
+    #pprint(sum)
+
+    return sum
+
+def calculate_percentages(start, end, switch_data):
+    # Get the total count of packets
     query = f"""
         SELECT COUNT("latency") AS total_count
         FROM flow_stats
         WHERE time >= '{start}' AND time <= '{end}'
     """
     result = apply_query(query)
-    return result.raw["series"][0]["values"][0][1]  # Extract total_count from the result
+    total_count = result.raw["series"][0]["values"][0][1]  # Extract total_count from the result
 
-def get_switch_counts(start, end):
+    # Get the count of packets that went to each switch
     query = f"""
         SELECT COUNT("latency") AS switch_count
         FROM switch_stats
@@ -566,49 +613,48 @@ def get_switch_counts(start, end):
     """
     result = apply_query(query)
     
-    list = []
+    # Calculate the percentage of packets that went to each switch
     for row in result.raw["series"]:
         #tuple pair: id, count
-        list.append((int(row["tags"]["switch_id"]), row["values"][0][1]))
-    #print(list)
-    return list  # Extract switch counts from the result
+        switch_id = int(row["tags"]["switch_id"])
+        switch_count = int(row["values"][0][1])
+        switch_data[switch_id]["percentage_pkt"] = round((switch_count / total_count) * 100, 3)
 
-def calculate_percentages(total_count, switch_counts):
-    percentages = []
-    for row in switch_counts:
-        switch_id = row[0]
-        switch_count = row[1]
-        percentage = (switch_count / total_count) * 100
-        percentages.append({'switch_id': switch_id, 'percentage': percentage})
-    return percentages
+    #pprint(switch_data)
+    return switch_data
 
-def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, percentages):
+def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data):
     # Write the results in the sheet
     last_line = sheet.max_row + 1
 
     # Set new headers
     sheet[f'A{last_line + 0}'] = "AVG Flows Latency (miliseconds)"
     sheet[f'A{last_line + 1}'] = "AVG Hop Latency (miliseconds)"
-    sheet[f'A{last_line + 2}'] = "% of packets to each switch"
-    sheet[f'B{last_line + 2}'] = "Switch IDs"
-    sheet[f'C{last_line + 2}'] = "Percentage"
-
     sheet[f'A{last_line + 0}'].font = Font(bold=True)
     sheet[f'A{last_line + 1}'].font = Font(bold=True)
-    sheet[f'A{last_line + 2}'].font = Font(bold=True)
-    sheet[f'B{last_line + 2}'].font = Font(bold=True)
-    sheet[f'C{last_line + 2}'].font = Font(bold=True)
-
-
-    # Write the values
     sheet[f'B{last_line + 0}'] = AVG_flows_latency
     sheet[f'B{last_line + 1}'] = AVG_hop_latency
 
-    # Write the percentages
-    for i, row in enumerate(percentages):
-        sheet[f'B{last_line + 3 + i}'] = f"Switch {row['switch_id']}"
-        #limit to 3 decimal places
-        sheet[f'C{last_line + 3 + i}'] = round(row['percentage'], 3)
+
+    sheet[f'A{last_line + 3}'] = "Switch ID"
+    sheet[f'B{last_line + 3}'] = "% of packets to each switch"
+    sheet[f'C{last_line + 3}'] = "Total Sum of Processed Bytes"
+
+    sheet[f'A{last_line + 3}'].font = Font(bold=True)
+    sheet[f'B{last_line + 3}'].font = Font(bold=True)
+    sheet[f'C{last_line + 3}'].font = Font(bold=True)
+
+
+    # Write percentages and total bytes processed
+    for i, (key, value) in enumerate(switch_data.items()):
+        #print(f"i: {i}, Switch ID: {key}, Percentage: {value['percentage_pkt']}, Byte Sums: {value['Byte Sums']}")
+        sheet[f'A{last_line + 4 + i}'] = key
+        
+        #percentage of total packets that went to each switch
+        sheet[f'B{last_line + 4 + i}'] = round(value['percentage_pkt'], 3)
+        
+        #Sum of processed bytes
+        sheet[f'C{last_line + 4 + i}'] = value['Byte Sums']
 
     # Save the workbook
     workbook.save(file_path)
@@ -650,15 +696,14 @@ def set_INT_results():
         AVG_hop_latency = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
 
         # % of packets that went to each individual switch (switch_id)
-        total_count = get_total_count(start, end)
-        switch_counts = get_switch_counts(start, end)
-        percentages = calculate_percentages(total_count, switch_counts)
+        switch_data = get_byte_sum(start, end)
+        switch_data = calculate_percentages(start, end, switch_data)
 
-        #print("AVG_flows_latency: ", AVG_flows_latency)
-        #print("AVG_hop_latency: ", AVG_hop_latency)
-        #print("Percentages: ", percentages)
+        #pprint("AVG_flows_latency: ", AVG_flows_latency)
+        #pprint("AVG_hop_latency: ", AVG_hop_latency)
+        #pprint("switch_data: ", switch_data)
 
-        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, percentages)
+        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data)
 
 def configure_final_file():
     set_pkt_loss()
