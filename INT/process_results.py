@@ -1,4 +1,5 @@
 import argparse
+from cmath import sqrt
 import csv
 import os
 import sys
@@ -572,7 +573,7 @@ def get_byte_sum(start, end):
     for switch_id in switch_ids:
         # Formulate the query to get the sum of bytes for the given switch ID and time range
         query = f"""
-            SELECT SUM("size") AS total_count 
+            SELECT SUM("size") AS total_count
             FROM flow_stats 
             WHERE time >= '{start}' AND time <= '{end}' 
             AND path =~ /(^|-)({switch_id})(-|$|\b)/
@@ -586,9 +587,8 @@ def get_byte_sum(start, end):
         if not result.raw["series"]:
             #print("No data found")
             continue
-        val = result.raw["series"][0]["values"][0][1]
         sum[switch_id] = {}
-        sum[switch_id]["Byte Sums"] = val
+        sum[switch_id]["Byte Sums"] = result.raw["series"][0]["values"][0][1]
     #pprint(sum)
 
     return sum
@@ -617,10 +617,50 @@ def calculate_percentages(start, end, switch_data):
         #tuple pair: id, count
         switch_id = int(row["tags"]["switch_id"])
         switch_count = int(row["values"][0][1])
-        switch_data[switch_id]["percentage_pkt"] = round((switch_count / total_count) * 100, 3)
+        switch_data[switch_id]["Percentage Pkt"] = round((switch_count / total_count) * 100, 3)
 
     #pprint(switch_data)
     return switch_data
+
+def get_mean_standard_deviation(switch_data):
+    #pprint(switch_data)
+    sum_percentage = 0
+    sum_byte = 0
+    count = 0
+
+    # Get the mean of the (Byte Sums) and (Percentage Pkt) for all switches in switch_data
+    for switch_id in switch_data:
+        sum_percentage += switch_data[switch_id]["Percentage Pkt"]
+        sum_byte += switch_data[switch_id]["Byte Sums"]
+        count += 1
+
+    percentage_mean = sum_percentage / count
+    byte_mean = sum_byte / count
+    
+
+    # Get the Standard Deviation of the (Byte Sums) and (Percentage Pkt) for all switches in switch_data
+    sum_squared_diff_percentage = 0
+    sum_squared_diff_byte = 0
+    
+    for switch_id in switch_data:
+        current_percentage = switch_data[switch_id]["Percentage Pkt"]
+        current_byte = switch_data[switch_id]["Byte Sums"]
+        sum_squared_diff_percentage += (current_percentage - percentage_mean) ** 2
+        sum_squared_diff_byte += (current_byte - byte_mean) ** 2
+    
+    percentage_std_dev = sqrt(sum_squared_diff_percentage / count).real
+    byte_std_dev = sqrt(sum_squared_diff_byte / count).real
+
+    #print("percentage_std_dev: ", percentage_std_dev)
+    #print("byte_std_dev: ", percentage_std_dev)
+    
+    switch_data["Percentage Mean"] = round(percentage_mean, 3)
+    switch_data["Byte Mean"] = round(byte_mean, 3)
+    switch_data["Percentage Standard Deviation"] = round(percentage_std_dev, 3)
+    switch_data["Byte Standard Deviation"] = round(byte_std_dev, 3)
+
+    return switch_data
+
 
 def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data):
     # Write the results in the sheet
@@ -644,16 +684,33 @@ def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_lat
     sheet[f'C{last_line + 3}'].font = Font(bold=True)
 
 
-    # Write percentages and total bytes processed
-    for i, (key, value) in enumerate(switch_data.items()):
-        #print(f"i: {i}, Switch ID: {key}, Percentage: {value['percentage_pkt']}, Byte Sums: {value['Byte Sums']}")
+    # Write percentages and total bytes processed, cycle through keys that are numbers
+    #pprint(switch_data)
+    #print("----------------------------------------")
+    for i, key in enumerate(switch_data.keys()):
+        if not isinstance(key, int):                #skip jets that are non-switch_id
+            #print(f"Key: {key} is not an integer")
+            continue
+        #print(f"Key: {key} is an integer")
+        #print(f"i: {i}, Switch ID: {key},  Values: {switch_data[key]}")
         sheet[f'A{last_line + 4 + i}'] = key
         
         #percentage of total packets that went to each switch
-        sheet[f'B{last_line + 4 + i}'] = round(value['percentage_pkt'], 3)
+        sheet[f'B{last_line + 4 + i}'] = switch_data[key]["Percentage Pkt"]
         
         #Sum of processed bytes
-        sheet[f'C{last_line + 4 + i}'] = value['Byte Sums']
+        sheet[f'C{last_line + 4 + i}'] = switch_data[key]["Byte Sums"]
+
+    # Write the mean and standard deviation of the percentages and bytes
+    sheet[f'A{last_line + i + 1}'] = "Mean"
+    sheet[f'A{last_line + i + 2}'] = "Standard Deviation"
+    sheet[f'A{last_line + i + 1}'].font = Font(bold=True)
+    sheet[f'A{last_line + i + 2}'].font = Font(bold=True)
+
+    sheet[f'B{last_line + i + 1}'] = switch_data["Percentage Mean"]
+    sheet[f'B{last_line + i + 2}'] = switch_data["Percentage Standard Deviation"]
+    sheet[f'C{last_line + i + 1}'] = switch_data["Byte Mean"]
+    sheet[f'C{last_line + i + 2}'] = switch_data["Byte Standard Deviation"]
 
     # Save the workbook
     workbook.save(file_path)
@@ -697,6 +754,7 @@ def set_INT_results():
         # % of packets that went to each individual switch (switch_id)
         switch_data = get_byte_sum(start, end)
         switch_data = calculate_percentages(start, end, switch_data)
+        switch_data = get_mean_standard_deviation(switch_data)
 
         #pprint("AVG_flows_latency: ", AVG_flows_latency)
         #pprint("AVG_hop_latency: ", AVG_hop_latency)
