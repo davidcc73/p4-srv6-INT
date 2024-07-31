@@ -205,7 +205,7 @@ def create_Emergency_flow(src_host, dst_host, flow_label, file_results, iteratio
     l4 = "udp"
     port = 443
     msg = "INTH1"
-    dscp = 36
+    dscp = 46
     size = 483                #Total byte size of the packet
     dst_IP_and_maks = constants.host_IPs[dst_host.name]
     dst_IP = dst_IP_and_maks.split("/")[0]
@@ -440,7 +440,7 @@ def high_emergency_load_test(net, routing):
         create_Video_flow(h2_1, h8_1, 2, file_results, iteration)
         create_Video_flow(h7_3, h8_4, 1, file_results, iteration)
         create_Video_flow(h5_1, h2_2, 1, file_results, iteration)
-        
+
         #--------------Start Emergency flows
         create_Emergency_flow(h8_4, h1_2, 1, file_results, iteration)
 
