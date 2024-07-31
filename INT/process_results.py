@@ -109,7 +109,7 @@ def adjust_columns_width():
         sheet = workbook[sheetname]
         for column_cells in sheet.columns:
             length = max(len(str(cell.value)) for cell in column_cells)
-            sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = length + 1
+            sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = length + 2
     
     # Save the workbook
     workbook.save(file_path)
@@ -371,7 +371,7 @@ def export_results(OG_file):
         sheet.title = sheet_name
     
     # Write the header
-    header = ["Flow src", "Flow dst", "Flow Label", "DSCP", "Packet Size (Bytes)", "Is", "Nº of packets", "1º Packet Timestamp(seconds,microseconds)", "Nº of out of order packets", "Out of order packets"]
+    header = ["Flow src", "Flow dst", "Flow Label", "DSCP", "Packet Size (Bytes)", "Is", "Nº of packets", "1º Packet Timestamp(seconds)", "Nº of out of order packets", "Out of order packets"]
     for col_num, value in enumerate(header, 1):
         cell = sheet.cell(row=1, column=col_num, value=value)
         cell.font = Font(bold=True)
@@ -437,7 +437,6 @@ def set_pkt_loss():
 
         no_formula_section = False
 
-        # Set collumn J to contain a formula to be the subtraction of values of collum E of the current pair of lines
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
             
             # Skip the SRv6 Operations section
