@@ -762,11 +762,92 @@ def set_INT_results():
 
         write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data)
 
+def get_flow_delays(start, end):
+    # Get the average delay of emergency and non-emergency flows
+    query = f"""
+        SELECT MEAN("latency") FROM  flow_stats WHERE time >= '{start}' AND time <= '{end}' AND dscp = 36
+    """
+    result = apply_query(query)
+    if not result.raw["series"]:
+        avg_emergency_flows_delay = "none"
+    else:
+        avg_emergency_flows_delay = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
+
+    query = f"""
+        SELECT MEAN("latency")
+        FROM  flow_stats
+        WHERE time >= '{start}' AND time <= '{end}'
+        AND dscp != 36
+    """
+
+    result = apply_query(query)
+    if not result.raw["series"]:
+        avg_non_emergency_flows_delay = "none"
+    else:
+        avg_non_emergency_flows_delay = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
+
+    return avg_emergency_flows_delay, avg_non_emergency_flows_delay 
+
+def set_Emergency_calculation():
+    # Configure each sheet
+    dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+
+    for i, sheet in enumerate(workbook.sheetnames):
+        sheet = workbook[sheet]
+
+        # Set new headers
+        max_line = sheet.max_row
+        sheet[f'A{max_line + 2}'] = "Flows Types"
+        sheet[f'B{max_line + 2}'] = "Non-Emergency Flows"
+        sheet[f'C{max_line + 2}'] = "Emergency Flows"
+        sheet[f'D{max_line + 2}'] = "Variation (%)"
+        
+        sheet[f'A{max_line + 3}'] = "AVG 1º Packet Delay (miliseconds)"
+        sheet[f'A{max_line + 4}'] = "AVG Flow Delay (miliseconds)"
+
+        sheet[f'A{max_line + 2}'].font = Font(bold=True)
+        sheet[f'B{max_line + 2}'].font = Font(bold=True)
+        sheet[f'C{max_line + 2}'].font = Font(bold=True)
+        sheet[f'D{max_line + 2}'].font = Font(bold=True)
+        sheet[f'A{max_line + 3}'].font = Font(bold=True)
+        sheet[f'A{max_line + 4}'].font = Font(bold=True)
+
+        #print(f"Processing sheet {sheet}")
+        #print(f"arg.f: {args.f}")
+        #get the index of the args.f which the name starts with the current sheet name
+        #print(f"Index: {i}")
+        start = args.start[i]
+        end = args.end[i]
+
+        avg_emergency_flows_delay, avg_non_emergency_flows_delay = get_flow_delays(start, end)
+
+        # Define the row range to consider
+        row_range = max_line - 1  # Rows before the max line
+
+        # Set the formula for the Non-Emergency Flows
+        sheet[f'B{max_line + 3}'] = f'=IF(SUMIF(D1:D{row_range}, "<>36", N1:N{row_range}) = 0, "none", SUMIF(D1:D{row_range}, "<>36", N1:N{row_range}))'
+        sheet[f'B{max_line + 4}'] = avg_non_emergency_flows_delay
+
+        # Set the formula for the Emergency Flows
+        sheet[f'C{max_line + 3}'] = f'=IF(SUMIF(D1:D{row_range}, 36, N1:N{row_range}) = 0, "none", SUMIF(D1:D{row_range}, 36, N1:N{row_range}))'
+        sheet[f'C{max_line + 4}'] = avg_emergency_flows_delay
+
+        #Set comparasion formulas, for the AVG 1º Packet Delay and AVG Flow Delay in percentage
+        sheet[f'D{max_line + 3}'] = f'=IFERROR(ROUND((C{max_line + 3} - B{max_line + 3})/B{max_line + 3}*100, 3), "none")'
+        sheet[f'D{max_line + 4}'] = f'=IFERROR(ROUND((C{max_line + 4} - B{max_line + 4})/B{max_line + 4}*100, 3), "none")'
+
+
+    workbook.save(file_path)
+
+
 def configure_final_file():
     set_pkt_loss()
     set_fist_pkt_delay()
     set_caculations()
     set_INT_results()
+    set_Emergency_calculation()
 
 def main():
     global args, client
