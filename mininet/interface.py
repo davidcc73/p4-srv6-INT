@@ -75,7 +75,8 @@ def print_menu():
     4. Medium Load Test
     5. High Load Test
     6. High Load Test with Emergency Flow
-    7. Medium -> High -> High with Emergency Flow Tests in Sequence
+    7. High -> High with Emergency Flow Tests in Sequence
+    8. Medium -> High -> High with Emergency Flow Tests in Sequence
     """
     print(menu)
 
@@ -461,7 +462,7 @@ def main_menu(net, choice):
     update_times()
 
     # Which routing method is going to be used?
-    if choice == 3 or choice == 4 or choice == 5 or choice == 6 or choice == 7:
+    if choice == 3 or choice == 4 or choice == 5 or choice == 6 or choice == 7 or choice == 8:
         choise2 = print_routing_menu()
         if choise2 == 0:
             return True
@@ -492,6 +493,12 @@ def main_menu(net, choice):
     elif choice == 6:
         high_emergency_load_test(net, routing)
     elif choice == 7:
+        high_load_test(net, routing)
+        print(ORANGE + "Waiting for 10 seconds between tests scenarios" + END)
+        time.sleep(15)
+        
+        high_emergency_load_test(net, routing)
+    elif choice == 8:
         medium_load_test(net, routing)
         print(ORANGE + "Waiting for 10 seconds between tests scenarios" + END)
         time.sleep(15)

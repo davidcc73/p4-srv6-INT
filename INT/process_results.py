@@ -765,7 +765,10 @@ def set_INT_results():
 def get_flow_delays(start, end):
     # Get the average delay of emergency and non-emergency flows
     query = f"""
-        SELECT MEAN("latency") FROM  flow_stats WHERE time >= '{start}' AND time <= '{end}' AND dscp = 36
+        SELECT MEAN("latency") 
+        FROM  flow_stats WHERE time >= '{start}' 
+        AND time <= '{end}' 
+        AND dscp = 46
     """
     result = apply_query(query)
     if not result.raw["series"]:
@@ -777,7 +780,7 @@ def get_flow_delays(start, end):
         SELECT MEAN("latency")
         FROM  flow_stats
         WHERE time >= '{start}' AND time <= '{end}'
-        AND dscp != 36
+        AND dscp != 46
     """
 
     result = apply_query(query)
@@ -827,11 +830,11 @@ def set_Emergency_calculation():
         row_range = max_line - 1  # Rows before the max line
 
         # Set the formula for the Non-Emergency Flows
-        sheet[f'B{max_line + 3}'] = f'=IF(SUMIF(D1:D{row_range}, "<>36", N1:N{row_range}) = 0, "none", SUMIF(D1:D{row_range}, "<>36", N1:N{row_range}))'
+        sheet[f'B{max_line + 3}'] = f'=IF(SUMIF(D1:D{row_range}, "<>46", N1:N{row_range}) = 0, "none", SUMIF(D1:D{row_range}, "<>46", N1:N{row_range}))'
         sheet[f'B{max_line + 4}'] = avg_non_emergency_flows_delay
 
         # Set the formula for the Emergency Flows
-        sheet[f'C{max_line + 3}'] = f'=IF(SUMIF(D1:D{row_range}, 36, N1:N{row_range}) = 0, "none", SUMIF(D1:D{row_range}, 36, N1:N{row_range}))'
+        sheet[f'C{max_line + 3}'] = f'=IF(SUMIF(D1:D{row_range}, 46, N1:N{row_range}) = 0, "none", SUMIF(D1:D{row_range}, 46, N1:N{row_range}))'
         sheet[f'C{max_line + 4}'] = avg_emergency_flows_delay
 
         #Set comparasion formulas, for the AVG 1º Packet Delay and AVG Flow Delay in percentage
