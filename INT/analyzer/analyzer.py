@@ -611,7 +611,7 @@ def search_overloaded_switches(session, switch_loads):
                 store_SRv6_rule(switch_id, values)      
 
                 print(CYAN + "created SRv6 rule:" + str(values) + END)
-                break           #break the loop on current switch, the detour was successful
+                break           #break the loop on current switch's flows, 1 the detour was successful 
         
         if switch_detour_done == False:
             print(ORANGE + "No flow was able to be detoured on this switch" + END)
