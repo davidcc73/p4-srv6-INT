@@ -34,7 +34,7 @@ sleep_time_seconds = 15
 analisy_window_minutes = 0.25
 static_infra_switches = [9, 10, 11, 12, 13, 14]              #lsit of the switch's id that belong to the static infrastructure
 
-thresholds_overloaded    = 0.75                              #percentage (including) threshold to consider a switch as overloaded
+thresholds_overloaded    = 0.70                              #percentage (including) threshold to consider a switch as overloaded
 thresholds_no_overloaded = 0.60                              #percentage (including) threshold to NO LONGER consider a switch as overloaded
 
 network_MTU = 1500                                           #Maximum Transmission Unit (MTU) of the network (bytes)
@@ -44,14 +44,15 @@ normalization_limits = {}
 
 # Define weights for each variable, THE SUM MUST BE 1
 weights = {
-    'is_infra_switch': 0.30,           # Weight for switch type
-    'num_packets': 0.40,               # Weight for number of packets
-    'avg_packet_procesing_time': 0.20, # Weight for average packet processing time
+    'no_infra_switch': 0.30,           # Weight for switch type
+    'num_packets': 0.10,               # Weight for number of packets
+    'avg_packet_procesing_time': 0.50, # Weight for average packet processing time
     'avg_packet_size': 0.10            # Weight for average packet size
 }
 
 # To store the currenty in usage SRv6 rules, key(switch that was overloaded) values: list dictionaries with the SRv6 args (strings)
 active_SRv6_rules = {}
+lows_alrady_demanded_detour_on_this_call = []             #to avoid overlaps ona single call (srcIP, dstIP, flow_label)
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -89,6 +90,10 @@ def delete_old_log():
     # Delete the log file if it already exists
     if os.path.exists(os.path.join(current_directory, log_file)):
         os.remove(os.path.join(current_directory, log_file))
+    
+    # Create the empty log file
+    with open(os.path.join(current_directory, log_file), 'w') as file:
+        pass
 
 def write_log(message):
     if args.routing is None or doNotLog is True:
@@ -365,10 +370,10 @@ def calculate_MCDA_loads(non_infra_switch, normalized_num_packets, normalized_av
     ])
     
     weight_values = np.array([
-        weights['is_infra_switch'],
+        weights['no_infra_switch'],
         weights['num_packets'],
-        weights['avg_packet_procesing_time'],
-        weights['avg_packet_size']
+        weights['avg_packet_size'],
+        weights['avg_packet_procesing_time']
     ])
 
     #print("Normalized values:", normalized_values)
@@ -435,10 +440,11 @@ def calculate_switches_load(stats_by_switch):
 
     return switch_loads
 
-def get_wrost_flow_on_switch(switch_id):
+def get_wrost_flows_on_switch(switch_id):
+    global flows_alrady_demanded_detour_on_this_call
+    
     #--------Get the worst flow in the current switch
-    wrost_flow = None
-    wrost_load = -1
+    flow_list = []      #to store the flows from the current switch from worst to best
 
     #similar to global one, but this only considers the current switch
     #switch_normalization_limits = update_max_values_on_switch(switch_id) 
@@ -473,6 +479,7 @@ def get_wrost_flow_on_switch(switch_id):
         src_ip = tags['src_ip']
         dst_ip = tags['dst_ip']
         flow_label = tags['flow_label']
+        new_flow = (src_ip, dst_ip, flow_label)
 
         num_packets = values[0][1]                  #no decimals
         avg_packet_size = values[0][2]              #bytes
@@ -483,37 +490,28 @@ def get_wrost_flow_on_switch(switch_id):
             #print("Switch is src or dst of the flow, skipping")
             continue
 
-        #print("-----------------------")
-        #print(f"Flow: {src_ip} -> {dst_ip} (Flow label: {flow_label})")
-        #print(f"Number of packets: {num_packets}")
-        #print(f"Average packet size: {avg_packet_size}")
-        #print(f"Average packet processing time: {avg_packet_procesing_time}")
 
         # Normalize the values, using the global normalization limits (not switch specific)
         normalized_num_packets               = normalize_value(num_packets,               normalization_limits['num_packets'][0],           normalization_limits['num_packets'][1])
         normalized_avg_packet_size           = normalize_value(avg_packet_size,           normalization_limits['packet_size'][0],           normalization_limits['packet_size'][1])
         normalized_avg_packet_procesing_time = normalize_value(avg_packet_procesing_time, normalization_limits['packet_procesing_time'][0], normalization_limits['packet_procesing_time'][1])
 
-
-        #print(f"Normalized Number of packets: {normalized_num_packets}")
-        #print(f"Normalized Average packet size: {normalized_avg_packet_size}")
-        #print(f"Normalized Average packet processing time: {normalized_avg_packet_procesing_time}")
-
-
         # Calculate the MCDA load
-        load = calculate_MCDA_loads(1, normalized_num_packets, normalized_avg_packet_size, normalized_avg_packet_procesing_time)
+        new_load = calculate_MCDA_loads(1, normalized_num_packets, normalized_avg_packet_size, normalized_avg_packet_procesing_time)
 
-        #print(f"Flow Load: {load}")
+        #store the flow in the list of flows by descending order of load
+        new = (new_flow, new_load)
+        if flow_list == []:
+            flow_list.append(new)
+        else:
+            for i, (flow, load) in enumerate(flow_list):
+                if new_load > load:
+                    flow_list.insert(i, new)
+                    break
+            else:
+                flow_list.append(new)
 
-        if load > wrost_load:
-            wrost_load = load
-            wrost_flow = (src_ip, dst_ip, flow_label)
-            #print("New wrost flow:", wrost_flow)
-
-    #print("For switch", switch_id, "the wrost flow is:", wrost_flow)
-    return wrost_flow
-
-
+    return flow_list
 
 
 
@@ -544,7 +542,9 @@ def search_no_longer_overloaded_switches(session, switch_loads):
         del active_SRv6_rules[switch_id]
 
 def search_overloaded_switches(session, switch_loads):
+    global flows_alrady_demanded_detour_on_this_call
     flows_alrady_demanded_detour_on_this_call = []             #to avoid overlaps ona single call (srcIP, dstIP, flow_label)
+    switch_detour_done = False
     #print("Searching for overloaded switches")
 
     #--------Iterate through switch_loads and see if the switchs have their loads above the thresholds_overloaded
@@ -563,45 +563,58 @@ def search_overloaded_switches(session, switch_loads):
 
     #Got through the list of bad switches
     for switch_id, load_value in bad_switch_loads:
+        switch_detour_done = False
         print(f"Switch {switch_id} is overloaded, checking flows")
 
         #--------Get the heaviest flow in the current switch
-        wrost = get_wrost_flow_on_switch(switch_id)
+        flow_list = get_wrost_flows_on_switch(switch_id)
 
-        if wrost is None:
-            print(ORANGE + "No flow can be detoured on this switch\033[0m")
+        if flow_list == []:
+            print(RED + "No flows in the switch have it as a non-src/dst, skipping" + END)
             continue
-        if wrost in flows_alrady_demanded_detour_on_this_call:
-            print("Flow already detoured on this call, skipping switch")
-            continue
+        
+        #cycle flows from worst to best, trying to detour the worst one 1º
+        for (src_ip, dst_ip, flow_label), load in flow_list:
+            current_flow = (src_ip, dst_ip, flow_label)
 
-        current_path = get_current_path(wrost)
-        code, result, srcSwitchID = request_SRv6_detour(session, wrost, current_path, bad_switch_loads)
+            if current_flow in flows_alrady_demanded_detour_on_this_call:
+                print("Flow already detoured on this call, skipping flow")
+                continue
 
-        #store the flow that was requested to detoured
-        flows_alrady_demanded_detour_on_this_call.append(wrost)
+            #print("For switch", switch_id, "the flow tring to be detoured is:", current_flow)
 
-        print(result)
-        if code != 0:
-            continue
-        else:
-            #prepare info to store in active_SRv6_rules 
-            print("Storing Detour info")
+            current_path = get_current_path(current_flow)
+            code, result, srcSwitchID = request_SRv6_detour(session, current_flow, current_path, bad_switch_loads)
 
-            devideID = srcSwitchID          #device that injects the SRv6 in the packet
-            srcIP = wrost[0]                #source IP of the flow
-            dstIP = wrost[1]                #destination IP of the flow
-            flow_label = wrost[2]           #flow label of the flow
-            src_mask = 128                  #source mask of the flow
-            dst_mask = 128                  #destination mask of the flow
-            flow_label_mask = 255           #flow label mask of the flow
-            
-            values = {'deviceID': devideID, 'srcIP': srcIP, 'dstIP': dstIP, 'flow_label': flow_label, 'src_mask': src_mask, 'dst_mask': dst_mask, 'flow_label_mask': flow_label_mask}
+            #store the flow that was requested to detoured
+            flows_alrady_demanded_detour_on_this_call.append(current_flow)
 
-            #store the SRv6 rule in the dictionary active_SRv6_rules, switch_id is the switch that was overloaded
-            store_SRv6_rule(switch_id, values)      
+            print(result)
+            if code != 0:           #if the detour was not successful, try the next flow
+                continue
+            else:
+                #prepare info to store in active_SRv6_rules 
+                print("Storing Detour info")
+                switch_detour_done = True
 
-            print(CYAN + "created SRv6 rule:" + str(values) + END)
+                devideID = srcSwitchID          #device that injects the SRv6 in the packet
+                srcIP = current_flow[0]                #source IP of the flow
+                dstIP = current_flow[1]                #destination IP of the flow
+                flow_label = current_flow[2]           #flow label of the flow
+                src_mask = 128                  #source mask of the flow
+                dst_mask = 128                  #destination mask of the flow
+                flow_label_mask = 255           #flow label mask of the flow
+                
+                values = {'deviceID': devideID, 'srcIP': srcIP, 'dstIP': dstIP, 'flow_label': flow_label, 'src_mask': src_mask, 'dst_mask': dst_mask, 'flow_label_mask': flow_label_mask}
+
+                #store the SRv6 rule in the dictionary active_SRv6_rules, switch_id is the switch that was overloaded
+                store_SRv6_rule(switch_id, values)      
+
+                print(CYAN + "created SRv6 rule:" + str(values) + END)
+                break           #break the loop on current switch, the detour was successful
+        
+        if switch_detour_done == False:
+            print(ORANGE + "No flow was able to be detoured on this switch" + END)
 
 
 
@@ -633,21 +646,35 @@ def update_max_values_globaly():
     }
 
     # Send query to DB so I can get the current max for packet_procesing_time and count how many packets, remove the -1
-    query = f"""
-                SELECT MAX("latency") AS MAX_latency
-                FROM switch_stats 
-                WHERE time >= '{minutes_ago_str}' 
-                """
-    result = apply_query(query)
+    # Query to get the 90th percentile latency value
+    percentile_query = f"""
+        SELECT PERCENTILE("latency", 90) AS p_latency
+        FROM switch_stats
+        WHERE time >= '{minutes_ago_str}'
+    """
+
+    # Execute the first query to get the 90th percentile value, to exclude outliers
+    percentile_result = apply_query(percentile_query)
+    p_latency = list(percentile_result.get_points())[0]['p_latency']   #nanioseconds
+
     #if empty return False
-    if not result: return False
+    if not percentile_result: return False
+    #print("percentile latency:", p_latency)
 
-    #extract the values from the query
-    for series in result.raw['series']:
-        values = series.get('values')       #[0][time, MAX_latency]
-        max_latency = values[0][1]          #nanoseconds
+    # Use the 90th percentile value to filter and get the maximum latency below this value
+    max_latency_query = f"""
+        SELECT MAX("latency") AS MAX_latency
+        FROM switch_stats
+        WHERE time >= '{minutes_ago_str}' AND "latency" <= {p_latency}
+    """
 
+    # Execute the second query to get the maximum latency below the 90th percentile
+    max_latency_result = apply_query(max_latency_query)
+    max_latency = list(max_latency_result.get_points())[0]['MAX_latency']
 
+    #print("Max latency:", max_latency)
+
+    #---------------------------------Get the total number of packets in the current time window
     query = f"""
                 SELECT COUNT("latency") AS total_num_packets
                 FROM flow_stats 
