@@ -82,9 +82,9 @@ sudo python3 INT/analyzer/analyzer.py --routing Medium-ECMP --num_iterations 10 
 #--------------------Parse Exported Results, the filename will be used before (_) to create the output file
 sudo python3 INT/process_results.py \
 --f \
-MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGRNCY-KShort_raw_results.csv \
-MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGRNCY-ECMP_raw_results.csv  \
-MEDIUM-ECMP-SRv6_raw_results.csv HIGH-ECMP-SRv6_raw_results.csv   HIGH+EMERGRNCY-ECMP-SRv6_raw_results.csv \
+MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGENCY-KShort_raw_results.csv \
+MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGENCY-ECMP_raw_results.csv  \
+MEDIUM-ECMP-SRv6_raw_results.csv HIGH-ECMP-SRv6_raw_results.csv   HIGH+EMERGENCY-ECMP-SRv6_raw_results.csv \
 --start \
 2024-07-29T17:49:49.780660+00:00 2024-07-31T16:54:49.472255+00:00 2024-07-31T21:06:22.792803+00:00 \
 2024-07-29T13:33:13.863031+00:00 2024-08-01T00:51:46.660456+00:00 2024-08-01T01:42:32.696943+00:00 \

@@ -9,7 +9,7 @@ import constants
 export_file_LOW = "LOW"
 export_file_MEDIUM = "MEDIUM"
 export_file_HIGH = "HIGH"
-export_file_HIGH_EMERGRNCY = "HIGH+EMERGRNCY"
+export_file_HIGH_EMERGENCY = "HIGH+EMERGENCY"
 
 ORANGE = '\033[38;5;214m'
 RED = '\033[31m'
@@ -387,13 +387,13 @@ def high_load_test(net, routing):
     print(CYAN + "High Load Test finished at:" + str(rfc3339_time) + END)
 
 def high_emergency_load_test(net, routing):
-    global export_file_HIGH_EMERGRNCY
+    global export_file_HIGH_EMERGENCY
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
     print("---------------------------")
     print(GREEN + "High with Emergency Load Test, started at:" + str(rfc3339_time) + END)
 
-    file_results = export_file_HIGH_EMERGRNCY + "-" + routing + "_raw_results.csv"
+    file_results = export_file_HIGH_EMERGENCY + "-" + routing + "_raw_results.csv"
     lock_filename = f"LOCK_{file_results}"
 
     #create logs directory
