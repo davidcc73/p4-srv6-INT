@@ -672,6 +672,62 @@ def get_mean_standard_deviation(switch_data):
 
     return switch_data
 
+def set_test_case_headers(sheet, test_case, max_line):
+    # Set test case name in bold test
+    title = f"{test_case}"
+    sheet[f'A{max_line}'] = title
+    sheet[f'A{max_line}'].font = Font(bold=True)
+
+    # Set the collumn names
+    sheet[f'B{max_line}'] = "KShort"
+    sheet[f'C{max_line}'] = "ECMP"
+    sheet[f'D{max_line}'] = "ECMP+SRv6"
+    sheet[f'E{max_line}'] = "Variation1 (%)"
+    sheet[f'F{max_line}'] = "Variation2 (%)"
+    sheet[f'G{max_line}'] = "Variation3 (%)"
+
+    # Set collumn names in bold text
+    sheet[f'B{max_line}'].font = Font(bold=True)
+    sheet[f'C{max_line}'].font = Font(bold=True)
+    sheet[f'D{max_line}'].font = Font(bold=True)
+    sheet[f'E{max_line}'].font = Font(bold=True)
+    sheet[f'F{max_line}'].font = Font(bold=True)
+    sheet[f'G{max_line}'].font = Font(bold=True)
+
+    # Set the lines names
+    sheet[f'A{max_line + 1}'] = "AVG Out of Order Packets (Nº)"
+    sheet[f'A{max_line + 2}'] = "AVG Packet Loss (Nº)"
+    sheet[f'A{max_line + 3}'] = "AVG Packet Loss (%)"
+    sheet[f'A{max_line + 4}'] = "AVG 1º Packet Delay (miliseconds)"
+    sheet[f'A{max_line + 5}'] = "AVG Nº of SRv6 rules Created"
+    sheet[f'A{max_line + 6}'] = "AVG Nº of SRv6 rules Removed"
+    sheet[f'A{max_line + 7}'] = "AVG Flows Latency (miliseconds)"
+    sheet[f'A{max_line + 8}'] = "AVG Hop Latency (miliseconds)"
+    sheet[f'A{max_line + 9}'] = "AVG of packets to each switch (%)"
+    sheet[f'A{max_line + 10}'] = "Standard Deviation of packets to each switch (%)"
+    sheet[f'A{max_line + 11}'] = "AVG of processed Bytes to each switch"
+    sheet[f'A{max_line + 12}'] = "Standard Deviation of processed Bytes to each switch"
+    sheet[f'A{max_line + 13}'] = "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (miliseconds)"
+    sheet[f'A{max_line + 14}'] = "Variation of the AVG Flow Delay between (No)Emergency Flows (miliseconds) "
+
+
+    # Set lines names in bold text
+    sheet[f'A{max_line + 1}'].font = Font(bold=True)
+    sheet[f'A{max_line + 2}'].font = Font(bold=True)
+    sheet[f'A{max_line + 3}'].font = Font(bold=True)
+    sheet[f'A{max_line + 4}'].font = Font(bold=True)
+    sheet[f'A{max_line + 5}'].font = Font(bold=True)
+    sheet[f'A{max_line + 6}'].font = Font(bold=True)
+    sheet[f'A{max_line + 7}'].font = Font(bold=True)
+    sheet[f'A{max_line + 8}'].font = Font(bold=True)
+    sheet[f'A{max_line + 9}'].font = Font(bold=True)
+    sheet[f'A{max_line + 10}'].font = Font(bold=True)
+    sheet[f'A{max_line + 11}'].font = Font(bold=True)
+    sheet[f'A{max_line + 12}'].font = Font(bold=True)
+    sheet[f'A{max_line + 13}'].font = Font(bold=True)
+    sheet[f'A{max_line + 14}'].font = Font(bold=True)
+
+
 
 def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data):
     # Write the results in the sheet
@@ -855,6 +911,44 @@ def set_Emergency_calculation():
 
     workbook.save(file_path)
 
+def set_Comparison_sheet():
+    print("Setting the Comparison sheet")
+    test_cases = ["Medium Load", "High Load", "High+Emergency Load"]
+
+    # Create the comparison sheet
+    dir_path = os.path.join(current_directory, result_directory)
+    file_path = os.path.join(dir_path, final_file)
+    workbook = load_workbook(file_path)
+    sheet = workbook.create_sheet(title="Comparison")
+
+
+    title = "Test Cases"
+    sheet[f'A1'] = title
+    sheet[f'A1'].font = Font(bold=True)
+
+    sheet[f'A2'] = "Variation1: is between KShort and ECMP"
+    sheet[f'A3'] = "Variation2: is between KShort and ECMP+SRv6"
+    sheet[f'A4'] = "Variation3: is between ECMP and ECMP+SRv6"
+
+    # Empty line
+    sheet.append([""])
+    
+    # Create a block for each test case
+    for i, test_case in enumerate(test_cases):
+        # Get max line considering the previous test cases
+        max_line = sheet.max_row + 1
+
+        set_test_case_headers(sheet, test_case, max_line)
+
+
+
+
+        # Insert 2 empty lines
+        sheet.append([""])
+        sheet.append([""])
+
+    # Save the workbook
+    workbook.save(file_path)
 
 def configure_final_file():
     set_pkt_loss()
@@ -862,6 +956,7 @@ def configure_final_file():
     set_caculations()
     set_INT_results()
     set_Emergency_calculation()
+    set_Comparison_sheet()
 
 def main():
     global args, client
