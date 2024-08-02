@@ -33,9 +33,9 @@ algorithms = ["KShort", "ECMP", "ECMP-SRv6"]
 
 headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG Packet Loss (%)", 
                 "AVG 1º Packet Delay (miliseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
-                "AVG Flows Latency (miliseconds)", "AVG Hop Latency (miliseconds)", "AVG of packets to each switch (%)",
-                "Standard Deviation of packets to each switch (%)", "AVG of processed Bytes to each switch",
-                "Standard Deviation of processed Bytes to each switch", 
+                "AVG Flows Latency (miliseconds)", "AVG Hop Latency (miliseconds)", 
+                "AVG of packets to each switch (%)", "Standard Deviation of packets to each switch (%)", 
+                "AVG of processed Bytes to each switch", "Standard Deviation of processed Bytes to each switch", 
                 "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (miliseconds)",
                 "Variation of the AVG Flow Delay between (No)Emergency Flows (miliseconds)"]
 
@@ -219,7 +219,7 @@ def read_csv_files(filename):
                 read_raw_results(row)
     except Exception as e:
         print(f"An error occurred while reading {filename}: {e}")
-    print("Done reading file")
+    #print("Done reading file")
     #pprint(results)
 
 def read_SRv6_line(line):
@@ -743,7 +743,7 @@ def set_test_case_headers(sheet, test_case, max_line):
 
 def set_comparasion_formulas(sheet, max_line):
     # Set the formulas to compare the results between the test cases
-    for i in range(1, num_values_to_compare_all_tests):
+    for i in range(1, num_values_to_compare_all_tests + 1):
         sheet[f'E{max_line + i}'] = f'=IFERROR(ROUND((C{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3), 0)'
         sheet[f'F{max_line + i}'] = f'=IFERROR(ROUND((D{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3), 0)'
         sheet[f'G{max_line + i}'] = f'=IFERROR(ROUND((D{max_line + i} - C{max_line + i}) / C{max_line + i} * 100, 3), 0)'
@@ -759,13 +759,49 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
 
     variable_name = headers_lines[variable_number]
 
+    pass_1_occurance = True          #there are 2 Lines on collumn A that have the same name
+    if variable_number == 12:
+        pass_1_occurance = False 
+
     # sheet_to_copy_from, get the line of the cell that contains the variable_name on collumn A and the collumn after it
     for row in sheet_to_copy_from.iter_rows(min_row=1, max_row=sheet_to_copy_from.max_row, min_col=1, max_col=1):
-        if row[0].value == variable_name:
-            line = row[0].row
-            # Get the next collumn letter of the cell that contains the variable_name
-            col = get_column_letter(row[0].column + 1)
-            break
+        
+        if pass_1_occurance == False and row[0].value == "AVG 1º Packet Delay (miliseconds)":
+            pass_1_occurance = True
+            continue
+        
+        if variable_number <= 7:
+            if row[0].value == variable_name:
+                # Get the next collumn letter of the cell that contains the variable_name
+                line = row[0].row
+                col = get_column_letter(row[0].column + 1)
+                break
+        elif variable_number == 8 or variable_number == 10:
+            if row[0].value == "Mean":
+                line = row[0].row
+                if variable_number == 8:
+                    col = get_column_letter(row[0].column + 1)
+                else:
+                    col = get_column_letter(row[0].column + 2)
+                break
+        elif variable_number == 9 or variable_number == 11:
+            if row[0].value == "Standard Deviation":
+                line = row[0].row
+                if variable_number == 9:
+                    col = get_column_letter(row[0].column + 1)
+                else:
+                    col = get_column_letter(row[0].column + 2)
+                break
+        elif variable_number == 12:
+            if row[0].value == "AVG 1º Packet Delay (miliseconds)":
+                line = row[0].row
+                col = get_column_letter(row[0].column + 3)
+                break
+        elif variable_number == 13:
+            if row[0].value == "AVG Flow Delay (miliseconds)":
+                line = row[0].row
+                col = get_column_letter(row[0].column + 3)
+                break
 
     return line, col
 
