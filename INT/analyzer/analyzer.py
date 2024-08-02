@@ -779,5 +779,6 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Starting analyzer")
     parse_args()
     main()
