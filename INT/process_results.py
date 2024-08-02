@@ -727,7 +727,12 @@ def set_test_case_headers(sheet, test_case, max_line):
     sheet[f'A{max_line + 13}'].font = Font(bold=True)
     sheet[f'A{max_line + 14}'].font = Font(bold=True)
 
-
+def set_comparasion_formulas(sheet, max_line):
+    # Set the formulas to compare the results between the test cases
+    for i in range(1, 14):
+        sheet[f'E{max_line + i}'] = f'=ROUND((C{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3)'
+        sheet[f'F{max_line + i}'] = f'=ROUND((D{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3)'
+        sheet[f'G{max_line + i}'] = f'=ROUND((D{max_line + i} - C{max_line + i}) / C{max_line + i} * 100, 3)'
 
 def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data):
     # Write the results in the sheet
@@ -939,7 +944,7 @@ def set_Comparison_sheet():
         max_line = sheet.max_row + 1
 
         set_test_case_headers(sheet, test_case, max_line)
-
+        set_comparasion_formulas(sheet, max_line)
 
 
 
