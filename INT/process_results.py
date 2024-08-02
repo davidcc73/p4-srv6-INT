@@ -29,6 +29,18 @@ client = InfluxDBClient(host=host, database=dbname)
 # SRv6 logs
 log_file = "ECMP-SRv6 rules.log"
 
+algorithms = ["KShort", "ECMP", "ECMP-SRv6"]
+
+headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG Packet Loss (%)", 
+                "AVG 1º Packet Delay (miliseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
+                "AVG Flows Latency (miliseconds)", "AVG Hop Latency (miliseconds)", "AVG of packets to each switch (%)",
+                "Standard Deviation of packets to each switch (%)", "AVG of processed Bytes to each switch",
+                "Standard Deviation of processed Bytes to each switch", 
+                "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (miliseconds)",
+                "Variation of the AVG Flow Delay between (No)Emergency Flows (miliseconds)"]
+
+num_values_to_compare_all_tests = len(headers_lines)
+
 def parse_args():
     global args
 
@@ -673,6 +685,8 @@ def get_mean_standard_deviation(switch_data):
     return switch_data
 
 def set_test_case_headers(sheet, test_case, max_line):
+    global headers_lines
+
     # Set test case name in bold test
     title = f"{test_case}"
     sheet[f'A{max_line}'] = title
@@ -695,20 +709,20 @@ def set_test_case_headers(sheet, test_case, max_line):
     sheet[f'G{max_line}'].font = Font(bold=True)
 
     # Set the lines names
-    sheet[f'A{max_line + 1}'] = "AVG Out of Order Packets (Nº)"
-    sheet[f'A{max_line + 2}'] = "AVG Packet Loss (Nº)"
-    sheet[f'A{max_line + 3}'] = "AVG Packet Loss (%)"
-    sheet[f'A{max_line + 4}'] = "AVG 1º Packet Delay (miliseconds)"
-    sheet[f'A{max_line + 5}'] = "AVG Nº of SRv6 rules Created"
-    sheet[f'A{max_line + 6}'] = "AVG Nº of SRv6 rules Removed"
-    sheet[f'A{max_line + 7}'] = "AVG Flows Latency (miliseconds)"
-    sheet[f'A{max_line + 8}'] = "AVG Hop Latency (miliseconds)"
-    sheet[f'A{max_line + 9}'] = "AVG of packets to each switch (%)"
-    sheet[f'A{max_line + 10}'] = "Standard Deviation of packets to each switch (%)"
-    sheet[f'A{max_line + 11}'] = "AVG of processed Bytes to each switch"
-    sheet[f'A{max_line + 12}'] = "Standard Deviation of processed Bytes to each switch"
-    sheet[f'A{max_line + 13}'] = "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (miliseconds)"
-    sheet[f'A{max_line + 14}'] = "Variation of the AVG Flow Delay between (No)Emergency Flows (miliseconds) "
+    sheet[f'A{max_line + 1}'] = headers_lines[0]
+    sheet[f'A{max_line + 2}'] = headers_lines[1]
+    sheet[f'A{max_line + 3}'] = headers_lines[2]
+    sheet[f'A{max_line + 4}'] = headers_lines[3]
+    sheet[f'A{max_line + 5}'] = headers_lines[4]
+    sheet[f'A{max_line + 6}'] = headers_lines[5]
+    sheet[f'A{max_line + 7}'] = headers_lines[6]
+    sheet[f'A{max_line + 8}'] = headers_lines[7]
+    sheet[f'A{max_line + 9}'] = headers_lines[8]
+    sheet[f'A{max_line + 10}'] = headers_lines[9]
+    sheet[f'A{max_line + 11}'] = headers_lines[10]
+    sheet[f'A{max_line + 12}'] = headers_lines[11]
+    sheet[f'A{max_line + 13}'] = headers_lines[12]
+    sheet[f'A{max_line + 14}'] = headers_lines[13]
 
 
     # Set lines names in bold text
@@ -729,10 +743,52 @@ def set_test_case_headers(sheet, test_case, max_line):
 
 def set_comparasion_formulas(sheet, max_line):
     # Set the formulas to compare the results between the test cases
-    for i in range(1, 14):
-        sheet[f'E{max_line + i}'] = f'=ROUND((C{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3)'
-        sheet[f'F{max_line + i}'] = f'=ROUND((D{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3)'
-        sheet[f'G{max_line + i}'] = f'=ROUND((D{max_line + i} - C{max_line + i}) / C{max_line + i} * 100, 3)'
+    for i in range(1, num_values_to_compare_all_tests):
+        sheet[f'E{max_line + i}'] = f'=IFERROR(ROUND((C{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3), 0)'
+        sheet[f'F{max_line + i}'] = f'=IFERROR(ROUND((D{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3), 0)'
+        sheet[f'G{max_line + i}'] = f'=IFERROR(ROUND((D{max_line + i} - C{max_line + i}) / C{max_line + i} * 100, 3), 0)'
+
+def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
+    global headers_lines
+    line =None
+    col = None
+
+    file_path = os.path.join(current_directory, result_directory, final_file)
+    workbook = load_workbook(file_path)
+    sheet_to_copy_from = workbook[sheet_to_copy_from_name]
+
+    variable_name = headers_lines[variable_number]
+
+    # sheet_to_copy_from, get the line of the cell that contains the variable_name on collumn A and the collumn after it
+    for row in sheet_to_copy_from.iter_rows(min_row=1, max_row=sheet_to_copy_from.max_row, min_col=1, max_col=1):
+        if row[0].value == variable_name:
+            line = row[0].row
+            # Get the next collumn letter of the cell that contains the variable_name
+            col = get_column_letter(row[0].column + 1)
+            break
+
+    return line, col
+
+def set_copied_values(sheet, test_case, max_line):
+    global algorithms
+    
+    # Cycle through the variables to compare (lines)
+    for variable_number in range(num_values_to_compare_all_tests):
+        
+        # Cycle through the algorithms to copy the values (columns)
+        for i in range(len(algorithms)):
+            #--------------Collumn C is the second algorithm, ECMP
+            sheet_to_copy_from_name = f"{test_case}-{algorithms[i]}"
+            line, column = get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number)
+
+            if line is None or column is None:
+                print(f"Error getting line and column to copy from, sheet_to_copy_from: {sheet_to_copy_from_name}, variable number: {variable_number}")
+                continue
+
+            cell_reference = f"{column}{line}"
+            formula = f"='{sheet_to_copy_from_name}'!{cell_reference}"
+            sheet[f'{get_column_letter(2 + i)}{max_line + 1 + variable_number}'] = formula
+
 
 def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data):
     # Write the results in the sheet
@@ -918,7 +974,7 @@ def set_Emergency_calculation():
 
 def set_Comparison_sheet():
     print("Setting the Comparison sheet")
-    test_cases = ["Medium Load", "High Load", "High+Emergency Load"]
+    test_cases = ["MEDIUM", "HIGH", "HIGH+EMERGENCY"]
 
     # Create the comparison sheet
     dir_path = os.path.join(current_directory, result_directory)
@@ -927,7 +983,7 @@ def set_Comparison_sheet():
     sheet = workbook.create_sheet(title="Comparison")
 
 
-    title = "Test Cases"
+    title = "Load Test Cases"
     sheet[f'A1'] = title
     sheet[f'A1'].font = Font(bold=True)
 
@@ -945,8 +1001,7 @@ def set_Comparison_sheet():
 
         set_test_case_headers(sheet, test_case, max_line)
         set_comparasion_formulas(sheet, max_line)
-
-
+        set_copied_values(sheet, test_case, max_line)
 
         # Insert 2 empty lines
         sheet.append([""])
