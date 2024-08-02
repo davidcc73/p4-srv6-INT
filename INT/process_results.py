@@ -42,11 +42,13 @@ def parse_args():
     parser.add_argument('--end', help='Timestamp (RFC3339 format) of when each test ended (1 peer file)',
                         type=str, action="store", required=True, nargs='+')
     
-    # 2 Optional argument, that must be used simultaneously
+    # 3 Optional argument, that must be used simultaneously
     parser.add_argument('--SRv6_index', help='Indexs of the files that have SRv6 logs associated to them (starting from 0)',
                         type=int, action="store", required=False, nargs='+')
     parser.add_argument('--SRv6_logs', help='Names of the log files with the SRv6 rules from previous argument (must match the order)',
                         type=str, action="store", required=False, nargs='+')
+    parser.add_argument('--num_iterations', help='Nº of iterations on every test, help SRv6 AVG calculations)',
+                        type=int, action="store", required=False)
 
     args = parser.parse_args()
     
@@ -57,9 +59,11 @@ def parse_args():
         parser.error("The number of elements in --start and --end must be the same as the number of files")
 
 
-    # Check if args pairs SRv6_index and SRv6_logs are used together
+    # Check if args pairs SRv6_index, SRv6_logs and num_iterations are used together
     if (args.SRv6_index and not args.SRv6_logs) or (not args.SRv6_index and args.SRv6_logs):
         parser.error("Both --SRv6_index and --SRv6_logs must be used together")
+    if not args.num_iterations and args.SRv6_index:
+        parser.error("The --num_iterations must be used with --SRv6_index and --SRv6_logs")
 
     # Check if the number of elements is the same in SRv6_index and SRv6_logs
     if args.SRv6_index and args.SRv6_logs:
@@ -529,6 +533,8 @@ def set_caculations():
         sheet[f'A{last_line + 2}'] = "AVG Packet Loss (Nº)"
         sheet[f'A{last_line + 3}'] = "AVG Packet Loss (%)"
         sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay (miliseconds)"
+        sheet[f'A{last_line + 5}'] = "AVG Nº of SRv6 rules Created"
+        sheet[f'A{last_line + 6}'] = "AVG Nº of SRv6 rules Removed"
         sheet[f'B{last_line}'] = "Values"
 
         sheet[f'A{last_line}'].font = Font(bold=True)
@@ -536,6 +542,8 @@ def set_caculations():
         sheet[f'A{last_line + 2}'].font = Font(bold=True)
         sheet[f'A{last_line + 3}'].font = Font(bold=True)
         sheet[f'A{last_line + 4}'].font = Font(bold=True)
+        sheet[f'A{last_line + 5}'].font = Font(bold=True)
+        sheet[f'A{last_line + 6}'].font = Font(bold=True)
         sheet[f'B{last_line}'].font = Font(bold=True)
 
         # on the next line for each column, set the average of the column, ignore empty cells
@@ -543,6 +551,9 @@ def set_caculations():
         sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
         sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(M:M, "<>", M:M), 3)'
         sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(N:N, "<>", N:N), 3)'
+        sheet[f'B{last_line + 5}'] = f'=COUNTIF(B:B, "Created SRv6 rule") / {args.num_iterations}'
+        sheet[f'B{last_line + 6}'] = f'=COUNTIF(B:B, "Removed SRv6 rule") / {args.num_iterations}'
+
 
 
     # Save the workbook

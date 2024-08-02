@@ -84,19 +84,20 @@ sudo python3 INT/process_results.py \
 --f \
 MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGRNCY-KShort_raw_results.csv \
 MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGRNCY-ECMP_raw_results.csv  \
-MEDIUM-ECMP-SRv6_raw_results.csv \
+MEDIUM-ECMP-SRv6_raw_results.csv HIGH-ECMP-SRv6_raw_results.csv   HIGH+EMERGRNCY-ECMP-SRv6_raw_results.csv \
 --start \
 2024-07-29T17:49:49.780660+00:00 2024-07-31T16:54:49.472255+00:00 2024-07-31T21:06:22.792803+00:00 \
 2024-07-29T13:33:13.863031+00:00 2024-08-01T00:51:46.660456+00:00 2024-08-01T01:42:32.696943+00:00 \
-2024-08-01T21:50:09.859542+00:00 \
+2024-08-01T21:50:09.859542+00:00 2024-08-01T22:45:38.528631+00:00 2024-08-01T23:56:11.362954+00:00 \
 \
 --end \
 2024-07-29T18:40:20.542039+00:00 2024-07-31T17:45:20.414431+00:00 2024-07-31T21:56:53.766731+00:00 \
 2024-07-29T14:23:44.610712+00:00 2024-08-01T01:42:17.684035+00:00 2024-08-01T02:33:03.755964+00:00 \
-2024-08-01T22:41:34.627929+00:00  \
+2024-08-01T22:41:34.627929+00:00 2024-08-01T23:42:00.690341+00:00 2024-08-02T00:48:17.228234+00:00 \
 \
---SRv6_index 6  \
---SRv6_logs Medium-ECMP-SRv6_rules.log  \
+--SRv6_index 6 7 8 \
+--SRv6_logs Medium-ECMP-SRv6_rules.log High-ECMP-SRv6_rules.log High+Emergency-ECMP-SRv6_rules.log \
+--num_iterations 10 
 
 
 sudo python3 INT/process_results.py \
