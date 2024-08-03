@@ -1,0 +1,6 @@
+1 - 2024-08-03 15:59:32 - Created SRv6 rule => 7: {'deviceID': '2', 'srcIP': '2001:1:2::2', 'dstIP': '2001:1:8::2', 'flow_label': '1', 'src_mask': 128, 'dst_mask': 128, 'flow_label_mask': 255}
+1 - 2024-08-03 16:00:18 - Removed SRv6 rule => 7: {'deviceID': '2', 'srcIP': '2001:1:2::2', 'dstIP': '2001:1:8::2', 'flow_label': '1', 'src_mask': 128, 'dst_mask': 128, 'flow_label_mask': 255}
+1 - 2024-08-03 16:01:35 - Created SRv6 rule => 3: {'deviceID': '2', 'srcIP': '2001:1:2::2', 'dstIP': '2001:1:8::2', 'flow_label': '1', 'src_mask': 128, 'dst_mask': 128, 'flow_label_mask': 255}
+1 - 2024-08-03 16:01:51 - Removed SRv6 rule => 3: {'deviceID': '2', 'srcIP': '2001:1:2::2', 'dstIP': '2001:1:8::2', 'flow_label': '1', 'src_mask': 128, 'dst_mask': 128, 'flow_label_mask': 255}
+2 - 2024-08-03 16:06:06 - Created SRv6 rule => 3: {'deviceID': '2', 'srcIP': '2001:1:2::2', 'dstIP': '2001:1:8::2', 'flow_label': '1', 'src_mask': 128, 'dst_mask': 128, 'flow_label_mask': 255}
+2 - 2024-08-03 16:06:22 - Removed SRv6 rule => 3: {'deviceID': '2', 'srcIP': '2001:1:2::2', 'dstIP': '2001:1:8::2', 'flow_label': '1', 'src_mask': 128, 'dst_mask': 128, 'flow_label_mask': 255}
