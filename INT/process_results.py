@@ -1055,13 +1055,14 @@ def configure_final_file():
     set_Comparison_sheet()
 
 def main():
-    global args, client
+    global args, client, results
     
     check_files_exist()
 
     # Read the CSV and SRv6 files
     for file_index, filename in enumerate(args.f):
         #print(f"file_index: {file_index}, Filename: {filename}")
+        results = {}
         read_csv_files(filename)
         if args.SRv6_index is not None and file_index in args.SRv6_index:
             #Retrive the SRv6 logs data for the current file
