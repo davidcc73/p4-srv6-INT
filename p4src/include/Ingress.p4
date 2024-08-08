@@ -503,7 +503,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
                 srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates into SRv6 or not
             }
 
-            //-----------------Forwarding by IP -> MAC address
+            //-----------------L3: Forwarding by IP -> MAC address
             if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
                 //first we try doing ECMP routing, if it fails we do kShortestPath
                 //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
@@ -517,7 +517,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
         }
 
-        //-----------------Forwarding by MAC address -> Port
+        //-----------------L2: Forwarding by MAC address -> Port
 	    if (!local_metadata.skip_l2) {            //the egress_spec for the next hop was not defined by ndp_reply_table
             if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
                 log_msg("It's an LLDP multicast packet, not meant to be forwarded");
