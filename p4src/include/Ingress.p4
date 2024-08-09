@@ -519,7 +519,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         //-----------------L2: Forwarding by MAC address -> Port
 	    if (!local_metadata.skip_l2) {            //the egress_spec for the next hop was not defined by ndp_reply_table
-            if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it
+            if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it, TODO: THIS IF MAY BE MOVABLE TO BEFORE THE L2 SKIP IF
                 log_msg("It's an LLDP multicast packet, not meant to be forwarded");
             }
             else{
