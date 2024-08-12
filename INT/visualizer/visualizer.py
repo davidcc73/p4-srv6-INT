@@ -27,6 +27,12 @@ path_colors = {}
 # Dicionário para armazenar índices das arestas para cada fluxo
 edge_flow_indices = {}
 
+# Dicionário para armazenar IDs para cada fluxo
+flow_ids = {}
+
+# Variável para rastrear o próximo ID disponível
+next_flow_id = 1
+
 # Função para atribuir uma cor a um fluxo
 def assign_color(flow_identifier):
     if flow_identifier not in path_colors:
@@ -37,7 +43,14 @@ def assign_color(flow_identifier):
             path_colors[flow_identifier] = "#{:06x}".format(random.randint(0, 0xFFFFFF))
     return path_colors[flow_identifier]
 
-# Função para atualizar o gráfico
+# Função para atribuir um ID a um fluxo
+def assign_flow_id(flow_identifier):
+    global next_flow_id
+    if flow_identifier not in flow_ids:
+        flow_ids[flow_identifier] = next_flow_id
+        next_flow_id += 1
+    return flow_ids[flow_identifier]
+
 # Função para atualizar o gráfico
 def update_graph(G, new_data, edge_update_time):
     unique_flows = set()
@@ -54,7 +67,9 @@ def update_graph(G, new_data, edge_update_time):
         flow_label, src_ip, dst_ip = flow_identifier.split('_')
         
         flow_color = assign_color(flow_identifier)  # Assign a color to the flow
-        print("\nFlow Label:", flow_label, "Source IP:", src_ip, "Destination IP:", dst_ip, "Color:", flow_color)
+        flow_id = assign_flow_id(flow_identifier)   # Assign an ID to the flow
+        
+        print("\nFlow ID:", flow_id, "Label:", flow_label, "Source IP:", src_ip, "Destination IP:", dst_ip, "Color:", flow_color)
         
         # Find paths for the specific flow
         paths = [point['path'] for point in new_data if point['flow_label'] == flow_label and point['src_ip'] == src_ip and point['dst_ip'] == dst_ip]
@@ -91,9 +106,10 @@ def visualize_graph(G, edge_colors, edge_flow_indices):
 
     # Draw edges with assigned colors
     edge_labels = {}
+    max_rad = 0.33  # Maximum arc radius for edge labels
     for i, (edge, color) in enumerate(edge_colors.items()):
         egress_switch_id, ingress_switch_id, flow_identifier = edge
-        rad = (i % 10) * 0.1 - 0.2  # Adjust arc radius for each edge
+        rad = (i % 10) * 0.05 - max_rad  # Adjust arc radius for each edge with a slightly larger range
         
         nx.draw_networkx_edges(
             G, pos, edgelist=[(egress_switch_id, ingress_switch_id)], 
@@ -110,26 +126,31 @@ def visualize_graph(G, edge_colors, edge_flow_indices):
 
     # Add labels to edges
     for (egress_switch_id, ingress_switch_id, rad), (label, flow_color) in edge_labels.items():
-        # Adjust label position closer to the start of the edge
-        label_pos = (pos[egress_switch_id][0] * 0.8 + pos[ingress_switch_id][0] * 0.2,
-                     pos[egress_switch_id][1] * 0.8 + pos[ingress_switch_id][1] * 0.2 + rad * 0.5)
+        label_pos = (
+            pos[egress_switch_id][0] * 0.75 + pos[ingress_switch_id][0] * 0.25, 
+            pos[egress_switch_id][1] * 0.75 + pos[ingress_switch_id][1] * 0.25 + rad * 0.2
+        )
         plt.text(label_pos[0], label_pos[1], label, fontsize=10, color=flow_color, ha='center', va='center')
 
     # Create a legend for flows
     legend_elements = []
     for flow_identifier, color in path_colors.items():
-        flow_label, src_ip, dst_ip = flow_identifier.split('_')
-        legend_label = f"Flow {flow_label} ({src_ip} -> {dst_ip})"
-        legend_elements.append(Patch(facecolor=color, edgecolor='black', label=legend_label))
+            flow_label, src_ip, dst_ip = flow_identifier.split('_')
+            flow_id = flow_ids[flow_identifier]  # Get the assigned ID for this flow
+            legend_label = f"Flow {flow_id}:({src_ip} -> {dst_ip}) Label {flow_label}"
+            legend_elements.append(Patch(facecolor=color, edgecolor='black', label=legend_label))
 
     # Adjust figure layout to accommodate the legend on the left
     plt.subplots_adjust(left=0.23, right=0.98)
     # Add the legend to the plot
-    plt.legend(handles=legend_elements, loc='center left', bbox_to_anchor=(-0.3, 1.05), fontsize='small')
+    plt.legend(handles=legend_elements, loc='center left', bbox_to_anchor=(-0.3, 0.5), fontsize='small')
 
     # Set the title of the plot
     plt.title("Network Topology Visualizer in Real-Time")
     plt.pause(0.5)  # Pause for 0.5 seconds
+
+
+
 
 # Inicialização do gráfico
 G = nx.MultiDiGraph()
