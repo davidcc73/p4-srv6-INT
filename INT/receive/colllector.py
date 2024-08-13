@@ -122,7 +122,7 @@ class FlowInfo():
         print("size %s bytes" % (self.size))
 
         print("hop_cnt %s" % (self.hop_cnt))
-        print("flow_latency %s" % (self.flow_latency))
+        print("flow_latency %s (nanoseconds)" % (self.flow_latency))
        
         #switch_ids
         if len(self.switch_ids) > 0:
@@ -133,7 +133,7 @@ class FlowInfo():
             print("l1_egress_ports %s" % (self.l1_egress_ports))
         # hop_latencies
         if len(self.hop_latencies) > 0:
-            print("hop_latencies %s" % (self.hop_latencies))
+            print("hop_latencies %s (nanoseconds)" % (self.hop_latencies))
         # queue_ids and queue_occups
         if len(self.queue_ids) > 0:
             print("queue_ids %s" % (self.queue_ids))
@@ -203,7 +203,6 @@ class Collector():
             # hop_latencies
             if ins_map & HOP_LATENCY_BIT:
                 flow_info.hop_latencies.append(int.from_bytes(hop_metadata.read(4), byteorder='big'))
-                flow_info.flow_latency += flow_info.hop_latencies[i]
             # queue_ids and queue_occups
             if ins_map & QUEUE_BIT:
                 flow_info.queue_ids.append(int.from_bytes(hop_metadata.read(1), byteorder='big'))
@@ -221,6 +220,12 @@ class Collector():
             # egress_tx_utils
             if ins_map & EGRESS_PORT_TX_UTIL_BIT:
                 flow_info.egress_tx_utils.append(int.from_bytes(hop_metadata.read(4), byteorder='big'))
+
+        if hop_count <= 0:
+            print("Error: can not calculate flow_latency, hop_count = %d" % hop_count)
+            return
+        #flow latency nanosenconds (subtraction of last egress and fist ingress timestamp)
+        flow_info.flow_latency = flow_info.egress_tstamps[0] - flow_info.ingress_tstamps[-1]
 
     def parser_int_pkt(self,pkt,packet_sizes):
         if INTREP not in pkt:

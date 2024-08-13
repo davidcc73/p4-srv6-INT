@@ -33,11 +33,11 @@ algorithms = ["KShort", "ECMP", "ECMP-SRv6"]
 
 headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG Packet Loss (%)", 
                 "AVG 1º Packet Delay (miliseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
-                "AVG Flows Latency (miliseconds)", "AVG Hop Latency (miliseconds)", 
+                "AVG Flows Latency (nanoseconds)", "AVG Hop Latency (nanoseconds)", 
                 "AVG of packets to each switch (%)", "Standard Deviation of packets to each switch (%)", 
                 "AVG of processed Bytes to each switch", "Standard Deviation of processed Bytes to each switch", 
                 "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (miliseconds)",
-                "Variation of the AVG Flow Delay between (No)Emergency Flows (miliseconds)"]
+                "Variation of the AVG Flow Delay between (No)Emergency Flows (nanoseconds)"]
 
 num_values_to_compare_all_tests = len(headers_lines)
 
@@ -798,7 +798,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
                 col = get_column_letter(row[0].column + 3)
                 break
         elif variable_number == 13:
-            if row[0].value == "AVG Flow Delay (miliseconds)":
+            if row[0].value == "AVG Flow Delay (nanoseconds)":
                 line = row[0].row
                 col = get_column_letter(row[0].column + 3)
                 break
@@ -831,8 +831,8 @@ def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_lat
     last_line = sheet.max_row + 1
 
     # Set new headers
-    sheet[f'A{last_line + 0}'] = "AVG Flows Latency (miliseconds)"
-    sheet[f'A{last_line + 1}'] = "AVG Hop Latency (miliseconds)"
+    sheet[f'A{last_line + 0}'] = "AVG Flows Latency (nanoseconds)"
+    sheet[f'A{last_line + 1}'] = "AVG Hop Latency (nanoseconds)"
     sheet[f'A{last_line + 0}'].font = Font(bold=True)
     sheet[f'A{last_line + 1}'].font = Font(bold=True)
     sheet[f'B{last_line + 0}'] = AVG_flows_latency
@@ -904,7 +904,7 @@ def set_INT_results():
                     WHERE time >= '{start}' AND time <= '{end}'
                 """
         result = apply_query(query)
-        AVG_flows_latency = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
+        AVG_flows_latency = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
 
         # We need AVG Latency for processing of ALL packets (NOT distinguishing between switches/flows) 
         query = f"""
@@ -913,7 +913,7 @@ def set_INT_results():
                     WHERE time >= '{start}' AND time <= '{end}'
                 """
         result = apply_query(query)
-        AVG_hop_latency = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
+        AVG_hop_latency = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
 
         # % of packets that went to each individual switch (switch_id)
         switch_data = get_byte_sum(start, end)
@@ -938,7 +938,7 @@ def get_flow_delays(start, end):
     if not result.raw["series"]:
         avg_emergency_flows_delay = "none"
     else:
-        avg_emergency_flows_delay = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
+        avg_emergency_flows_delay = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
 
     query = f"""
         SELECT MEAN("latency")
@@ -951,7 +951,7 @@ def get_flow_delays(start, end):
     if not result.raw["series"]:
         avg_non_emergency_flows_delay = "none"
     else:
-        avg_non_emergency_flows_delay = round(result.raw["series"][0]["values"][0][1], 3)         #miliseconds
+        avg_non_emergency_flows_delay = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
 
     return avg_emergency_flows_delay, avg_non_emergency_flows_delay 
 
@@ -972,7 +972,7 @@ def set_Emergency_calculation():
         sheet[f'D{max_line + 2}'] = "Variation (%)"
         
         sheet[f'A{max_line + 3}'] = "AVG 1º Packet Delay (miliseconds)"
-        sheet[f'A{max_line + 4}'] = "AVG Flow Delay (miliseconds)"
+        sheet[f'A{max_line + 4}'] = "AVG Flow Delay (nanoseconds)"
 
         sheet[f'A{max_line + 2}'].font = Font(bold=True)
         sheet[f'B{max_line + 2}'].font = Font(bold=True)
