@@ -207,7 +207,7 @@
           "measurement": "flow_latency",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT  count(size) AS \"Number of Packet\", last(\"size\") AS \"Packet Size\" FROM \"flow_stats\" WHERE $timeFilter GROUP BY \"flow_label\"::tag, \"dst_ip\"::tag, \"src_ip\"::tag",
+          "query": "SELECT  count(size) AS \"Number of Packet\", last(\"size\") AS \"Packet Size (bytes)\" FROM \"flow_stats\" WHERE $timeFilter GROUP BY \"flow_label\"::tag, \"dst_ip\"::tag, \"src_ip\"::tag",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -490,7 +490,7 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 10,
         "x": 0,
         "y": 7
@@ -1478,7 +1478,7 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 14,
         "x": 10,
         "y": 7
@@ -2176,7 +2176,7 @@
           ]
         }
       ],
-      "title": "Switch Latency",
+      "title": "Switch Latency (ns)",
       "type": "timeseries"
     },
     {
@@ -2313,14 +2313,14 @@
         "h": 9,
         "w": 19,
         "x": 0,
-        "y": 15
+        "y": 17
       },
       "id": 15,
       "options": {
         "cellHeight": "sm",
         "footer": {
           "countRows": false,
-          "enablePagination": true,
+          "enablePagination": false,
           "fields": "",
           "reducer": [
             "sum"
@@ -2498,7 +2498,7 @@
         "h": 9,
         "w": 5,
         "x": 19,
-        "y": 15
+        "y": 17
       },
       "id": 20,
       "options": {
@@ -2527,7 +2527,7 @@
           "resultFormat": "table"
         }
       ],
-      "title": "Processed data per switch",
+      "title": "Processed Data per Switch",
       "type": "table"
     },
     {
@@ -2580,8 +2580,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2596,7 +2595,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "id": 12,
       "options": {
@@ -2657,7 +2656,7 @@
           "tags": []
         }
       ],
-      "title": "Flow Latency ",
+      "title": "Flow Latency (ns)",
       "type": "timeseries"
     },
     {
@@ -2762,7 +2761,7 @@
               },
               {
                 "id": "displayName",
-                "value": "Latency (ms)"
+                "value": "Latency (ns)"
               }
             ]
           }
@@ -2772,7 +2771,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 36
       },
       "id": 7,
       "options": {
@@ -2836,7 +2835,7 @@
           "tags": []
         }
       ],
-      "title": "Link Latency",
+      "title": "Link Latency ",
       "transformations": [
         {
           "id": "organize",
@@ -2869,118 +2868,7 @@
   "schemaVersion": 39,
   "tags": [],
   "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": true,
-          "text": [
-            "None"
-          ],
-          "value": [
-            ""
-          ]
-        },
-        "datasource": {
-          "type": "influxdb",
-          "uid": "fdkby64p1t7gge"
-        },
-        "definition": "SHOW TAG VALUES FROM flow_latency WITH KEY = src_ip\n",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Src ip",
-        "multi": true,
-        "name": "src",
-        "options": [],
-        "query": "SHOW TAG VALUES FROM flow_latency WITH KEY = src_ip\n",
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "allValue": "",
-        "current": {
-          "isNone": true,
-          "selected": false,
-          "text": "None",
-          "value": ""
-        },
-        "datasource": {
-          "type": "influxdb",
-          "uid": "fdkby64p1t7gge"
-        },
-        "definition": "SHOW TAG VALUES FROM flow_latency WITH KEY = flow_label\n",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Flow Label",
-        "multi": true,
-        "name": "flow",
-        "options": [],
-        "query": "SHOW TAG VALUES FROM flow_latency WITH KEY = flow_label\n",
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 3,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": [
-            "None"
-          ],
-          "value": [
-            ""
-          ]
-        },
-        "datasource": {
-          "type": "influxdb",
-          "uid": "fdkby64p1t7gge"
-        },
-        "definition": "SHOW TAG VALUES FROM flow_latency WITH KEY = \"dst_ip\"\n",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Dst ip",
-        "multi": true,
-        "name": "dst",
-        "options": [],
-        "query": "SHOW TAG VALUES FROM flow_latency WITH KEY = \"dst_ip\"\n",
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": [
-            "1"
-          ],
-          "value": [
-            "1"
-          ]
-        },
-        "datasource": {
-          "type": "influxdb",
-          "uid": "fdkby64p1t7gge"
-        },
-        "definition": "SHOW TAG VALUES FROM \"switch_stats\" WITH KEY = \"switch_id\"\n",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Switch ID",
-        "multi": true,
-        "name": "switch_id",
-        "options": [],
-        "query": "SHOW TAG VALUES FROM \"switch_stats\" WITH KEY = \"switch_id\"\n",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-15m",
@@ -2990,6 +2878,6 @@
   "timezone": "",
   "title": "INT statistics teste",
   "uid": "V8Ss1QY4kk",
-  "version": 233,
+  "version": 243,
   "weekStart": ""
 }
