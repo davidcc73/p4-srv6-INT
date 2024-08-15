@@ -206,11 +206,11 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         }
         actions = {
             srv6_end;
-            srv6_end_x;
-            srv6_end_dx6;
-            srv6_end_dx4;
-            srv6_usid_un;
-            srv6_usid_ua;
+            srv6_end_x;             //unknown, not being used
+            srv6_end_dx6;           //sink
+            srv6_end_dx4;           //sink
+            srv6_usid_un;           //transit
+            srv6_usid_ua;           //transit
             NoAction;
         }
         default_action = NoAction;
@@ -500,7 +500,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
                 srv6_encap_v4.apply();
             } else {
-                srv6_encap.apply(); //uses hdr.ipv6.dst_addr and compares to this nodes rules to decide if it encapsulates into SRv6 or not
+                srv6_encap.apply(); //uses hdr.ipv6 and compares to this nodes rules to decide if it encapsulates into SRv6 or not
             }
 
             //-----------------L3: Forwarding by IP -> MAC address

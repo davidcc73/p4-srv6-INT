@@ -59,7 +59,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                     //-----Prepare data for the recirculation
                     log_msg("Seting to recirculate to remove headers used by SRv6, and terminating egress processing");
                     local_metadata.perserv_meta.egress_spec = standard_metadata.egress_port;    //store the current egress port as spec to later on set back to egress_port  
-                    recirculate_preserving_field_list(CLONE_FL_1);
+                    recirculate_preserving_field_list(CLONE_FL_1);                              //packet state is the same as at deparser's end
                     return;                                                                    //do nothing else, just recirculate  
                 }    
             }
