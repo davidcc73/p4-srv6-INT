@@ -16,7 +16,11 @@ go to Connections > Data sources, select InfluxDB and use the default http://loc
 Select the database int
 usernmae: admin
 password: admin
-Test and all is ok, you will see the message
+Test and all is ok, you will see the message of success
+
+#IMPORTANT
+after configuring the data source, copy it's uID (unique ID), that can be seen at the URL after "/datasources/edit/"
+and paste it at the file "INT/grafana/INT statistics.json" at all variables "uid"
 
 
 #Import the dashboard
