@@ -225,7 +225,11 @@ class Collector():
             print("Error: can not calculate flow_latency, hop_count = %d" % hop_count)
             return
         #flow latency nanosenconds (subtraction of last egress and fist ingress timestamp)
-        flow_info.flow_latency = flow_info.egress_tstamps[0] - flow_info.ingress_tstamps[-1]
+        #print(min(flow_info.ingress_tstamps))
+        #print(max(flow_info.egress_tstamps)) 
+        flow_info.flow_latency = max(flow_info.egress_tstamps) - min(flow_info.ingress_tstamps)
+        if flow_info.flow_latency < 0:
+            print("ERROR: flow_latency < 0")
 
     def parser_int_pkt(self,pkt,packet_sizes):
         if INTREP not in pkt:
