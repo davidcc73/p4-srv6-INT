@@ -7,7 +7,7 @@ tmp/switchID/stratum_bmv2.log
  * or log_msg("Value1 = {}, Value2 = {}",{value1, value2});
 
 #--------------------At first execution
-#install docker for ubuntu (ubuntu uses a diferent version) https://docs.docker.com/engine/install/ubuntu/
+#install docker for ubuntu, Install using the apt repository (ubuntu uses a diferent version) https://docs.docker.com/engine/install/ubuntu/
 sudo apt-get install sshpass             #install sshpass to be able to use the make commands
 sudo apt install python3-pip
 sudo pip3 install scapy
@@ -54,8 +54,8 @@ source /config/hosts_routing_tables.txt             #Push host routing rules to 
 
 #SELECT THE ROUTING MODE
 #The P4 code 1º searchs the ECMP table, if it does not find a match, it searches the KShort table
-#Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
-Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
+Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
+#Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
 
 #--------------------Start the INT scripts, (INT collector and Topology Visualizer)
 sudo python3 INT/start_INT_sripts.py
@@ -86,14 +86,14 @@ MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGENCY
 MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGENCY-ECMP_raw_results.csv  \
 MEDIUM-ECMP-SRv6_raw_results.csv HIGH-ECMP-SRv6_raw_results.csv   HIGH+EMERGENCY-ECMP-SRv6_raw_results.csv \
 --start \
-2024-08-03T01:25:16.601301+00:00 2024-08-03T17:54:28.842680+00:00 2024-08-03T03:06:48.258968+00:00 \
-2024-08-03T12:20:19.934148+00:00 2024-08-03T13:11:05.703842+00:00 2024-08-03T14:01:51.559849+00:00 \
-2024-08-03T14:57:41.614975+00:00 2024-08-03T15:53:29.301476+00:00 2024-08-03T16:54:09.962740+00:00 \
+ \
+ \
+ \
  \
 --end \
-2024-08-03T02:15:47.354838+00:00 2024-08-03T18:44:59.687843+00:00 2024-08-03T03:57:19.197403+00:00 \
-2024-08-03T13:10:50.688890+00:00 2024-08-03T14:01:36.547972+00:00 2024-08-03T14:52:22.592070+00:00 \
-2024-08-03T15:49:16.319840+00:00 2024-08-03T16:45:03.017393+00:00 2024-08-03T17:45:14.368513+00:00 \
+ \
+ \
+ \
 \
 --SRv6_index 6 7 8 \
 --SRv6_logs Medium-ECMP-SRv6_rules.log High-ECMP-SRv6_rules.log High+Emergency-ECMP-SRv6_rules.log \
