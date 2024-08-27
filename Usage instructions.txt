@@ -14,6 +14,7 @@ sudo pip3 install scapy
 sudo pip3 install mininet                #install mininet at host (makes clean ups easier)
 sudo pip3 install numpy
 sudo pip3 install openpyxl               #to export raw CSV results to excel
+sudo pip3 install paramiko               #for the INT Analyzer
 sudo pip install networkx                #to visualize the network flows in the topology in real-time
 sudo pip install matplotlib              #to visualize the network flows in the topology in real-time
 sudo make deps 
@@ -54,8 +55,8 @@ source /config/hosts_routing_tables.txt             #Push host routing rules to 
 
 #SELECT THE ROUTING MODE
 #The P4 code 1º searchs the ECMP table, if it does not find a match, it searches the KShort table
-Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
-#Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
+#Calculate-Routing-Paths KShort             #Creates the routing rule between switchs (KShort, ECMP)
+Calculate-Routing-Paths ECMP                #If there is no flow label to read, it will not work (like pings) 
 
 #--------------------Start the INT collector
 sudo python3 INT/receive/collector_influxdb.py
@@ -89,14 +90,14 @@ MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGENCY
 MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGENCY-ECMP_raw_results.csv  \
 MEDIUM-ECMP-SRv6_raw_results.csv HIGH-ECMP-SRv6_raw_results.csv   HIGH+EMERGENCY-ECMP-SRv6_raw_results.csv \
 --start \
- \
- \
- \
+2024-08-27T14:24:38.220181+00:00 2024-08-27T15:15:23.936183+00:00 2024-08-27T16:06:09.922602+00:00 \
+2024-08-27T17:10:40.667213+00:00 2024-08-27T18:01:26.312983+00:00 2024-08-27T18:52:12.252240+00:00 \
+2024-08-27T20:06:02.565855+00:00 2024-08-27T21:01:42.932514+00:00 2024-08-27T21:56:32.756985+00:00 \
  \
 --end \
- \
- \
- \
+2024-08-27T15:15:08.921831+00:00 2024-08-27T16:05:54.907852+00:00 2024-08-27T16:56:40.844158+00:00 \
+2024-08-27T18:01:11.300409+00:00 2024-08-27T18:51:57.240196+00:00 2024-08-27T19:42:43.117034+00:00 \
+2024-08-27T20:57:24.424150+00:00 2024-08-27T21:53:21.343862+00:00 2024-08-27T22:48:28.064190+00:00 \
 \
 --SRv6_index 6 7 8 \
 --SRv6_logs Medium-ECMP-SRv6_rules.log High-ECMP-SRv6_rules.log High+Emergency-ECMP-SRv6_rules.log \
