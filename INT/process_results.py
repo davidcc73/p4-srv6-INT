@@ -32,11 +32,11 @@ log_file = "ECMP-SRv6 rules.log"
 algorithms = ["KShort", "ECMP", "ECMP-SRv6"]
 
 headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG Packet Loss (%)", 
-                "AVG 1º Packet Delay (miliseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
+                "AVG 1º Packet Delay (nanoseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
                 "AVG Flows Latency (nanoseconds)", "AVG Hop Latency (nanoseconds)", 
                 "AVG of packets to each switch (%)", "Standard Deviation of packets to each switch (%)", 
                 "AVG of processed Bytes to each switch", "Standard Deviation of processed Bytes to each switch", 
-                "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (miliseconds)",
+                "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (nanoseconds)",
                 "Variation of the AVG Flow Delay between (No)Emergency Flows (nanoseconds)"]
 
 num_values_to_compare_all_tests = len(headers_lines)
@@ -493,7 +493,7 @@ def set_fist_pkt_delay():
         sheet = workbook[sheet]
 
         #Set new headers as bold text
-        sheet['N1'] = "1º Packet Delay (miliseconds)"
+        sheet['N1'] = "1º Packet Delay (nanoseconds)"
         sheet['N1'].font = Font(bold=True)
 
         no_formula_section = False
@@ -519,7 +519,9 @@ def set_fist_pkt_delay():
             #print(row)
             
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
-            sheet[f'N{row[0].row}'] = f'=ROUND((H{row[0].row}-H{row[0].row-1})*1000, 3)'     
+            # The values are 2 Timestamp (seconds-Unix Epoch)
+            # subtraction give seconds, we convert to nanoseconds
+            sheet[f'N{row[0].row}'] = f'=ROUND((H{row[0].row}-H{row[0].row-1})*10^9, 3)'     
 
             skip = True
 
@@ -544,7 +546,7 @@ def set_caculations():
         sheet[f'A{last_line + 1}'] = "AVG Out of Order Packets (Nº)"
         sheet[f'A{last_line + 2}'] = "AVG Packet Loss (Nº)"
         sheet[f'A{last_line + 3}'] = "AVG Packet Loss (%)"
-        sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay (miliseconds)"
+        sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay (nanoseconds)"
         sheet[f'A{last_line + 5}'] = "AVG Nº of SRv6 rules Created"
         sheet[f'A{last_line + 6}'] = "AVG Nº of SRv6 rules Removed"
         sheet[f'B{last_line}'] = "Values"
@@ -766,7 +768,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
     # sheet_to_copy_from, get the line of the cell that contains the variable_name on collumn A and the collumn after it
     for row in sheet_to_copy_from.iter_rows(min_row=1, max_row=sheet_to_copy_from.max_row, min_col=1, max_col=1):
         
-        if pass_1_occurance == False and row[0].value == "AVG 1º Packet Delay (miliseconds)":
+        if pass_1_occurance == False and row[0].value == "AVG 1º Packet Delay (nanoseconds)":
             pass_1_occurance = True
             continue
         
@@ -793,7 +795,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
                     col = get_column_letter(row[0].column + 2)
                 break
         elif variable_number == 12:
-            if row[0].value == "AVG 1º Packet Delay (miliseconds)":
+            if row[0].value == "AVG 1º Packet Delay (nanoseconds)":
                 line = row[0].row
                 col = get_column_letter(row[0].column + 3)
                 break
@@ -971,7 +973,7 @@ def set_Emergency_calculation():
         sheet[f'C{max_line + 2}'] = "Emergency Flows"
         sheet[f'D{max_line + 2}'] = "Variation (%)"
         
-        sheet[f'A{max_line + 3}'] = "AVG 1º Packet Delay (miliseconds)"
+        sheet[f'A{max_line + 3}'] = "AVG 1º Packet Delay (nanoseconds)"
         sheet[f'A{max_line + 4}'] = "AVG Flow Delay (nanoseconds)"
 
         sheet[f'A{max_line + 2}'].font = Font(bold=True)

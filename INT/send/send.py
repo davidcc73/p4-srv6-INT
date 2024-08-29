@@ -226,7 +226,7 @@ def export_results(results):
                 
                 # If file does not exist, write the header row
                 if not file_exists:
-                    header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (microseconds)", "Nº pkt out of order", "Out of order packets"]
+                    header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (seconds-Unix Epoch)", "Nº pkt out of order", "Out of order packets"]
                     writer.writerow(header)
                 
                 # Prepare the data line
