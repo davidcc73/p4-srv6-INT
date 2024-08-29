@@ -828,26 +828,34 @@ def set_copied_values(sheet, test_case, max_line):
             sheet[f'{get_column_letter(2 + i)}{max_line + 1 + variable_number}'] = formula
 
 
-def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data):
+def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency, switch_data):
     # Write the results in the sheet
     last_line = sheet.max_row + 1
 
     # Set new headers
     sheet[f'A{last_line + 0}'] = "AVG Flows Latency (nanoseconds)"
-    sheet[f'A{last_line + 1}'] = "AVG Hop Latency (nanoseconds)"
+    sheet[f'A{last_line + 1}'] = "STD Flows Latency (nanoseconds)"
+    sheet[f'A{last_line + 2}'] = "AVG Hop Latency (nanoseconds)"
+    sheet[f'A{last_line + 3}'] = "STD Hop Latency (nanoseconds)"
+
     sheet[f'A{last_line + 0}'].font = Font(bold=True)
     sheet[f'A{last_line + 1}'].font = Font(bold=True)
-    sheet[f'B{last_line + 0}'] = AVG_flows_latency
-    sheet[f'B{last_line + 1}'] = AVG_hop_latency
-
-
-    sheet[f'A{last_line + 3}'] = "Switch ID"
-    sheet[f'B{last_line + 3}'] = "% of packets to each switch"
-    sheet[f'C{last_line + 3}'] = "Total Sum of Processed Bytes"
-
+    sheet[f'A{last_line + 2}'].font = Font(bold=True)
     sheet[f'A{last_line + 3}'].font = Font(bold=True)
-    sheet[f'B{last_line + 3}'].font = Font(bold=True)
-    sheet[f'C{last_line + 3}'].font = Font(bold=True)
+
+    sheet[f'B{last_line + 0}'] = AVG_flows_latency
+    sheet[f'B{last_line + 1}'] = STD_flows_latency
+    sheet[f'B{last_line + 2}'] = AVG_hop_latency
+    sheet[f'B{last_line + 3}'] = STD_hop_latency
+
+
+    sheet[f'A{last_line + 5}'] = "Switch ID"
+    sheet[f'B{last_line + 5}'] = "% of packets to each switch"
+    sheet[f'C{last_line + 5}'] = "Total Sum of Processed Bytes"
+
+    sheet[f'A{last_line + 5}'].font = Font(bold=True)
+    sheet[f'B{last_line + 5}'].font = Font(bold=True)
+    sheet[f'C{last_line + 5}'].font = Font(bold=True)
 
 
     # Write percentages and total bytes processed, cycle through keys that are numbers
@@ -859,13 +867,13 @@ def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_lat
             continue
         #print(f"Key: {key} is an integer")
         #print(f"i: {i}, Switch ID: {key},  Values: {switch_data[key]}")
-        sheet[f'A{last_line + 4 + i}'] = key
+        sheet[f'A{last_line + 6 + i}'] = key
         
         #percentage of total packets that went to each switch
-        sheet[f'B{last_line + 4 + i}'] = switch_data[key]["Percentage Pkt"]
+        sheet[f'B{last_line + 6 + i}'] = switch_data[key]["Percentage Pkt"]
         
         #Sum of processed bytes
-        sheet[f'C{last_line + 4 + i}'] = switch_data[key]["Byte Sums"]
+        sheet[f'C{last_line + 6 + i}'] = switch_data[key]["Byte Sums"]
 
     # Write the mean and standard deviation of the percentages and bytes
     sheet[f'A{last_line + i + 1}'] = "Mean"
@@ -901,21 +909,23 @@ def set_INT_results():
         # Get the results from the DB
         # We need AVG Latency of ALL flows combined (NOT distinguishing between flows)
         query = f"""
-                    SELECT MEAN("latency")
+                    SELECT MEAN("latency"), STDDEV("latency")
                     FROM  flow_stats
                     WHERE time >= '{start}' AND time <= '{end}'
                 """
         result = apply_query(query)
         AVG_flows_latency = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
+        STD_flows_latency = round(result.raw["series"][0]["values"][0][2], 3)
 
         # We need AVG Latency for processing of ALL packets (NOT distinguishing between switches/flows) 
         query = f"""
-                    SELECT MEAN("latency")
+                    SELECT MEAN("latency"), STDDEV("latency")
                     FROM  switch_stats
                     WHERE time >= '{start}' AND time <= '{end}'
                 """
         result = apply_query(query)
         AVG_hop_latency = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
+        STD_hop_latency = round(result.raw["series"][0]["values"][0][2], 3)         
 
         # % of packets that went to each individual switch (switch_id)
         switch_data = get_byte_sum(start, end)
@@ -926,7 +936,7 @@ def set_INT_results():
         #pprint("AVG_hop_latency: ", AVG_hop_latency)
         #pprint("switch_data: ", switch_data)
 
-        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, AVG_hop_latency, switch_data)
+        write_INT_results(file_path, workbook, sheet, AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency, switch_data)
 
 def get_flow_delays(start, end):
     # Get the average delay of emergency and non-emergency flows
