@@ -33,7 +33,8 @@ algorithms = ["KShort", "ECMP", "ECMP-SRv6"]
 
 headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG Packet Loss (%)", 
                 "AVG 1º Packet Delay (nanoseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
-                "AVG Flows Latency (nanoseconds)", "AVG Hop Latency (nanoseconds)", 
+                "AVG Flows Latency (nanoseconds)", "STD Flows Latency (nanoseconds)", 
+                "AVG Hop Latency (nanoseconds)", "STD Hop Latency (nanoseconds)",
                 "AVG of packets to each switch (%)", "Standard Deviation of packets to each switch (%)", 
                 "AVG of processed Bytes to each switch", "Standard Deviation of processed Bytes to each switch", 
                 "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (nanoseconds)",
@@ -725,6 +726,8 @@ def set_test_case_headers(sheet, test_case, max_line):
     sheet[f'A{max_line + 12}'] = headers_lines[11]
     sheet[f'A{max_line + 13}'] = headers_lines[12]
     sheet[f'A{max_line + 14}'] = headers_lines[13]
+    sheet[f'A{max_line + 15}'] = headers_lines[14]
+    sheet[f'A{max_line + 16}'] = headers_lines[15]
 
 
     # Set lines names in bold text
@@ -742,6 +745,8 @@ def set_test_case_headers(sheet, test_case, max_line):
     sheet[f'A{max_line + 12}'].font = Font(bold=True)
     sheet[f'A{max_line + 13}'].font = Font(bold=True)
     sheet[f'A{max_line + 14}'].font = Font(bold=True)
+    sheet[f'A{max_line + 15}'].font = Font(bold=True)
+    sheet[f'A{max_line + 16}'].font = Font(bold=True)
 
 def set_comparasion_formulas(sheet, max_line):
     # Set the formulas to compare the results between the test cases
@@ -772,13 +777,13 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
             pass_1_occurance = True
             continue
         
-        if variable_number <= 7:
+        if variable_number <= 9:
             if row[0].value == variable_name:
                 # Get the next collumn letter of the cell that contains the variable_name
                 line = row[0].row
                 col = get_column_letter(row[0].column + 1)
                 break
-        elif variable_number == 8 or variable_number == 10:
+        elif variable_number == 10 or variable_number == 12:
             if row[0].value == "Mean":
                 line = row[0].row
                 if variable_number == 8:
@@ -786,7 +791,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
                 else:
                     col = get_column_letter(row[0].column + 2)
                 break
-        elif variable_number == 9 or variable_number == 11:
+        elif variable_number == 11 or variable_number == 13:
             if row[0].value == "Standard Deviation":
                 line = row[0].row
                 if variable_number == 9:
@@ -794,12 +799,12 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
                 else:
                     col = get_column_letter(row[0].column + 2)
                 break
-        elif variable_number == 12:
+        elif variable_number == 14:
             if row[0].value == "AVG 1º Packet Delay (nanoseconds)":
                 line = row[0].row
                 col = get_column_letter(row[0].column + 3)
                 break
-        elif variable_number == 13:
+        elif variable_number == 15:
             if row[0].value == "AVG Flow Delay (nanoseconds)":
                 line = row[0].row
                 col = get_column_letter(row[0].column + 3)
