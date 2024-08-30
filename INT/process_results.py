@@ -32,10 +32,12 @@ log_file = "ECMP-SRv6 rules.log"
 algorithms = ["KShort", "ECMP", "ECMP-SRv6"]
 
 headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG Packet Loss (%)", 
-                "AVG 1º Packet Delay (nanoseconds)", "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
+                "AVG 1º Packet Delay (nanoseconds)", 
+                "AVG Nº of SRv6 rules Created", "AVG Nº of SRv6 rules Removed",
                 "AVG Flows Latency (nanoseconds)", "STD Flows Latency (nanoseconds)", 
                 "AVG Hop Latency (nanoseconds)", "STD Hop Latency (nanoseconds)",
-                "AVG of packets to each switch (%)", "Standard Deviation of packets to each switch (%)", 
+                "AVG of packets to each switch (%)", 
+                "Standard Deviation of packets to each switch (%)", 
                 "AVG of processed Bytes to each switch", "Standard Deviation of processed Bytes to each switch", 
                 "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (nanoseconds)",
                 "Variation of the AVG Flow Delay between (No)Emergency Flows (nanoseconds)"]
@@ -687,73 +689,73 @@ def get_mean_standard_deviation(switch_data):
 
     return switch_data
 
-def set_test_case_headers(sheet, test_case, max_line):
+def set_test_case_headers(sheet, test_case, start_line):
     global headers_lines
 
     # Set test case name in bold test
     title = f"{test_case}"
-    sheet[f'A{max_line}'] = title
-    sheet[f'A{max_line}'].font = Font(bold=True)
+    sheet[f'A{start_line}'] = title
+    sheet[f'A{start_line}'].font = Font(bold=True)
 
     # Set the collumn names
-    sheet[f'B{max_line}'] = "KShort"
-    sheet[f'C{max_line}'] = "ECMP"
-    sheet[f'D{max_line}'] = "ECMP+SRv6"
-    sheet[f'E{max_line}'] = "Variation1 (%)"
-    sheet[f'F{max_line}'] = "Variation2 (%)"
-    sheet[f'G{max_line}'] = "Variation3 (%)"
+    sheet[f'B{start_line}'] = "KShort"
+    sheet[f'C{start_line}'] = "ECMP"
+    sheet[f'D{start_line}'] = "ECMP+SRv6"
+    sheet[f'E{start_line}'] = "Variation1 (%)"
+    sheet[f'F{start_line}'] = "Variation2 (%)"
+    sheet[f'G{start_line}'] = "Variation3 (%)"
 
     # Set collumn names in bold text
-    sheet[f'B{max_line}'].font = Font(bold=True)
-    sheet[f'C{max_line}'].font = Font(bold=True)
-    sheet[f'D{max_line}'].font = Font(bold=True)
-    sheet[f'E{max_line}'].font = Font(bold=True)
-    sheet[f'F{max_line}'].font = Font(bold=True)
-    sheet[f'G{max_line}'].font = Font(bold=True)
+    sheet[f'B{start_line}'].font = Font(bold=True)
+    sheet[f'C{start_line}'].font = Font(bold=True)
+    sheet[f'D{start_line}'].font = Font(bold=True)
+    sheet[f'E{start_line}'].font = Font(bold=True)
+    sheet[f'F{start_line}'].font = Font(bold=True)
+    sheet[f'G{start_line}'].font = Font(bold=True)
 
     # Set the lines names
-    sheet[f'A{max_line + 1}'] = headers_lines[0]
-    sheet[f'A{max_line + 2}'] = headers_lines[1]
-    sheet[f'A{max_line + 3}'] = headers_lines[2]
-    sheet[f'A{max_line + 4}'] = headers_lines[3]
-    sheet[f'A{max_line + 5}'] = headers_lines[4]
-    sheet[f'A{max_line + 6}'] = headers_lines[5]
-    sheet[f'A{max_line + 7}'] = headers_lines[6]
-    sheet[f'A{max_line + 8}'] = headers_lines[7]
-    sheet[f'A{max_line + 9}'] = headers_lines[8]
-    sheet[f'A{max_line + 10}'] = headers_lines[9]
-    sheet[f'A{max_line + 11}'] = headers_lines[10]
-    sheet[f'A{max_line + 12}'] = headers_lines[11]
-    sheet[f'A{max_line + 13}'] = headers_lines[12]
-    sheet[f'A{max_line + 14}'] = headers_lines[13]
-    sheet[f'A{max_line + 15}'] = headers_lines[14]
-    sheet[f'A{max_line + 16}'] = headers_lines[15]
+    sheet[f'A{start_line + 1}'] = headers_lines[0]
+    sheet[f'A{start_line + 2}'] = headers_lines[1]
+    sheet[f'A{start_line + 3}'] = headers_lines[2]
+    sheet[f'A{start_line + 4}'] = headers_lines[3]
+    sheet[f'A{start_line + 5}'] = headers_lines[4]
+    sheet[f'A{start_line + 6}'] = headers_lines[5]
+    sheet[f'A{start_line + 7}'] = headers_lines[6]
+    sheet[f'A{start_line + 8}'] = headers_lines[7]
+    sheet[f'A{start_line + 9}'] = headers_lines[8]
+    sheet[f'A{start_line + 10}'] = headers_lines[9]
+    sheet[f'A{start_line + 11}'] = headers_lines[10]
+    sheet[f'A{start_line + 12}'] = headers_lines[11]
+    sheet[f'A{start_line + 13}'] = headers_lines[12]
+    sheet[f'A{start_line + 14}'] = headers_lines[13]
+    sheet[f'A{start_line + 15}'] = headers_lines[14]
+    sheet[f'A{start_line + 16}'] = headers_lines[15]
 
 
     # Set lines names in bold text
-    sheet[f'A{max_line + 1}'].font = Font(bold=True)
-    sheet[f'A{max_line + 2}'].font = Font(bold=True)
-    sheet[f'A{max_line + 3}'].font = Font(bold=True)
-    sheet[f'A{max_line + 4}'].font = Font(bold=True)
-    sheet[f'A{max_line + 5}'].font = Font(bold=True)
-    sheet[f'A{max_line + 6}'].font = Font(bold=True)
-    sheet[f'A{max_line + 7}'].font = Font(bold=True)
-    sheet[f'A{max_line + 8}'].font = Font(bold=True)
-    sheet[f'A{max_line + 9}'].font = Font(bold=True)
-    sheet[f'A{max_line + 10}'].font = Font(bold=True)
-    sheet[f'A{max_line + 11}'].font = Font(bold=True)
-    sheet[f'A{max_line + 12}'].font = Font(bold=True)
-    sheet[f'A{max_line + 13}'].font = Font(bold=True)
-    sheet[f'A{max_line + 14}'].font = Font(bold=True)
-    sheet[f'A{max_line + 15}'].font = Font(bold=True)
-    sheet[f'A{max_line + 16}'].font = Font(bold=True)
+    sheet[f'A{start_line + 1}'].font = Font(bold=True)
+    sheet[f'A{start_line + 2}'].font = Font(bold=True)
+    sheet[f'A{start_line + 3}'].font = Font(bold=True)
+    sheet[f'A{start_line + 4}'].font = Font(bold=True)
+    sheet[f'A{start_line + 5}'].font = Font(bold=True)
+    sheet[f'A{start_line + 6}'].font = Font(bold=True)
+    sheet[f'A{start_line + 7}'].font = Font(bold=True)
+    sheet[f'A{start_line + 8}'].font = Font(bold=True)
+    sheet[f'A{start_line + 9}'].font = Font(bold=True)
+    sheet[f'A{start_line + 10}'].font = Font(bold=True)
+    sheet[f'A{start_line + 11}'].font = Font(bold=True)
+    sheet[f'A{start_line + 12}'].font = Font(bold=True)
+    sheet[f'A{start_line + 13}'].font = Font(bold=True)
+    sheet[f'A{start_line + 14}'].font = Font(bold=True)
+    sheet[f'A{start_line + 15}'].font = Font(bold=True)
+    sheet[f'A{start_line + 16}'].font = Font(bold=True)
 
-def set_comparasion_formulas(sheet, max_line):
+def set_comparasion_formulas(sheet, start_line):
     # Set the formulas to compare the results between the test cases
     for i in range(1, num_values_to_compare_all_tests + 1):
-        sheet[f'E{max_line + i}'] = f'=IFERROR(ROUND((C{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3), 0)'
-        sheet[f'F{max_line + i}'] = f'=IFERROR(ROUND((D{max_line + i} - B{max_line + i}) / B{max_line + i} * 100, 3), 0)'
-        sheet[f'G{max_line + i}'] = f'=IFERROR(ROUND((D{max_line + i} - C{max_line + i}) / C{max_line + i} * 100, 3), 0)'
+        sheet[f'E{start_line + i}'] = f'=IFERROR(ROUND((C{start_line + i} - B{start_line + i}) / B{start_line + i} * 100, 3), 0)'
+        sheet[f'F{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - B{start_line + i}) / B{start_line + i} * 100, 3), 0)'
+        sheet[f'G{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - C{start_line + i}) / C{start_line + i} * 100, 3), 0)'
 
 def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
     global headers_lines
@@ -767,7 +769,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
     variable_name = headers_lines[variable_number]
 
     pass_1_occurance = True          #there are 2 Lines on collumn A that have the same name
-    if variable_number == 12:
+    if variable_number == 14:
         pass_1_occurance = False 
 
     # sheet_to_copy_from, get the line of the cell that contains the variable_name on collumn A and the collumn after it
@@ -783,10 +785,10 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
                 line = row[0].row
                 col = get_column_letter(row[0].column + 1)
                 break
-        elif variable_number == 10 or variable_number == 12:
+        elif variable_number ==10 or variable_number == 12:
             if row[0].value == "Mean":
                 line = row[0].row
-                if variable_number == 8:
+                if variable_number == 10:
                     col = get_column_letter(row[0].column + 1)
                 else:
                     col = get_column_letter(row[0].column + 2)
@@ -794,7 +796,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
         elif variable_number == 11 or variable_number == 13:
             if row[0].value == "Standard Deviation":
                 line = row[0].row
-                if variable_number == 9:
+                if variable_number == 11:
                     col = get_column_letter(row[0].column + 1)
                 else:
                     col = get_column_letter(row[0].column + 2)
@@ -812,7 +814,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
 
     return line, col
 
-def set_copied_values(sheet, test_case, max_line):
+def set_copied_values(sheet, test_case, start_line):
     global algorithms
     
     # Cycle through the variables to compare (lines)
@@ -830,7 +832,7 @@ def set_copied_values(sheet, test_case, max_line):
 
             cell_reference = f"{column}{line}"
             formula = f"='{sheet_to_copy_from_name}'!{cell_reference}"
-            sheet[f'{get_column_letter(2 + i)}{max_line + 1 + variable_number}'] = formula
+            sheet[f'{get_column_letter(2 + i)}{start_line + 1 + variable_number}'] = formula
 
 
 def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency, switch_data):
