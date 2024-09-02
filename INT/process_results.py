@@ -753,9 +753,9 @@ def set_test_case_headers(sheet, test_case, start_line):
 def set_comparasion_formulas(sheet, start_line):
     # Set the formulas to compare the results between the test cases
     for i in range(1, num_values_to_compare_all_tests + 1):
-        sheet[f'E{start_line + i}'] = f'=IFERROR(ROUND((C{start_line + i} - B{start_line + i}) / B{start_line + i} * 100, 3), 0)'
-        sheet[f'F{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - B{start_line + i}) / B{start_line + i} * 100, 3), 0)'
-        sheet[f'G{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - C{start_line + i}) / C{start_line + i} * 100, 3), 0)'
+        sheet[f'E{start_line + i}'] = f'=IFERROR(ROUND((C{start_line + i} - B{start_line + i}) / ABS(B{start_line + i}) * 100, 3), 0)'
+        sheet[f'F{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - B{start_line + i}) / ABS(B{start_line + i}) * 100, 3), 0)'
+        sheet[f'G{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - C{start_line + i}) / ABS(C{start_line + i}) * 100, 3), 0)'
 
 def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number):
     global headers_lines
@@ -1021,8 +1021,8 @@ def set_Emergency_calculation():
         sheet[f'C{max_line + 4}'] = avg_emergency_flows_delay
 
         #Set comparasion formulas, for the AVG 1º Packet Delay and AVG Flow Delay in percentage
-        sheet[f'D{max_line + 3}'] = f'=IFERROR(ROUND((C{max_line + 3} - B{max_line + 3})/B{max_line + 3}*100, 3), "none")'
-        sheet[f'D{max_line + 4}'] = f'=IFERROR(ROUND((C{max_line + 4} - B{max_line + 4})/B{max_line + 4}*100, 3), "none")'
+        sheet[f'D{max_line + 3}'] = f'=IFERROR(ROUND((C{max_line + 3} - B{max_line + 3})/ABS(B{max_line + 3}) * 100, 3), "none")'
+        sheet[f'D{max_line + 4}'] = f'=IFERROR(ROUND((C{max_line + 4} - B{max_line + 4})/ABS(B{max_line + 4}) * 100, 3), "none")'
 
 
     workbook.save(file_path)
