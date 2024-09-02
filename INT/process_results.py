@@ -39,8 +39,8 @@ headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG
                 "AVG of packets to each switch (%)", 
                 "Standard Deviation of packets to each switch (%)", 
                 "AVG of processed Bytes to each switch", "Standard Deviation of processed Bytes to each switch", 
-                "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (&)",
-                "Variation of the AVG Flow Delay between (No)Emergency Flows (&)"]
+                "Variation of the AVG 1º Packet Delay between (No)Emergency Flows (%)",
+                "Variation of the AVG Flow Delay between (No)Emergency Flows (%)"]
 
 num_values_to_compare_all_tests = len(headers_lines)
 
