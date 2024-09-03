@@ -655,7 +655,7 @@ def update_max_values_globaly():
 
     # Execute the first query to get the 90th percentile value, to exclude outliers
     percentile_result = apply_query(percentile_query)
-    p_latency = list(percentile_result.get_points())[0]['p_latency']   #nanioseconds
+    p_latency = list(percentile_result.get_points())[0]['p_latency']   #nanoseconds
 
     #if empty return False
     if not percentile_result: return False

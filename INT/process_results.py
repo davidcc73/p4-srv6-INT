@@ -913,22 +913,40 @@ def set_INT_results():
         start = args.start[i]
         end = args.end[i]
 
-        # Get the results from the DB
+        ############################################ Get the results from the DB
         # We need AVG Latency of ALL flows combined (NOT distinguishing between flows)
+        # Query to get the 95th percentile latency value, to exclude outliers
+        percentile_query = f"""
+            SELECT PERCENTILE("latency", 95) AS p_latency
+            FROM flow_stats
+            WHERE time >= '{start}' AND time <= '{end}'
+        """
+
+        percentile_result = apply_query(percentile_query)
+        p_latency = list(percentile_result.get_points())[0]['p_latency']   #nanoseconds
+
         query = f"""
                     SELECT MEAN("latency"), STDDEV("latency")
                     FROM  flow_stats
-                    WHERE time >= '{start}' AND time <= '{end}'
+                    WHERE time >= '{start}' AND time <= '{end}' AND "latency" <= {p_latency}
                 """
         result = apply_query(query)
         AVG_flows_latency = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
         STD_flows_latency = round(result.raw["series"][0]["values"][0][2], 3)
 
+        ###########################################
         # We need AVG Latency for processing of ALL packets (NOT distinguishing between switches/flows) 
+        # Query to get the 95th percentile latency value, to exclude outliers
+        percentile_query = f"""
+            SELECT PERCENTILE("latency", 95) AS p_latency
+            FROM switch_stats
+            WHERE time >= '{start}' AND time <= '{end}'
+        """
+        
         query = f"""
                     SELECT MEAN("latency"), STDDEV("latency")
                     FROM  switch_stats
-                    WHERE time >= '{start}' AND time <= '{end}'
+                    WHERE time >= '{start}' AND time <= '{end}' AND "latency" <= {p_latency}
                 """
         result = apply_query(query)
         AVG_hop_latency = round(result.raw["series"][0]["values"][0][1], 3)         #nanoseconds
