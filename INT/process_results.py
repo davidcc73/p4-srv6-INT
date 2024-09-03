@@ -1056,6 +1056,7 @@ def set_Comparison_sheet():
 
         set_test_case_headers(sheet, test_case, max_line)
         set_comparasion_formulas(sheet, max_line)
+        print("Seting values copy from other sheets")
         set_copied_values(sheet, test_case, max_line)
 
         # Insert 2 empty lines
