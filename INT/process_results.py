@@ -568,8 +568,8 @@ def set_caculations():
         sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(L:L, "<>", L:L), 3)'
         sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(M:M, "<>", M:M), 3)'
         sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(N:N, "<>", N:N), 3)'
-        sheet[f'B{last_line + 5}'] = f'=COUNTIF(B:B, "Created SRv6 rule") / {args.num_iterations}'
-        sheet[f'B{last_line + 6}'] = f'=COUNTIF(B:B, "Removed SRv6 rule") / {args.num_iterations}'
+        sheet[f'B{last_line + 5}'] = f'=COUNTIF(B1:B{last_line}, "Created SRv6 rule") / {args.num_iterations}'
+        sheet[f'B{last_line + 6}'] = f'=COUNTIF(B1:B{last_line}, "Removed SRv6 rule") / {args.num_iterations}'
 
 
 
