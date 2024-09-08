@@ -646,14 +646,14 @@ def update_max_values_globaly():
     }
 
     # Send query to DB so I can get the current max for packet_procesing_time and count how many packets, remove the -1
-    # Query to get the 90th percentile latency value
+    # Query to get the 85th percentile latency value
     percentile_query = f"""
-        SELECT PERCENTILE("latency", 90) AS p_latency
+        SELECT PERCENTILE("latency", 85) AS p_latency
         FROM switch_stats
         WHERE time >= '{minutes_ago_str}'
     """
 
-    # Execute the first query to get the 90th percentile value, to exclude outliers
+    # Execute the first query to get the 85th percentile value, to exclude outliers
     percentile_result = apply_query(percentile_query)
     p_latency = list(percentile_result.get_points())[0]['p_latency']   #nanoseconds
 
@@ -661,14 +661,14 @@ def update_max_values_globaly():
     if not percentile_result: return False
     #print("percentile latency:", p_latency)
 
-    # Use the 90th percentile value to filter and get the maximum latency below this value
+    # Use the 85th percentile value to filter and get the maximum latency below this value
     max_latency_query = f"""
         SELECT MAX("latency") AS MAX_latency
         FROM switch_stats
         WHERE time >= '{minutes_ago_str}' AND "latency" <= {p_latency}
     """
 
-    # Execute the second query to get the maximum latency below the 90th percentile
+    # Execute the second query to get the maximum latency below the 85th percentile
     max_latency_result = apply_query(max_latency_query)
     max_latency = list(max_latency_result.get_points())[0]['MAX_latency']
 
