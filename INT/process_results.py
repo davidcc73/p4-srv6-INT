@@ -616,11 +616,11 @@ def get_byte_sum(start, end):
         # Add the result to the sum dictionary under the switch_id key
         #print(f"Switch ID: {switch_id}")
         #print(result.raw)
-        if not result.raw["series"]:
-            #print("No data found")
-            continue
         sum[switch_id] = {}
-        sum[switch_id]["Byte Sums"] = result.raw["series"][0]["values"][0][1]
+        if not result.raw["series"]:
+            sum[switch_id]["Byte Sums"] = 0
+        else:
+            sum[switch_id]["Byte Sums"] = result.raw["series"][0]["values"][0][1]
     #pprint(sum)
 
     return sum
