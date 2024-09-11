@@ -877,29 +877,29 @@ def write_INT_results(file_path, workbook, sheet, AVG_flows_latency, STD_flows_l
     #pprint(switch_data)
     #print("----------------------------------------")
     for i, key in enumerate(switch_data.keys()):
-        if not isinstance(key, int):                #skip jets that are non-switch_id
-            #print(f"Key: {key} is not an integer")
-            continue
-        #print(f"Key: {key} is an integer")
-        #print(f"i: {i}, Switch ID: {key},  Values: {switch_data[key]}")
-        sheet[f'A{last_line + 6 + i}'] = key
-        
-        #percentage of total packets that went to each switch
-        sheet[f'B{last_line + 6 + i}'] = switch_data[key]["Percentage Pkt"]
-        
-        #Sum of processed bytes
-        sheet[f'C{last_line + 6 + i}'] = switch_data[key]["Byte Sums"]
+        if isinstance(key, int):                #skip sets that are non-switch_id
+            #print(f"Key: {key} is an integer")
+            #print(f"i: {i}, Switch ID: {key},  Values: {switch_data[key]}")
+            sheet[f'A{last_line + 6 + i}'] = key
+            
+            #percentage of total packets that went to each switch
+            sheet[f'B{last_line + 6 + i}'] = switch_data[key]["Percentage Pkt"]
+            
+            #Sum of processed bytes
+            sheet[f'C{last_line + 6 + i}'] = switch_data[key]["Byte Sums"]
 
     # Write the mean and standard deviation of the percentages and bytes
-    sheet[f'A{last_line + i + 1}'] = "Mean"
-    sheet[f'A{last_line + i + 2}'] = "Standard Deviation"
-    sheet[f'A{last_line + i + 1}'].font = Font(bold=True)
-    sheet[f'A{last_line + i + 2}'].font = Font(bold=True)
+    
+    sheet[f'A{last_line + num_switches + 5 + 1}'] = "Mean"
+    sheet[f'A{last_line + num_switches + 5 + 2}'] = "Standard Deviation"
+    sheet[f'A{last_line + num_switches + 5 + 1}'].font = Font(bold=True)
+    sheet[f'A{last_line + num_switches + 5 + 2}'].font = Font(bold=True)
 
-    sheet[f'B{last_line + i + 1}'] = switch_data["Percentage Mean"]
-    sheet[f'B{last_line + i + 2}'] = switch_data["Percentage Standard Deviation"]
-    sheet[f'C{last_line + i + 1}'] = switch_data["Byte Mean"]
-    sheet[f'C{last_line + i + 2}'] = switch_data["Byte Standard Deviation"]
+    sheet[f'B{last_line + num_switches + 5 + 1}'] = switch_data["Percentage Mean"]
+    sheet[f'B{last_line + num_switches + 5 + 2}'] = switch_data["Percentage Standard Deviation"]
+    sheet[f'C{last_line + num_switches + 5 + 1}'] = switch_data["Byte Mean"]
+    sheet[f'C{last_line + num_switches + 5 + 2}'] = switch_data["Byte Standard Deviation"]
+    
 
     # Save the workbook
     workbook.save(file_path)
