@@ -645,6 +645,10 @@ def calculate_percentages(start, end, switch_data):
     result = apply_query(query)
     
     # Calculate the percentage of packets that went to each switch
+    # initialize to all switches as 0, so unused switches are takrn into account too
+    for switch_id in range(1, num_switches + 1):
+        switch_data[switch_id]["Percentage Pkt"] = 0
+
     for row in result.raw["series"]:
         #tuple pair: id, count
         switch_id = int(row["tags"]["switch_id"])
