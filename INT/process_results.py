@@ -20,6 +20,8 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 args = None
 results = {}
 
+num_switches = 14           #switches ids go from 1 to 14
+
 # Define DB connection parameters
 host='localhost'
 dbname='int'
@@ -581,19 +583,21 @@ def get_byte_sum(start, end):
     sum = {}
     switch_ids = []
 
-    # Query to get unique switch_id values if it is a tag
-    query = f'''
-            SHOW TAG VALUES 
-            FROM "switch_stats"  
-            WITH KEY = "switch_id"
-            WHERE time >= '{start}' AND time <= '{end}' 
-        '''
-    tmp = apply_query(query)  
-    #pprint(tmp)
+    #--------------Query to get unique switch_id values if it is a tag
+    # This approche did not take into account the existing but unused switches
+    #query = f'''
+    #        SHOW TAG VALUES 
+    #        FROM "switch_stats"  
+    #        WITH KEY = "switch_id"
+    #        WHERE time >= '{start}' AND time <= '{end}' 
+    #    '''
+    #tmp = apply_query(query)  
 
     # Extract the switch_id values into a list
-    for row in tmp.raw["series"][0]["values"]:
-        switch_ids.append(int(row[1]))
+    #for row in tmp.raw["series"][0]["values"]:
+    #    switch_ids.append(int(row[1]))
+
+    switch_ids = list(range(1, num_switches + 1))
 
     #pprint(switch_ids)
 
