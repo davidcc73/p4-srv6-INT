@@ -55,7 +55,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
                 
                 //-------------If packet contains headers used for SRv6, it must be removed
-                if(hdr.ipv6.next_header == PROTO_IPV6 || hdr.ipv6.next_header == PROTO_SRV6){ //See what is after the outer IPv6 header
+                if(hdr.ipv6.next_header == PROTO_IPV6 || hdr.ipv6.next_header == PROTO_SRV6){ //See what is after the outer IPv6 header, TODO: THE SECOND CONDITION NEVER OCCURS, TEST IT SICE SRV6HEADER IS ONLY USED WHEN THERE IS MORE THAT ONE SID
                     //-----Prepare data for the recirculation
                     log_msg("Seting to recirculate to remove headers used by SRv6, and terminating egress processing");
                     local_metadata.perserv_meta.egress_spec = standard_metadata.egress_port;    //store the current egress port as spec to later on set back to egress_port  
