@@ -1,21 +1,84 @@
 # p4-srv6-INT
-This work was performed in the scope of the project MH-SDVanet: Multihomed Software Defined Vehicular Networks (reference PTDC/EEI-COM/5284/2020).
+This work was performed in the scope of the project MH-SDVanet: Multihomed Software Defined Vehicular Networks (reference PTDC/EEI-COM/5284/2020).<br/>
 
-Fork of the project (netgroup/p4-srv6) found at https://github.com/netgroup/p4-srv6 implements SRv6 in Mininet environment where the switches use P4.
-This repository aims to adapt that solution to add INT into it like the implementation on the project (ruimmpires/P4INT_Mininet) found at https://github.com/ruimmpires/P4INT_Mininet 
+
+Fork of the project [netgroup/p4-srv6](https://github.com/netgroup/p4-srv6), implements SRv6 in Mininet environment where the switches use P4.
+
+This repository aims to expand that project by adding to it: <br/>
+ * `In-band Network Telemetry (INT)`, selected data flows, defined by ONOS, will generate Telemetry. <br/>
+ * `Grafana Dashboard`, using the collected INT in the DB, represent it via real-time graphs. <br/>
+ * `INT Visualyzer`, a Python script that reads the INT data and represents the paths currently taken by the data flows in the topology. <br/>
+ * `INT Analyzer`, a Python script that reads the INT data and tries to detected overloaded switches and cause data flow detours from said switches to less congestioned ones, by only using the SRv6 operations from ONOS, and disable said detours when no longer needed. <br/>
+ * `Routing Methods`, the original project used static routing, we inteed to expand ONOS so it can calculate and push new routing rules to the switches on demand, specifically using the algorithms: K shortest path and ECMP. 
+
+
+# Credits<br/>
+
+The Topology Visualizer and the Grafana Dashboards were developed by [Tiago Mustra](https://github.com/TiagoMustra)
+
+For the base INT implementation in P4, the collecting, and storing of data, we used the code from the project [ruimmpires/P4INT_Mininet](https://github.com/ruimmpires/P4INT_Mininet).
+
+The KShort code for path calculations done by ONOS was based on project: [bmsousa/ONOS-Framework](https://github.com/bmsousa/ONOS-Framework)
+
+The ECMP code for path calculations done by ONOS was based on project: [ruicao93/simple-ecmp](https://github.com/ruicao93/simple-ecmp/tree/master)
+
+
+# Repository structure
+This repository is structured as follows: <br/>
+ * `setup/` Text files with the instruction to install the many componets of the project <br/>
+ * `app/` ONOS app Java implementation <br/>
+ * `config/` configuration files <br/>
+ * `INT/` Contains all the programs that use the INT: `Grafana`, `Analyzer`, `Visualizer`, and the Python scripts used to `send/receive` the packets that generate telemetry <br/>
+ * `mininet/` Mininet scripts to emulate a topology of `stratum_bmv2` devices <br/>
+ * `images/` Contains the images used on this ReadMe file. <br/>
+ * `p4src/` P4 implementation <br/>
+  * `Commands/` Contains files with CLI commands for testing <br/>
+ * `test/` some test scripts be runned directly on the hosts of the topology <br/>
+ * `utils/` utilities include dockerfile and wireshark plugin <br/>
+ * `tmp/` temporary directory that contains the logs from `ONOS` and the `P4 Switches`<br/>
+
+# Architecture
+
+![Architecture](./images/Project_Architecture.drawio.png "Architecture")
+
+This repository is structured as follows: <br/>
+ * `Docker` Runs 2 conrtainers, one for mininet with the topology, other for ONOS controller and it's CLI. The mininet switches have a direct connection to ONOS. <br/>
+ * `ONOS` is the SDN controller used, contains a CLI to access it's opeartions. <br/>
+ * `Mininet`, programm used to simulate the network topology, all switches use the same P4 code, and the used interfaces are native to the System that hosts the Docker engine. <br/>
+ * `InfluxDB`, is the used database to store the collected INT data, for details see [Database](#Database) section. <br/>
+ * `Grafana`, is tools used to visualize, in real-time, the collected telemetry in the form of graphs, for details see [Grafana](#Grafana) section. <br/>
+ * `Visualizer`, python script that reads the Database and processes the data to represent, in real-time, which paths in our topology each data flow is taking. <br/>
+ * `INT Analyzer`, python script that reads the Database to detected for overloaded switches and cause path detours by using ONOS's CLI., for details see [INT Analyzer](#INT-Analyzer) section. <br/>
+
+
+## Database
+descrever as os meassurements
+
+## Grafana
+descrever as os graficos
+
+## INT Analyzer
+descrever o funcionamento
+
+# Setup
+
+# Functionalities/Implementation
+
+
+# TODO
+explain the packet priority system
+elaborar as coisas do config, es pecialmente o INT_Tables
 
 The new stratum image is a modification of stratrum version: 2022-06-30
 built from source by modifying the Dockerfile (see file Dockerfile) adding X11, pip3 and scapy to it
 image compiled with name:
 davidcc73/stratum_bmv2_x11_scapy_pip3
 
-Telemetry is not generated between hosts with the same switch (it's the same car, so it's irrelevant), because the packet that will be the report is cloned to egress at ingress start with no INT header.
+expandi os arg ue ativam o SRv6 e o INT?
 
-TODO: explain the packet priority system
 
-TODO: explain KShort path calculations based on: https://github.com/bmsousa/ONOS-Framework
 
-TODO: explain ECMP path calculations based on: https://github.com/ruicao93/simple-ecmp/tree/master
+
 
 # IPv6 Segment Routing SRv6  Original README.md<br/>
 SRv6 is a network architecture that encodes a list of instructions in the IPv6 packet header to define a network wide packet processing program. <br/>
@@ -26,21 +89,9 @@ The [SRv6 network programming](https://tools.ietf.org/html/draft-ietf-spring-srv
 In the project we provide an open source data plane of SRv6 in P4. We Leverage the Open Network Operating System (ONOS) for the control plane. <br/>
 We augmented ONOS implementation with the necessary extensions to support SRv6. <br/>
 
-This work is done as part of the Research on Open SRv6 Ecosystem ([ROSE](https://netgroup.github.io/rose/)) project. 
-
-This work is based on the P4 tutorial by the Open Networking Foundation. For more information about the above listed software modules you can visit the Open Networking Foundation original [repository](https://github.com/opennetworkinglab/ngsdn-tutorial). <br/>
-
-There you can also find useful material like the slides explaining the tutorial and a prepared Ubuntu virtual machine with all the software installed. It is strongly recommended to download the prepared VM and run the DEMO inside it, as it contains the several dependencies needed to run the software. <br/>
 
 
-# Repository structure
-This repository is structured as follows: <br/>
- * `app/` ONOS app Java implementation <br/>
- * `config/` configuration files <br/>
- * `mininet/` Mininet script to emulate a topology of `stratum_bmv2` devices <br/>
- * `p4src/` P4 implementation <br/>
- * `test/` test packets <br/>
- * `utils/` utilities include docker file <br/>
+
 
 ## Usage 
 TBD 
