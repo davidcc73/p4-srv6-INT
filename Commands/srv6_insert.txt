@@ -1,19 +1,6 @@
 
 #if a device, detects an (uN, uA, uDX) value instruction (see netcfg.json for the configuration) => change next hop IP, MAC, create/remove SRv6, etc
 
-#uN----------------
-On each hop the insert on the dst_IP is read (fcbb:bb00:x:y:z:...) when it gets to the switch represented by 
-(fcbb:bb00:x) the forwarding uses a mask of 48 bits, is applyed a transfromation that removes the x value
-(16 bit shift of all at it's right) and saves it as (fcbb:bb00:y:z:...) to be used to determine the next hop value  
-
-The final switch must always be in the instruction as the last hop, the other switches are optional,
-the uN instruction can include at the most 4 switches, must include the final switch
-
-#uA----------------
-uA instructions need to previosly be pushed to the switch that will use them, 
-to see the rules that are now pushed to the devices (and how they work) go to config/ua_config.txt
-
-
 ------------------------------INSERT SRv6 INSTRUCTIONS
 Commands structure: srv6-insert device IP_src IP_dst flow_label mask_src mask_dst mask_flow uN_instruction
 mask_flow = 255 means exact match

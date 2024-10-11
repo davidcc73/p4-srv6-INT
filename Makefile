@@ -44,8 +44,6 @@ start:
 stop:
 	$(info *** Stopping ONOS...)
 	docker compose down
-	$(info *** Deleting Virtual Interfaces...)
-	mn -c
 
 restart: reset start
 

@@ -1,0 +1,30 @@
+
+#--------------------Parse Exported Results, the filename will be used before (_) to create the output file
+sudo python3 INT/process_results.py \
+--f \
+MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGENCY-KShort_raw_results.csv \
+MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGENCY-ECMP_raw_results.csv  \
+MEDIUM-ECMP-SRv6_raw_results.csv HIGH-ECMP-SRv6_raw_results.csv   HIGH+EMERGENCY-ECMP-SRv6_raw_results.csv \
+--start \
+2024-08-27T14:24:38.220181+00:00 2024-08-28T15:51:18.539426+00:00 2024-08-28T17:00:21.303788+00:00 \
+2024-08-28T00:34:13.755035+00:00 2024-08-28T18:07:22.940223+00:00 2024-08-28T19:15:59.068042+00:00 \
+2024-09-08T20:08:24.726294+00:00 2024-09-08T21:12:21.183585+00:00 2024-09-08T22:23:18.456481+00:00 \
+ \
+--end \
+2024-08-27T15:15:08.921831+00:00 2024-08-28T16:41:49.406242+00:00 2024-08-28T17:50:52.191813+00:00 \
+2024-08-28T01:24:44.423897+00:00 2024-08-28T18:57:53.666194+00:00 2024-08-28T20:06:29.951611+00:00 \
+2024-09-08T20:59:40.411092+00:00 2024-09-08T22:04:04.759462+00:00 2024-09-08T23:15:31.088477+00:00 \
+\
+--SRv6_index 6 7 8 \
+--SRv6_logs Medium-ECMP-SRv6_rules.log High-ECMP-SRv6_rules.log High+Emergency-ECMP-SRv6_rules.log \
+--num_iterations 10 
+
+
+sudo python3 INT/process_results.py \
+--f LOW-ECMP-SRv6_raw_results.csv \
+--start 2024-07-26T15:31:37.810440+00:00 \
+--end 2024-07-26T15:41:37.810440+00:00 \
+--SRv6_index 0 \
+--SRv6_logs ECMP-SRv6_rules.log 
+
+
