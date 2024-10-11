@@ -260,7 +260,7 @@ The Dashboard presents the following graphs out of the INT data:<br/>
 * `Link Latency`, displays the link latency of each of our links.<br/>
 * `Flow Latency`, the individual latency of each detected flow, from the moment it entered the 1º switch until it left the last one.
 
-## Visualyzer
+## Visualizer
 Python script that visually represents our topology and distinguishs between paths taken by the currently circulating flows, including path changes due to the usage of SRv6, we use the `Networkx` library. 
 
 The topology structure is manually configured before running the script. 
@@ -376,7 +376,7 @@ A flow chart of the implemented logic in the INT Analyzer used to select which f
 ## INT Collector
 Python script that sniffs the interfaces to where the INT reports are sent to.
 
-Parses the packet and stores their indo in the DB.
+Parses the packet and stores their information in the DB.
 
 Currently to determine the original size of the packet without the INT data, before storing data in the DB, we have a .json file that matches a size in bytes for each packets `DSCP`, this is only used for test purposes and a possible solution is at `Repository's Issues`.
 
@@ -500,7 +500,7 @@ sudo python3 INT/receive/collector_influxdb.py
 ```
 
 
-## Topology Visualizer
+## Visualizer
 Before Running make sure the DB is running.
 
 ```bash
