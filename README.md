@@ -97,10 +97,10 @@ Create the int database
 influx
 
 #create the DB for the INT telemetry
-> create database int
+influx> create database int
 
 #(optional) Check if the DB was created 
-> use int
+influx> use int
 ```
 
 
@@ -274,7 +274,7 @@ The script represents:<br/>
 * Creates numbered and colored arrows between nodes, to specify their direction.
 * Path changes.
 
-![Topology Visualizer](images\Topology_Visualizer.png "Topology Visualizer")
+![Topology Visualizer](images/Topology_Visualizer.png "Topology Visualizer")
 
 ## Mininet
 
