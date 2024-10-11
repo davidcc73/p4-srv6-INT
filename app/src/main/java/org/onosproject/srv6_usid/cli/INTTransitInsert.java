@@ -18,7 +18,7 @@ import org.onosproject.srv6_usid.INTComponent;
  */
 @Service
 @Command(scope = "onos", name = "INT_Transit-insert",
-        description = "Insert a INT rule into the Transit table")
+        description = "Insert a INT instructions into the Transit table")
 public class INTTransitInsert extends AbstractShellCommand {
 //pipeline     control    table   key    action   cmp_field_on_p4    cmp_criteria
         @Argument(index = 0, name = "pipeline", 

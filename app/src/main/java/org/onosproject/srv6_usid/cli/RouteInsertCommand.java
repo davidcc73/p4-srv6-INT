@@ -34,7 +34,7 @@ import org.onosproject.srv6_usid.Ipv6RoutingComponent;
  */
 @Service
 @Command(scope = "onos", name = "route-insert",
-         description = "Insert a t_insert rule into the IPv6 Routing table")
+         description = "Insert a rule in a KShort or ECMP routing tables")
 public class RouteInsertCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",

@@ -21,7 +21,7 @@ import org.onosproject.srv6_usid.INTComponent;
  */
 @Service
 @Command(scope = "onos", name = "INT_Role-set",
-        description = "Insert the role/rules that each INT device needs to operate at multiple tables")
+        description = "Reads the config/INT_Tables/ files, to insert the role/rules that each INT device needs to operate using INT")
 public class INTSetRole extends AbstractShellCommand{
 
     //calling the name on the cli will push all the rules at INT/Tables rx.txt rules to the respective devices

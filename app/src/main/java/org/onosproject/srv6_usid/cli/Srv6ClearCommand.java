@@ -31,7 +31,7 @@ import org.onosproject.srv6_usid.Srv6Component;
  */
 @Service
 @Command(scope = "onos", name = "srv6-clear",
-         description = "Clears all t_insert rules from the SRv6 Transit table")
+         description = "Clears all SRv6 injection table rules from a device SRv6 Transit table")
 public class Srv6ClearCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",

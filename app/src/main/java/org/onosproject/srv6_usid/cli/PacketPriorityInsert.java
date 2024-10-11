@@ -25,7 +25,7 @@ import org.onosproject.srv6_usid.PacketPriorityComponent;
  */
 @Service
 @Command(scope = "onos", name = "Packet_Priority-set",
-        description = "Insert the table entries that will map the packets DSCP to priority levels that each device will use to process packet")
+        description = "Insert the table entries that will map the packets DSCP to priority levels that each device will use to process packet, rules at: /config/DSCP-Precedence_Values.txt")
 public class PacketPriorityInsert extends AbstractShellCommand{
 
     //calling the name on the cli will push all the rules at /config/DSCP-Precedence_Values.txt rules to all devices

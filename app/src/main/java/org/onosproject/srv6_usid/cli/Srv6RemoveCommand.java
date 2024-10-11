@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Command(scope = "onos", name = "srv6-remove",
-        description = "Removes all rules from a device, in the SRv6 Transit table, that match the given parameters.")
+        description = "Removes all rules from the SRv6 table, that match the given parameters, from a device")
 public class Srv6RemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID", required = true, multiValued = false)

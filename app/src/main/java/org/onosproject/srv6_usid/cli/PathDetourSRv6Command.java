@@ -21,7 +21,7 @@ import org.onosproject.srv6_usid.Srv6Component;
  */
 @Service
 @Command(scope = "onos", name = "Path-Detour-SRv6",
-        description = "Creates a SRv6 rule to a specific flow, making it acoid ceratin nodes")
+        description = "Tries to creats a SRv6 rule to a specific flow, making it trying to avoid ceratin nodes")
 public class PathDetourSRv6Command extends AbstractShellCommand{
 
     @Argument(index = 0, name = "uriSrc", description = "Source of Device ID", required = true, multiValued = false)

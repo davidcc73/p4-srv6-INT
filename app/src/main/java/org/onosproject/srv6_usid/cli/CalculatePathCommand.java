@@ -15,7 +15,7 @@ import org.onosproject.srv6_usid.Ipv6RoutingComponent;
  */
 @Service
 @Command(scope = "onos", name = "Calculate-Routing-Paths",
-        description = "Changes the active criteria to calculate the routing path, calculates them and inserts the rules on the devices")
+        description = "Changes the current routing method, calculates them and inserts the rules on the devices. WARNING: It does not remove the old rules, it just adds the new ones")
 public class CalculatePathCommand extends AbstractShellCommand {
         @Argument(index = 0, name = "algorithm", 
                 description = "either 'KShort' or 'ECMP'",

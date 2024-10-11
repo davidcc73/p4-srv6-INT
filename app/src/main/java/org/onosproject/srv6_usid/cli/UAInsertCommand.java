@@ -34,7 +34,7 @@ import org.onosproject.srv6_usid.Srv6Component;
  */
 @Service
 @Command(scope = "onos", name = "uA-insert",
-         description = "Insert a uA rule into the IPv6 Routing table and xconnect table")
+         description = "Insert an uA rule into the SRv6 and xconnect tables")
 public class UAInsertCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
