@@ -319,7 +319,7 @@ All switches P4 enabled (based on [bmv2](https://github.com/p4lang/behavioral-mo
 All switches take advantage of the `IP Precedence` priority system, where by reading the packet's DSCP 3 MSB, that values is assign as the packet's priority level, for the switch's Traffic Manager to use when scheduling packets to be forwarded out of the switch.
 
 
-For a high-scale vision of the P4 code behaviour see the flow chart at `images\P4 Pipelines.drawio.pdf`.
+For a high-scale vision of the P4 code behaviour see the flow chart at `images/P4 Pipelines.drawio.pdf`.
 
 
 P4 Logs are located at `tmp/switchID/stratum_bmv2.log`, can be created by doing:
