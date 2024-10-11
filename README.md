@@ -42,13 +42,13 @@ This repository is structured as follows: <br/>
 
 This repository is structured as follows: <br/>
  * `Docker` Runs 2 conrtainers, one for mininet with the topology, other for ONOS controller and it's CLI. The mininet switches have a direct connection to ONOS. <br/>
- * `ONOS` is the SDN controller used, contains a CLI to access it's opeartions, for details see [ONOS](#ONOS) section.. <br/>
+ * `ONOS` is the SDN controller used, contains a CLI to access it's opeartions, for details see [ONOS](#ONOS) section. <br/>
  * `Mininet`, programm used to simulate the network topology, all switches use the same P4 code, and the used virtual interfaces are native to the System that hosts the Docker engine, for details see [Mininet](#Mininet) section. <br/>
  * `InfluxDB`, is the used database to store the collected INT data, for details see [Database](#Database) section. <br/>
  * `Grafana`, is tools used to visualize, in real-time, the collected telemetry in the form of graphs, for details see [Grafana](#Grafana) section. <br/>
- * `Visualizer`, python script that reads the Database and processes the data to represent, in real-time, which paths in our topology each data flow is taking. <br/>
+ * `Visualizer`, python script that reads the Database and processes the data to represent, in real-time, which paths in our topology each data flow is taking, for details see [Visualizer](#Visualizer) section. <br/>
  * `INT Analyzer`, python script that reads the Database to detected for overloaded switches and cause path detours by using ONOS's CLI, for details see [INT Analyzer](#INT-Analyzer) section. <br/>
-  * `INT Collector`, python script that sniffs the packets from the topology switches' interfaces that are facing the INT collector<br/>
+  * `INT Collector`, python script that sniffs the packets from the topology switches' interfaces that are facing the INT collector, for details see [INT Collector](#INT-Collector) section.<br/>
 
 
 
