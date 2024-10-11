@@ -7,7 +7,8 @@ Fork of the project [netgroup/p4-srv6](https://github.com/netgroup/p4-srv6), imp
 This repository aims to expand that project by adding to it: <br/>
  * `In-band Network Telemetry (INT)`, selected data flows, defined by ONOS, will generate Telemetry. <br/>
  * `Grafana Dashboard`, using the collected INT in the DB, represent it via real-time graphs. <br/>
- * `Visualyzer`, a Python script that reads the INT data and represents the paths currently taken by the data flows in the topology. <br/>
+ * `Visualizer`, a Python script that reads the INT data and represents the paths currently taken by the data flows in the topology. <br/>
+  * `INT Collector`, a Python script that sniffs the INT Report packets and stores their indormation in the Database. <br/>
  * `INT Analyzer`, a Python script that reads the INT data and tries to detected overloaded switches and cause data flow detours from said switches to less congestioned ones, by only using the SRv6 operations from ONOS, and disable said detours when no longer needed. <br/>
  * `Routing Methods`, the original project used static routing, we inteed to expand ONOS so it can calculate and push new routing rules to the switches on demand, specifically using the algorithms: K shortest path and ECMP. 
 
