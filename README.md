@@ -373,6 +373,15 @@ A flow chart of the implemented logic in the INT Analyzer used to select which f
 5. If no flows can be detoured, no `SRv6` operations are applied.
 
 
+## INT Collector
+Python script that sniffs the interfaces to where the INT reports are sent to.
+
+Parses the packet and stores their indo in the DB.
+
+Currently to determine the original size of the packet without the INT data, before storing data in the DB, we have a .json file that matches a size in bytes for each packets `DSCP`, this is only used for test purposes and a possible solution is at `Repository's Issues`.
+
+
+
 ## Make Commands
 
 | Command    | Description |
@@ -489,8 +498,6 @@ Before Running make sure all mininet virtual interfaces have been created.
 #Start the INT collector
 sudo python3 INT/receive/collector_influxdb.py
 ```
-
-Currently to determine the original size of the packet without the INT data, before storing data in the DB, we have a .json file that matches a size in bytes for each packets `DSCP`, this is only used for test purposes and a possible solution is at `Repository's Issues`.
 
 
 ## Topology Visualizer
