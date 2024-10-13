@@ -608,7 +608,7 @@ The script:
 
 * Reads the the .csv file, at `INT\results`, to where each sender/receiver writes data relative to it's data flows.
 * Reads the logs, at `INT\analyzer`, created by the `INT Analyzer`, about the creation/removal of SRv6 rules.
-* Reads the DB to obtain the data related to each tests scenarion that was run, done via start and end times of the tests.
+* Reads the DB to obtain the data related to each tests scenarion that was run, done via start and end times of the tests. For the latency of the flows and switch's processing time a percentile of `95%` was used to remove outliners.
 * Processes all data it into file `INT\results\final_results.xlsx`. 
 
 Examples on how to run the script can be seen at file: `Commands\Process Test Results.txt`.
