@@ -505,7 +505,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
             //-----------------L3: Forwarding by IP -> MAC address
             if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
-                //first we try doing ECMP routing, if it fails we do kShortestPath
+                //first we try doing ECMP routing, if it fails we do k-Shortest Path
                 //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
                 if(!routing_v6_ECMP.apply().hit){
                     if(!routing_v6_kShort.apply().hit){
