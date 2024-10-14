@@ -512,7 +512,7 @@ sudo python3 INT/visualizer/visualizer.py
 ## Detect Hosts
 By default the hosts are not detected by their switches and need to send a packet to be, so they are detected at L2.
 
-Connect to mininet CLI by doing `sudo make mn-cli` and select the option to detect all hosts, it will all of them ping each other.
+Connect to mininet CLI by doing `sudo make mn-cli` and select the option to detect all hosts, it will make all of them ping each other.
 
 
 ## INT Analyzer
