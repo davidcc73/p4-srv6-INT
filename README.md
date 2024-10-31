@@ -281,7 +281,7 @@ The script represents:<br/>
 
 ### Stratum Image
 The stratum image used is a custom image of stratrum version: `2022-06-30` built from source by modifying the `Dockerfile`
-by adding X11, pip3 at runtime and scapy to it (new version at util/stratum/Dockerfile).
+by adding X11, pip3 at runtime and scapy to it (new version at util/docker/stratum_bmv2/Dockerfile).
 
 If needed to recompile the image, drop de Dockerfile at /tools/mininet/, the current image was compiled with name:`davidcc73/ngsdn-tutorial:stratum_bmv2_X11_scapy`
 (the official installation script contains some small naming errors that will pop up during compilation).
