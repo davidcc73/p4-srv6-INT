@@ -1,0 +1,40 @@
+sudo make deps
+
+
+
+sudo make stop     
+sudo mn -c         
+sudo make clean    
+
+xhost +               
+sudo make start       
+sudo make app-build   
+
+
+
+
+make app-reload       
+make netcfg
+
+
+
+#Creates the routing rule using KShort
+Calculate-Routing-Paths KShort            
+
+#Creates the routing rule using ECMP
+#If there is no flow label to read, it will not work (like pings) 
+Calculate-Routing-Paths ECMP     
+
+
+INT_Role-set              
+source /config/ua_config.txt     
+source /config/INT_Tables/INT_Transit_config.txt  
+source /config/hosts_routing_tables.txt  
+
+
+
+
+sudo python3 INT/receive/collector_influxdb.py
+
+sudo python3 INT/visualizer/visualizer.py
+
