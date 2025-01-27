@@ -95,7 +95,7 @@ public class MainComponent {
         compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
                                       "fallbackGroupPollFrequency", "3", false);
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
-                                      "requestIpv6ND", "true", false);
+                                      "requestIpv6ND", "true", false);          //Use NDP neighbor to discover hosts
 
         configRegistry.registerConfigFactory(srv6ConfigFactory);
         log.info("Started");
