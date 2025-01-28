@@ -446,9 +446,14 @@ make netcfg           #Push mininet topology to ONOS
 ```
 
 
-ONOS gets its global network view thanks to a JSON configuration file in which it is possible to encode several information about the switch configuration. <br/>
+ONOS gets its global network view thanks to a JSON configuration file `config/netcfg.json` in which it is possible to encode several information about the switch configuration. <br/>
 
 This file is parsed at runtime by the application and it is needed to configure, e.g. the MAC addresses, SID and uSID addresses assigned to each P4 switch. <br/>
+
+To prevent Broadcast Loops, the interfaces defined under `ports` at `config/netcfg.json`, contains the ports to be used by each switch to do bradcast/multicast to all entities, they are defined to use all link in each direction, and to prevent a loop, some links are exluded, so that 
+the leaf switches are configured to send into a spine switch, 
+and the spine switches will circulate the packets through their outer links (still between spines) 
+with exception of the link between switchs 9 and 14, to avoid a broadcasting loop.
 
 Now ONOS knows how to connect to the switches set up in mininet. <br/>
 
