@@ -51,6 +51,7 @@ const bit<32> NDP_FLAG_OVERRIDE = 0x20000000;
 // Protocol type IPv6
 #define IP_VERSION_6 4w6
 #define IPV6_HDR_LEN 40w8  // IPv6 header length in 8-byte units
+
 #define MAX_PORTS 511
 
 //packet type
