@@ -31,7 +31,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "fieldConfig": {
         "defaults": {
@@ -181,7 +181,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -257,7 +257,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "description": "(Default last 10 minutes, depends on the set time range from the dashboard itself)",
       "fieldConfig": {
@@ -529,7 +529,7 @@
           "alias": "switch 1",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -577,7 +577,7 @@
           "alias": "switch 2",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -625,7 +625,7 @@
           "alias": "switch 3",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -673,7 +673,7 @@
           "alias": "switch 4",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -721,7 +721,7 @@
           "alias": "switch 5",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -769,7 +769,7 @@
           "alias": "switch 6",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -817,7 +817,7 @@
           "alias": "switch 7",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -865,7 +865,7 @@
           "alias": "switch 8",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -913,7 +913,7 @@
           "alias": "switch 9",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -961,7 +961,7 @@
           "alias": "switch 10",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1009,7 +1009,7 @@
           "alias": "switch 11",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1057,7 +1057,7 @@
           "alias": "switch 12",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1105,7 +1105,7 @@
           "alias": "switch 13",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1153,7 +1153,7 @@
           "alias": "switch 14",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1204,7 +1204,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "fieldConfig": {
         "defaults": {
@@ -1507,7 +1507,7 @@
           "alias": "s1",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1555,7 +1555,7 @@
           "alias": "s2",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1603,7 +1603,7 @@
           "alias": "s3",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1651,7 +1651,7 @@
           "alias": "s4",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1699,7 +1699,7 @@
           "alias": "s5",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1747,7 +1747,7 @@
           "alias": "s6",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1795,7 +1795,7 @@
           "alias": "s7",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1843,7 +1843,7 @@
           "alias": "s8",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1891,7 +1891,7 @@
           "alias": "s9",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1939,7 +1939,7 @@
           "alias": "s10",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -1987,7 +1987,7 @@
           "alias": "s11",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -2035,7 +2035,7 @@
           "alias": "s12",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -2083,7 +2083,7 @@
           "alias": "s13",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -2131,7 +2131,7 @@
           "alias": "s14",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -2182,7 +2182,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "fieldConfig": {
         "defaults": {
@@ -2336,7 +2336,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -2408,7 +2408,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "fieldConfig": {
         "defaults": {
@@ -2519,7 +2519,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "query": "SELECT sum(\"size\") AS \"Total Packet Size (bytes)\" FROM \"switch_stats\" WHERE $timeFilter GROUP BY \"switch_id\"",
           "rawQuery": true,
@@ -2533,7 +2533,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "fieldConfig": {
         "defaults": {
@@ -2615,7 +2615,7 @@
           "alias": "src: $tag_src_ip dst: $tag_dst_ip flow: $tag_flow_label",
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
@@ -2662,7 +2662,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "adw3ays2nzk74d"
+        "uid": "bed1x6wyev1mob"
       },
       "fieldConfig": {
         "defaults": {
@@ -2794,7 +2794,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "adw3ays2nzk74d"
+            "uid": "bed1x6wyev1mob"
           },
           "groupBy": [
             {
