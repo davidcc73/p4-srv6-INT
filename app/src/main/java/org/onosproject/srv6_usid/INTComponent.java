@@ -372,13 +372,13 @@ public class INTComponent {
         }
         private static long convertIPv6ToLong(String ipv6String) {
                 try {
-                InetAddress ipv6Address = Inet6Address.getByName(ipv6String);
-                byte[] ipv6Bytes = ipv6Address.getAddress();
-                BigInteger bigInt = new BigInteger(1, ipv6Bytes);
-                return bigInt.longValue();
+                        InetAddress ipv6Address = Inet6Address.getByName(ipv6String);
+                        byte[] ipv6Bytes = ipv6Address.getAddress();
+                        BigInteger bigInt = new BigInteger(1, ipv6Bytes);
+                        return bigInt.longValue();
                 } catch (Exception e) {
-                e.printStackTrace();
-                return -1; // Handle error case appropriately
+                        e.printStackTrace();
+                        return -1; // Handle error case appropriately
                 }
         }
 }

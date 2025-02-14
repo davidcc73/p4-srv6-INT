@@ -68,7 +68,7 @@ In any location run:
 sudo apt-get install sshpass     #install sshpass to be able to use the make commands
 sudo apt install python3-pip   
 sudo pip3 install scapy          #send/process packets
-sudo pip3 install mininet        #install mininet at host (makes clean ups easier)
+sudo apt install mininet         #install mininet at host (makes clean ups easier)
 sudo pip3 install numpy          #to do MCDA
 sudo pip3 install openpyxl       #to export raw CSV results to excel
 sudo pip3 install paramiko       #for the INT Analyzer
