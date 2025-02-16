@@ -295,6 +295,8 @@ The mininet container is running in mode `network_mode: "host"` that makes so th
 
 The switches from r1-r8 (end-points) have a extra interface number `100`, that is directly connected to the `INT Collector`. to where they send the `INT reports`, in practice the `INT Collector` is not inserted in the topology and those interfaces, lead to no where and are only used to sniff out the `INT reports`.
 
+### Topology
+![Topology](images/Topology.png "Topology")
 
 
 ## ONOS
