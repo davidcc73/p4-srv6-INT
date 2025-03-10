@@ -538,7 +538,7 @@ A Source INT switch injects an INT header in the packet if it matches one of its
 
 Just switches directly connected to hosts should be configured as their INT Source/Sink switches.
 
-The configuration files for each switch can be seen at: `config\INT_Tables\r1.txt`
+The configuration files for each switch can be seen at: `config\INT_Tables`
 
 In our mininet cli menu, there are pre-configured scenarios that generate INT data, they use these scripts to do it: `INT\receive\receive.py` `INT\send\send.py`, they can be ran mannualy on each host by using the `xterm` command to open terminal windows to each host.
 
@@ -616,9 +616,9 @@ The script:
 * Reads the the .csv file, at `INT\results`, to where each sender/receiver writes data relative to it's data flows.
 * Reads the logs, at `INT\analyzer`, created by the `INT Analyzer`, about the creation/removal of SRv6 rules.
 * Reads the DB to obtain the data related to each tests scenarion that was run, done via start and end times of the tests. For the latency of the flows and switch's processing time a percentile of `95%` was used to remove outliners.
-* Processes all data it into file `INT\results\final_results.xlsx`. 
+* Processes all data into file `INT\results\final_results.xlsx`. 
 
-Examples on how to run the script can be seen at file: `Commands\Process Test Results.txt`.
+Examples on how to run the script can be seen at file: `Commands\Process Test Results.txt`, where the results are organized and are compared between scenarios and routing methods.
 
 ### ONOS UI
 ONOS web UI has a graphical representation of the running topology from the controller point of view. <br/>
