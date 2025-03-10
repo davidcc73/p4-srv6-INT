@@ -291,7 +291,7 @@ The custom image was published at docker hub, and is pulled from there, by doing
 
 
 ### Interfaces
-The mininet container is running in mode `network_mode: "host"` that makes so that all virtual interfaces of our topology elements are created at the host system that is running the Docker Engine, that is done to make the sniffing operations of the `INT Analyzer` easier.
+The mininet container is running in mode `network_mode: "host"` that makes so that all virtual interfaces of our topology elements are created at the host system that is running the Docker Engine, that is done to make the sniffing operations of the `INT Collector` easier.
 
 The switches from r1-r8 (end-points) have a extra interface number `100`, that is directly connected to the `INT Collector`. to where they send the `INT reports`, in practice the `INT Collector` is not inserted in the topology and those interfaces, lead to no where and are only used to sniff out the `INT reports`.
 
