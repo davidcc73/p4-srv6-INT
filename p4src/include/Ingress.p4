@@ -437,6 +437,10 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     apply {
+        if(hdr.ipv6.isValid() &&  !hdr.icmpv6.isValid()){
+            log_msg("IPv6 packet detected");
+        }
+        log_msg("Ingress start");
         //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
         if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
@@ -451,19 +455,32 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         //the other 3 bits are the drop precedence, we don't use it
 
 
-
-        if (hdr.packet_out.isValid()) {
+        //---------------------------------------------------------------------------ACL Support
+        if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){  //LLDP multicast packet with dst ethernet (01:80:c2:00:00:0e), meant only for this switch, so do not forward it
+            log_msg("It's an LLDP multicast packet destined to this switch, not meant to be forwarded");
+            return;
+        }
+        if (hdr.packet_out.isValid()) {     //Came from the CPU, meant to be forwarded to the port defined in it
+            log_msg("Packet from CPU, forwarding it to port:{}", {hdr.packet_out.egress_port});
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
-            exit;
+            exit;                           //it can probably also be return;
         }
+        else if(acl.apply().hit){          //Not from CPU and its acl pkt
+            log_msg("ACL hit, cloned to CPU, end of processing");
+            mark_to_drop(standard_metadata);
+            return;
+        }
+        //---------------------------------------------------------------------------
+
 
         //-----------------Forwarding NDP packets
         if (hdr.icmpv6.isValid() && hdr.icmpv6.type == ICMP6_TYPE_NS) {
+            log_msg("ICMPv6, NDP NS packet detected, sending NDP NA to the sender");
             ndp_reply_table.apply();
         }
 
-	    if (hdr.ipv6.hop_limit == 0) {
+	    if(hdr.ipv6.isValid() && hdr.ipv6.hop_limit == 0) {
 	        drop();
 	    }
 
@@ -519,20 +536,14 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
         //-----------------L2: Forwarding by MAC address -> Port
 	    if (!local_metadata.skip_l2) {            //the egress_spec for the next hop was not defined by ndp_reply_table
-            if(hdr.ethernet.ether_type == ETHERTYPE_LLDP && hdr.ethernet.dst_addr == 1652522221582){ //skip it, TODO: THIS IF MAY BE MOVABLE TO BEFORE THE L2 SKIP IF
-                log_msg("It's an LLDP multicast packet, not meant to be forwarded");
-            }
-            else{
-                if(!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
-                    if(hdr.ethernet.ether_type == ETHERTYPE_IPV6 || hdr.ethernet.ether_type == ETHERTYPE_LLDP){  //we only care about IPv6 broadcasts to check the table (Neighbor/Router solicitation)
-                        multicast.apply();
-                    }
+            log_msg("pre unicast-hdr.ethernet.dst_addr: {}", {hdr.ethernet.dst_addr});
+            if(!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
+                log_msg("unicast failed, trying multicast");
+                if(!multicast.apply().hit){  
+                    log_msg("multicast failed");
                 }
-	        }
+            }
 	    }
-
-        //-----------------Decide if packet must be clone to CPU
-        acl.apply();
 
         //-----------------INT processing portion        
         if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //just track higer level connections. set if current hop is source or sink to the packet
@@ -547,6 +558,11 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             process_int_source.apply(hdr, local_metadata);     
             if(hdr.int_header.isValid()){
                 log_msg("packet flow monitored");
+                //log_msg("hdr.ethernet.ether_type: {})", {hdr.ethernet.ether_type});
+                //log_msg("hdr.ethernet.src_addr: {}", {hdr.ethernet.src_addr});
+                //log_msg("hdr.ethernet.dst_addr: {}", {hdr.ethernet.dst_addr});
+                //log_msg("hdr.ipv6.src_addr: {}", {hdr.ipv6.src_addr});
+                //log_msg("hdr.ipv6.dst_addr: {}", {hdr.ipv6.dst_addr});
             }
         }
 
@@ -560,6 +576,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
             clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
         }
+        log_msg("Ingress end, egress_spec: {}", {standard_metadata.egress_spec});
     }
 }
 
