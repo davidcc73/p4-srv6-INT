@@ -38,3 +38,10 @@ sudo python3 INT/receive/collector_influxdb.py
 
 sudo python3 INT/visualizer/visualizer.py
 
+
+
+#Max_Queue_Size Delay Jitter Loss (%)
+sudo tc qdisc show dev r1-eth1
+
+#Bandwith (Mbps)
+sudo tc class show dev r1-eth1
