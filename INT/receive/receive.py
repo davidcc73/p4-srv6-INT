@@ -102,8 +102,9 @@ def terminate():
     print("Out of order packets count:", len(out_of_order_packets))
     print("Out of order packets:", out_of_order_packets)
 
-    export_results()
-    print("Results exported")
+    if(args.export is not None):
+        export_results()
+        print("Results exported")
 
 def export_results():
     print("Exporting results")
