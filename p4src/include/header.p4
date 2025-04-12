@@ -129,28 +129,17 @@ header icmpv6_t {
     bit<16> checksum;
 }
 
-header ndp_n_t {
-    bit<32> flags;              //represents both the flags and reserved fields in both NS and NA pkts
+header ndp_t {
+    bit<32> flags;
     bit<128> target_addr;
 }
 
-header ndp_rs_t {               //Router Solicitation
-    bit<32> flags;              //represents the reserved fields in the RS pkts
-}
-
-header ndp_ra_t {               // Router Advertisement
-    bit<8>  cur_hop_limit;      // Current Hop Limit
-    bit<8>  auto_config_flags;  // Autoconfiguration flag  (1bit) m_flag, (1bit) o_flag, (6bits) reserved_flags)
-    bit<16> router_lifetime;    // Lifetime of the router (in seconds)
-    bit<32> reachable_time;     // Time a node assumes a neighbor is reachable
-    bit<32> retrans_timer;      // Time between retransmitted Neighbor Solicitation messages
-}
-
-header ndp_option_t {           //Represents the ICMPv6 Options
+header ndp_option_t {
     bit<8> type;
     bit<8> length;
     bit<48> value;
 }
+
 
 struct int_metadata_t {
     switch_id_t switch_id;
@@ -204,6 +193,7 @@ struct preserving_metadata_CPU_t {
 //Custom metadata definition
 struct local_metadata_t {
     bool is_multicast;
+    bool skip_l2;
     bool xconnect;
     ipv6_addr_t next_srv6_sid;
     ipv6_addr_t ua_next_hop;
@@ -357,9 +347,7 @@ struct parsed_headers_t {
     udp_t udp;
     icmp_t icmp;
     icmpv6_t icmpv6;
-    ndp_n_t ndp_n;              //for NS-NA pkts    (followed by the ndp_option_t header)
-    ndp_rs_t ndp_rs;            //for RS pkts       (followed by the ndp_option_t header)
-    ndp_ra_t ndp_ra;            //for RA pkts       (followed by the ndp_option_t header)
+    ndp_t ndp;
     ndp_option_t ndp_option;
     packet_out_header_t packet_out;
     packet_in_header_t packet_in;

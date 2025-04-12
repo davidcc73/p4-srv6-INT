@@ -39,9 +39,6 @@ const bit<8> PROTO_IP_IN_IP = 4;
 
 const bit<8> ICMP6_TYPE_NS = 135;
 const bit<8> ICMP6_TYPE_NA = 136;
-const bit<8> ICMP6_TYPE_RS = 133;
-const bit<8> ICMP6_TYPE_RA = 134;
-
 const bit<8> NDP_OPT_TARGET_LL_ADDR = 2;
 const mac_addr_t IPV6_MCAST_01 = 0x33_33_00_00_00_01;
 const bit<32> NDP_FLAG_ROUTER = 0x80000000;

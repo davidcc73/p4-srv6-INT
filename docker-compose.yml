@@ -1,3 +1,5 @@
+version: "3"
+
 services:
   mininet:
     #image: opennetworking/ngsdn-tutorial:stratum_bmv2
@@ -13,17 +15,7 @@ services:
       - ./tmp:/tmp
       - ./mininet:/mininet
       - ./INT:/INT
-    entrypoint: >
-      /bin/bash -c '
-        while [ ! -f /mininet/topo.py ]; do
-          sleep 1
-        done
-        if [ ! -f /var/log/stratum/p4_reads.pb.txt ]; then
-          mkdir -p /var/log/stratum
-          touch /var/log/stratum/p4_reads.pb.txt
-        fi
-        python3 /mininet/topo.py
-      '
+    entrypoint: "/bin/bash -c 'while [ ! -f /mininet/topo.py ]; do sleep 1; done; python3 /mininet/topo.py'"
     network_mode: "host"
     environment:
       - DISPLAY=${DISPLAY}
