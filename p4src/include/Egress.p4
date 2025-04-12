@@ -21,29 +21,6 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 // restore the standard_metadata values that were perserved by the clone_preserving_field_list
                 standard_metadata.egress_port = local_metadata.perserv_CPU_meta.egress_port;
                 standard_metadata.ingress_port = local_metadata.perserv_CPU_meta.ingress_port;
-
-                //-----------------a INT packet from another switch may be trigger to be sent to CPU, so we need to restore it
-                //it's a copy of the action (int_sink) since we can't invoke actions in the egress
-                //it may not be needed if the Controller can understand packet with the INT headers, but is here just to be safe
-                //there is a very low chance of this happening, but it's better to be safe than sorry
-                if(hdr.int_header.isValid()){
-                    log_msg("A packet with INT header will be sent to CPU, restoring it to original state withouth INT header");
-                    hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
-                    bit<16> len_bytes = (((bit<16>)hdr.intl4_shim.len) * 4) + INT_SHIM_HEADER_SIZE;
-                    hdr.ipv6.payload_len = hdr.ipv6.payload_len - len_bytes;
-                    if(hdr.udp.isValid()) { hdr.udp.length_ = hdr.udp.length_ - len_bytes; }
-                    hdr.intl4_shim.setInvalid();
-                    hdr.int_header.setInvalid();
-                    hdr.int_switch_id.setInvalid();
-                    hdr.int_level1_port_ids.setInvalid();
-                    hdr.int_hop_latency.setInvalid();
-                    hdr.int_q_occupancy.setInvalid();
-                    hdr.int_ingress_tstamp.setInvalid();
-                    hdr.int_egress_tstamp.setInvalid();
-                    hdr.int_level2_port_ids.setInvalid();
-                    hdr.int_egress_tx_util.setInvalid();
-                    hdr.int_data.setInvalid();
-                }
             }
             else {
                 log_msg("Detected report clone");
@@ -55,7 +32,7 @@ control EgressPipeImpl (inout parsed_headers_t hdr,
                 standard_metadata.ingress_global_timestamp = local_metadata.perserv_meta.ingress_global_timestamp;
                 
                 //-------------If packet contains headers used for SRv6, it must be removed
-                if(hdr.ipv6.next_header == PROTO_IPV6 || hdr.ipv6.next_header == PROTO_SRV6){ //See what is after the outer IPv6 header, TODO: THE SECOND CONDITION NEVER OCCURS, TEST IT SICE SRV6HEADER IS ONLY USED WHEN THERE IS MORE THAT ONE SID
+                if(hdr.ipv6.next_header == PROTO_IPV6){ //See what is after the outer IPv6 header
                     //-----Prepare data for the recirculation
                     log_msg("Seting to recirculate to remove headers used by SRv6, and terminating egress processing");
                     local_metadata.perserv_meta.egress_spec = standard_metadata.egress_port;    //store the current egress port as spec to later on set back to egress_port  
