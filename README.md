@@ -5,6 +5,8 @@ This work was performed in the scope of the project MH-SDVanet: Multihomed Softw
 Fork of the project [netgroup/p4-srv6](https://github.com/netgroup/p4-srv6), implements SRv6 in Mininet environment where the switches use P4.
 
 This repository aims to expand that project by adding to it: <br/>
+ * `Better support for CPU packets`, both outgoing and incoming. <br/>
+ * `Better NDP support`. <br/>
  * `In-band Network Telemetry (INT)`, selected data flows, defined by ONOS, will generate Telemetry. <br/>
  * `Grafana Dashboard`, using the collected INT in the DB, represent it via real-time graphs. <br/>
  * `Visualizer`, a Python script that reads the INT data and represents the paths currently taken by the data flows in the topology. <br/>
