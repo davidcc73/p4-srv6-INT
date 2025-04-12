@@ -1,13 +1,35 @@
 CPU_PORT = 255
 
-BW_INFRA_INFRA = 900                 #Bandwith   (Mbps)              Glass Fiber cable, 10 km
-DL_INFRA_INFRA = 2                   #Delay      (ms) 
-
-BW_INFRA_VEHICULE = 700              #Bandwith   (Mbps)              5G cellular towers, 10 km
-DL_INFRA_VEHICULE = 20               #Delay      (ms)                (10-30 ms)
-
-BW_VEHICULE_VEHICULE = 700           #Bandwith   (Mbps)              5G between cars, max 100 meters
-DL_VEHICULE_VEHICULE = 7             #Delay      (ms)                (1-10 ms)
+network_config = {
+    "INFRA_INFRA": {               # Glass Fiber cable, 10 km
+        "bw": 900,                 # Bandwidth (Mbps)
+        'max_queue': 1000,         # Maximum queue size (packets)
+        "delay": "2ms",            # Delay
+        'jitter': "10ms",          # Jitter
+        'loss': 0,                 # Loss (%)
+    },
+    "INFRA_VEHICULE": {            # 5G cellular towers, 10 km
+        "bw": 900,                 # Bandwidth (Mbps)
+        'max_queue': 1000,         # Maximum queue size (packets)
+        "delay": "2ms",            # Delay
+        'jitter': "10ms",          # Jitter
+        'loss': 0,                 # Loss (%)
+    },
+    "VEHICULE_VEHICULE": {         # 5G between cars, max 100 meters
+        "bw": 900,                 # Bandwidth (Mbps)
+        'max_queue': 1000,         # Maximum queue size (packets)
+        "delay": "2ms",            # Delay
+        'jitter': "10ms",          # Jitter
+        'loss': 0,                 # Loss (%)
+    },
+    "HOST_VEHICULE": {             # Devices inside the car, 1 meter WiFi
+        "bw": 900,                 # Bandwidth (Mbps)
+        'max_queue': 1000,         # Maximum queue size (packets)
+        "delay": "2ms",            # Delay
+        'jitter': "10ms",          # Jitter
+        'loss': 0,                 # Loss (%)
+    }
+}
 
 
 host_IPs = {
