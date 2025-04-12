@@ -461,7 +461,7 @@ public class Ipv6RoutingComponent{
             mainComponent.getExecutorService().execute(() -> {
                 DeviceId deviceId = event.subject().id();
                 log.info("{} event! device id={}", event.type(), deviceId);
-                //setUpMyStationTable(deviceId);
+                setUpMyStationTable(deviceId);
             });
         }
     }
@@ -679,7 +679,7 @@ public class Ipv6RoutingComponent{
                 .filter(mastershipService::isLocalMaster)
                 .forEach(deviceId -> {
                     log.info("*** IPV6 ROUTING - Starting initial set up for {}...", deviceId);
-                    //setUpMyStationTable(deviceId);
+                    setUpMyStationTable(deviceId);
                     setUpL2NextHopRules(deviceId);
                 });        
     }

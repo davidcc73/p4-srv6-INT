@@ -156,27 +156,15 @@ parser ParserImpl (packet_in packet,
         packet.extract(hdr.icmpv6);
         local_metadata.icmp_type = hdr.icmpv6.type;
         transition select(hdr.icmpv6.type) {
-            ICMP6_TYPE_NS: parse_ndp_n;
-            ICMP6_TYPE_NA: parse_ndp_n;
-            ICMP6_TYPE_RS: parse_ndp_rs;
-            ICMP6_TYPE_RA: parse_ndp_ra;
+            ICMP6_TYPE_NS: parse_ndp;
+            ICMP6_TYPE_NA: parse_ndp;
             default: accept;
         }
 
     }
 
-    state parse_ndp_n {                 //NDP Neighbor Solicitation/Advertisement
-        packet.extract(hdr.ndp_n);
-        transition parse_ndp_option;
-    }
-
-    state parse_ndp_rs {                //NDP Router Solicitation
-        packet.extract(hdr.ndp_rs);
-        transition parse_ndp_option;
-    }
-
-    state parse_ndp_ra {                //NDP Router Advertisement
-        packet.extract(hdr.ndp_ra);
+    state parse_ndp {
+        packet.extract(hdr.ndp);
         transition parse_ndp_option;
     }
 
@@ -225,9 +213,7 @@ control DeparserImpl(packet_out packet, in parsed_headers_t hdr) {
         packet.emit(hdr.udp);
         packet.emit(hdr.icmp);
         packet.emit(hdr.icmpv6);
-        packet.emit(hdr.ndp_n);             //only one of these 3 will be emitted at the same time, the options are optional
-        packet.emit(hdr.ndp_rs);
-        packet.emit(hdr.ndp_ra);
+        packet.emit(hdr.ndp);
         packet.emit(hdr.ndp_option);
         
         // int header
