@@ -535,6 +535,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             }
         }
 
+        //commented because regular IPv6 packets were being dropped by the firewall, requires further testing and tinkering
         //---------------------------------------------------------------------------Firewall check (we allow IPv6 broadcast to locat the other hosts in the network)
 	    /*if (!l2_firewall.apply().hit && hdr.ethernet.dst_addr != 281474976710655) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
             log_msg("L2 firewall hit failed for this packet, dropping it");
