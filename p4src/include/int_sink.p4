@@ -5,9 +5,9 @@ control process_int_sink (
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    action int_sink() {             //NOTE: there is a section on main.p4 egress, that must always mirror this action, to remove the INT from the packets, meant to the CPU
+    action int_sink() {
         // restore original headers
-       
+        
         //INT specification says that the Traffic classe field should be restored, it was used to signal the usage of INT
         hdr.ipv6.dscp = hdr.intl4_shim.udp_ip_dscp;
         

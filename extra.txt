@@ -38,6 +38,9 @@ sudo python3 INT/receive/collector_influxdb.py
 
 sudo python3 INT/visualizer/visualizer.py
 
+sudo python3 INT/analyzer/analyzer.py --routing Medium-ECMP --num_iterations 10 --iterations_timer 302.96970000000005
+
+
 
 
 #Max_Queue_Size Delay Jitter Loss (%)
