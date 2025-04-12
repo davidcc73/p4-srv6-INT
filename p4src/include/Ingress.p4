@@ -121,35 +121,87 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     /*
-     * NDP reply table and actions.
-     * Handles NDP router solicitation message and send router advertisement to the sender.
+     * NDP neighbor solicitation reply table and actions. The CPU informed about all the nodes, so the first switch replies itself to them immediately.
+     * Handles NDP neighbor solicitation message and send neighbor advertisement to the sender.
      */
     action ndp_ns_to_na(mac_addr_t target_mac) {
         hdr.ethernet.src_addr = target_mac;
         hdr.ethernet.dst_addr = IPV6_MCAST_01;
-        bit<128> host_ipv6_tmp = hdr.ipv6.src_addr;
-        hdr.ipv6.src_addr = hdr.ndp.target_addr;
+        ipv6_addr_t host_ipv6_tmp = hdr.ipv6.src_addr;
+        hdr.ipv6.src_addr = hdr.ndp_n.target_addr;
         hdr.ipv6.dst_addr = host_ipv6_tmp;
         hdr.icmpv6.type = ICMP6_TYPE_NA;
-        hdr.ndp.flags = NDP_FLAG_ROUTER | NDP_FLAG_OVERRIDE;
+        hdr.ndp_n.flags = NDP_FLAG_ROUTER | NDP_FLAG_OVERRIDE;
         hdr.ndp_option.setValid();
         hdr.ndp_option.type = NDP_OPT_TARGET_LL_ADDR;
         hdr.ndp_option.length = 1;
         hdr.ndp_option.value = target_mac;
         hdr.ipv6.next_header = PROTO_ICMPV6;
         standard_metadata.egress_spec = standard_metadata.ingress_port;
-        local_metadata.skip_l2 = true;
+        // we use the same header so no need to set old one as invalid and new one as valid
     }
 
-    direct_counter(CounterType.packets_and_bytes) ndp_reply_table_counter;
-    table ndp_reply_table {
+    direct_counter(CounterType.packets_and_bytes) ndp_n_reply_table_counter;
+    table ndp_n_reply_table {
         key = {
-            hdr.ndp.target_addr: exact;
+            hdr.ndp_n.target_addr: exact;
         }
         actions = {
             ndp_ns_to_na;
         }
-        counters = ndp_reply_table_counter;
+        counters = ndp_n_reply_table_counter;
+    }
+
+    /*
+     * NDP router solicitation reply table and actions.
+     * Handles NDP router solicitation message and send router advertisement to the sender.
+     */
+    action ndp_rs_to_ra(mac_addr_t my_router_mac, ipv6_addr_t my_router_ipv6) { 
+
+        // Ethernet
+        hdr.ethernet.dst_addr = hdr.ethernet.src_addr;
+        hdr.ethernet.src_addr = my_router_mac;
+
+        // IPv6
+        hdr.ipv6.dst_addr = hdr.ipv6.src_addr;
+        hdr.ipv6.src_addr = my_router_ipv6;
+        hdr.ipv6.payload_len = 16w24;         // value in bytes, ICMPv6 + NDP RA + NDP Option length (32 + 96 + 64 = 192 bits = 24 bytes)
+        hdr.ipv6.next_header = PROTO_ICMPV6;
+
+
+        // ICMPv6
+        hdr.icmpv6.type = ICMP6_TYPE_RA;       // Router Advertisement
+
+        // RA fields
+        hdr.ndp_ra.setValid();
+        hdr.ndp_ra.cur_hop_limit = 64;         // Example default
+        hdr.ndp_ra.auto_config_flags = 0;      // m,o, and reserved flags
+        hdr.ndp_ra.router_lifetime = 1800;     // 30 minutes
+        hdr.ndp_ra.reachable_time = 0;         // Set as needed (no suggestion)
+        hdr.ndp_ra.retrans_timer = 0;          // Set as needed (use your own value)
+
+        // Optional: Include link-layer address option
+        hdr.ndp_option.setValid();
+        hdr.ndp_option.type = NDP_OPT_TARGET_LL_ADDR;
+        hdr.ndp_option.length = 1;             // Length of NDP Options Header in 8-byte (64 bits) units
+        hdr.ndp_option.value = my_router_mac;
+
+        // Send back out the same port
+        standard_metadata.egress_spec = standard_metadata.ingress_port;
+
+        // set old header as invalid
+        hdr.ndp_rs.setInvalid();
+    }
+
+    direct_counter(CounterType.packets_and_bytes) ndp_r_reply_table_counter;
+    table ndp_r_reply_table {
+        key = {                                 //needs at least a key
+            1w0 : exact;                        //dummy key to trigger the action
+        }
+        actions = {
+            ndp_rs_to_ra;                       //We want to always trigger this action
+        }
+        counters = ndp_r_reply_table_counter;
     }
 
     action srv6_end() {}
@@ -391,21 +443,6 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         counters = srv6_encap_v4_table_counter;
     }
 
-    /*action set_priority_value(bit<3> value) {         //no need to use this, we can set the priority directly
-        standard_metadata.priority = value;
-    }
-    // compare the DSCP value to set the packet priority between 0-7 
-    table set_priority_from_dscp{
-        key = {
-            local_metadata.OG_dscp: exact;
-        }
-        actions = {
-            set_priority_value;
-            NoAction;
-        }
-    }*/
-
-
     /*
      * ACL table  and actions.
      * Clone the packet to the CPU (PacketIn) or drop.
@@ -437,10 +474,6 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
     }
 
     apply {
-        if(hdr.ipv6.isValid() &&  !hdr.icmpv6.isValid()){
-            log_msg("IPv6 packet detected");
-        }
-        log_msg("Ingress start");
         //-----------------Set packet priority, local_metadata.OG_dscp is 0 by default which means priority 0 (best effort)
         if(hdr.intl4_shim.isValid())     {local_metadata.OG_dscp = hdr.intl4_shim.udp_ip_dscp;} //when INT is used, the OG DSCP value is in the shim header
         else if(hdr.ipv6_inner.isValid()){local_metadata.OG_dscp = hdr.ipv6_inner.dscp;}        //for SRv6 used, except encapsulation of IPv4 with just one segemnt
@@ -473,77 +506,103 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         }
         //---------------------------------------------------------------------------
 
-
-        //-----------------Forwarding NDP packets
-        if (hdr.icmpv6.isValid() && hdr.icmpv6.type == ICMP6_TYPE_NS) {
-            log_msg("ICMPv6, NDP NS packet detected, sending NDP NA to the sender");
-            ndp_reply_table.apply();
+        //---------------------------------------------------------------------------Drop packets with hop limit 0
+        if(hdr.ipv6.isValid() && hdr.ipv6.hop_limit == 0) {
+            drop();
         }
 
-	    if(hdr.ipv6.isValid() && hdr.ipv6.hop_limit == 0) {
-	        drop();
-	    }
-
-	    if (l2_firewall.apply().hit) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
-            
-            //----------------SRv6 Behavior (SRv6 LocalSID Table) (decapsulate, forward to next segment, manipulate packet, etc.)
-            switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
-                srv6_end: {
-                    // support for reduced SRH
-                    if (hdr.srv6h.segment_left > 0) {
-                        // set destination IP address to next segment
-                        hdr.ipv6.dst_addr = local_metadata.next_srv6_sid;
-                        // decrement segments left
-                        hdr.srv6h.segment_left = hdr.srv6h.segment_left - 1;
-                    } else {
-                        // set destination IP address to next segment
-                        hdr.ipv6.dst_addr = hdr.srv6_list[0].segment_id;
-                    }
-                }
-                srv6_end_dx4: {
-                    routing_v4.apply();
-                }
+        //---------------------------------------------------------------------------Forwarding ICMPv6 NDP packets
+        if(hdr.icmpv6.isValid()) {
+            if (hdr.icmpv6.type == ICMP6_TYPE_NS){
+                log_msg("ICMPv6, NDP NS packet detected, sending NDP NA to the sender");
+                ndp_n_reply_table.apply();
+                return;
             }
-            //----------------Detect recirculation
-            if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_RECIRC) {
-                local_metadata.int_meta.sink = true;        //restore status as being sink, no longer need but it's correct (only sinks lead to recirculations, after cloning)
-                local_metadata.recirculated_srv6_flag = true;
-                standard_metadata.egress_spec = local_metadata.perserv_meta.egress_spec;   //restore egress_spec to the INT collector port
-                log_msg("recirculated packet, restored sink status and Removed SR headers, terminating ingress processing sonner");
-                return;                                     //recirculated just to remove headers used by SRv6, beacuse we are it's sink, so we stop here
+            else if (hdr.icmpv6.type == ICMP6_TYPE_RS) {
+                log_msg("ICMPv6, NDP RS packet detected, sending NDP RA to the sender");
+                ndp_r_reply_table.apply();
+                return;
             }
-
-            // SRv6 Encapsulation
-            if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
-                srv6_encap_v4.apply();
-            } else {
-                srv6_encap.apply(); //uses hdr.ipv6 and compares to this nodes rules to decide if it encapsulates into SRv6 or not
+            else if (hdr.icmpv6.type == ICMP6_TYPE_RA){             //usualy they are from another router, destined to this router, but currently we don't need their info
+                log_msg("Detected incoming ICMPv6 NDP RA packet, no support for it, dropping it");
+                mark_to_drop(standard_metadata);
+                return;
             }
-
-            //-----------------L3: Forwarding by IP -> MAC address
-            if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
-                //first we try doing ECMP routing, if it fails we do k-Shortest Path
-                //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
-                if(!routing_v6_ECMP.apply().hit){
-                    if(!routing_v6_kShort.apply().hit){
-                        log_msg("No route found for IPv6 packet!");
-                    }
-                }
-	        } else {                              //SRv6 ua_next_hop
-                xconnect_table.apply();           //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
+            else{
+                log_msg("ICMPv6 packet detected, type:{} not needed, dropping", {hdr.icmpv6.type});
+                mark_to_drop(standard_metadata);
+                return;
             }
         }
+
+        //---------------------------------------------------------------------------Firewall check (we allow IPv6 broadcast to locat the other hosts in the network)
+	    /*if (!l2_firewall.apply().hit && hdr.ethernet.dst_addr != 281474976710655) {                      //checks if hdr.ethernet.dst_addr is listed in the table (only contains myStationMac)
+            log_msg("L2 firewall hit failed for this packet, dropping it");
+            /*log_msg("hdr.ethernet.src_addr:{}", {hdr.ethernet.src_addr});
+            log_msg("hdr.ethernet.dst_addr:{}", {hdr.ethernet.dst_addr});
+            log_msg("hdr.ethernet.ether_type:{}", {hdr.ethernet.ether_type});
+            log_msg("hdr.ipv6.next_header:{}", {hdr.ipv6.next_header});
+            log_msg("hdr.ipv6.src_addr:{}", {hdr.ipv6.src_addr});
+            log_msg("hdr.ipv6.dst_addr:{}", {hdr.ipv6.dst_addr});
+            mark_to_drop(standard_metadata);
+            return;
+        }*/
+        
+        //----------------SRv6 Behavior (SRv6 LocalSID Table) (decapsulate, forward to next segment, manipulate packet, etc.)
+        switch(srv6_localsid_table.apply().action_run) { //uses hdr.ipv6.dst_addr to decided the action, use next segment or end SRv6
+            srv6_end: {
+                // support for reduced SRH
+                if (hdr.srv6h.segment_left > 0) {
+                    // set destination IP address to next segment
+                    hdr.ipv6.dst_addr = local_metadata.next_srv6_sid;
+                    // decrement segments left
+                    hdr.srv6h.segment_left = hdr.srv6h.segment_left - 1;
+                } else {
+                    // set destination IP address to next segment
+                    hdr.ipv6.dst_addr = hdr.srv6_list[0].segment_id;
+                }
+            }
+            srv6_end_dx4: {
+                routing_v4.apply();
+            }
+        }
+        //----------------Detect recirculation
+        if(standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_RECIRC) {
+            local_metadata.int_meta.sink = true;        //restore status as being sink, no longer need but it's correct (only sinks lead to recirculations, after cloning)
+            local_metadata.recirculated_srv6_flag = true;
+            standard_metadata.egress_spec = local_metadata.perserv_meta.egress_spec;   //restore egress_spec to the INT collector port
+            log_msg("recirculated packet, restored sink status and Removed SR headers, terminating ingress processing sonner");
+            return;                                     //recirculated just to remove headers used by SRv6, beacuse we are it's sink, so we stop here
+        }
+
+        // SRv6 Encapsulation
+        if (hdr.ipv4.isValid() && !hdr.ipv6.isValid()) {
+            srv6_encap_v4.apply();
+        } else {
+            srv6_encap.apply(); //uses hdr.ipv6 and compares to this nodes rules to decide if it encapsulates into SRv6 or not
+        }
+
+        //-----------------L3: Forwarding by IP -> MAC address
+        if (!local_metadata.xconnect) {       //No SRv6 ua_next_hop 
+            //first we try doing ECMP routing, if it fails we do k-Shortest Path
+            //uses hdr.ipv6.dst_addr (and others) to set hdr.ethernet.dst_addr
+            if(!routing_v6_ECMP.apply().hit){
+                if(!routing_v6_kShort.apply().hit){
+                    log_msg("No route found for IPv6 packet!");
+                }
+            }
+        } else {                              //SRv6 ua_next_hop
+            xconnect_table.apply();           //uses local_metadata.ua_next_hop to set hdr.ethernet.dst_addr
+        }
+        
 
         //-----------------L2: Forwarding by MAC address -> Port
-	    if (!local_metadata.skip_l2) {            //the egress_spec for the next hop was not defined by ndp_reply_table
-            log_msg("pre unicast-hdr.ethernet.dst_addr: {}", {hdr.ethernet.dst_addr});
-            if(!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
-                log_msg("unicast failed, trying multicast");
-                if(!multicast.apply().hit){  
-                    log_msg("multicast failed");
-                }
+        if(!unicast.apply().hit){            //uses hdr.ethernet.dst_addr to set egress_spec
+            log_msg("unicast failed, trying multicast");
+            if(!multicast.apply().hit){  
+                log_msg("multicast failed");
             }
-	    }
+        }
 
         //-----------------INT processing portion        
         if(hdr.udp.isValid() || hdr.tcp.isValid()) {        //just track higer level connections. set if current hop is source or sink to the packet
@@ -553,19 +612,8 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
         if (local_metadata.int_meta.source == true) {       //(source) INSERT INT INSTRUCTIONS HEADER
             log_msg("I am INT source for this packet origin, checking flow");
             hdr.intl4_shim.setInvalid(); 
-            
-
-            process_int_source.apply(hdr, local_metadata);     
-            if(hdr.int_header.isValid()){
-                log_msg("packet flow monitored");
-                //log_msg("hdr.ethernet.ether_type: {})", {hdr.ethernet.ether_type});
-                //log_msg("hdr.ethernet.src_addr: {}", {hdr.ethernet.src_addr});
-                //log_msg("hdr.ethernet.dst_addr: {}", {hdr.ethernet.dst_addr});
-                //log_msg("hdr.ipv6.src_addr: {}", {hdr.ipv6.src_addr});
-                //log_msg("hdr.ipv6.dst_addr: {}", {hdr.ipv6.dst_addr});
-            }
+            process_int_source.apply(hdr, local_metadata);
         }
-
         if (local_metadata.int_meta.sink == true && hdr.int_header.isValid()) { //(sink) and the INT header is valid
             // clone packet for Telemetry Report Collector
             log_msg("I am sink of this packet and i will clone it");
@@ -576,7 +624,6 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
 
             clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FL_1);
         }
-        log_msg("Ingress end, egress_spec: {}", {standard_metadata.egress_spec});
     }
 }
 
