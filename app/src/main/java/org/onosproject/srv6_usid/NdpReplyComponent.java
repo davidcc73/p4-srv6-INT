@@ -16,7 +16,6 @@
 
 package org.onosproject.srv6_usid;
 
-import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -46,14 +45,12 @@ import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiTableAction;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.srv6_usid.common.Srv6DeviceConfig;
-import org.onosproject.srv6_usid.common.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +129,7 @@ public class NdpReplyComponent {
         }
 
         final MacAddress deviceMac = config.myStationMac();
-        if (deviceMac == null)  {log.warn("Device {} does not have a MAC address configured", deviceId); }
+
         // Get all interface for the device
         final Collection<Interface> interfaces = interfaceService.getInterfaces()
                 .stream()
@@ -151,18 +148,10 @@ public class NdpReplyComponent {
         final Collection<FlowRule> flowRules = interfaces.stream()
                 .map(this::getIp6Addresses)
                 .flatMap(Collection::stream)
-                .map(iaddr -> buildNdpNReplyFlowRule(deviceId, deviceMac, iaddr))           //For each IPv6 address, create a flow rule
+                .map(iaddr -> buildNdpReplyFlowRule(deviceId, deviceMac, iaddr))
                 .collect(Collectors.toSet());
 
         installRules(flowRules);
-
-        // Since we use the same IP for all interfaces in 1 switch, we can take anyone
-        final Ip6Address device_general_IPv6 = interfaces.stream()
-                .flatMap(iface -> getIp6Addresses(iface).stream())
-                .findFirst()
-                .orElse(null);
-        if (device_general_IPv6 == null) {log.warn("Device {} does not have a IPv6 address configured", deviceId);}
-        pushNdpRReplyFlowRule(deviceId, deviceMac, device_general_IPv6);      //Create replayes to router solicitations
     }
 
     private Collection<Ip6Address> getIp6Addresses(Interface iface) {
@@ -180,11 +169,11 @@ public class NdpReplyComponent {
         flowRuleService.apply(ops.build());
     }
 
-    private FlowRule buildNdpNReplyFlowRule(DeviceId deviceId,          //Create entries to generate NDP NA from the NDP NS
+    private FlowRule buildNdpReplyFlowRule(DeviceId deviceId,
                                            MacAddress deviceMac,
                                            Ip6Address targetIp) {
         PiCriterion match = PiCriterion.builder()
-                .matchExact(PiMatchFieldId.of("hdr.ndp_n.target_addr"), targetIp.toOctets())
+                .matchExact(PiMatchFieldId.of("hdr.ndp.target_addr"), targetIp.toOctets())
                 .build();
 
         PiActionParam paramRouterMac = new PiActionParam(
@@ -204,7 +193,7 @@ public class NdpReplyComponent {
 
         return DefaultFlowRule.builder()
                 .forDevice(deviceId)
-                .forTable(PiTableId.of("IngressPipeImpl.ndp_n_reply_table"))
+                .forTable(PiTableId.of("IngressPipeImpl.ndp_reply_table"))
                 .fromApp(appId)
                 .makePermanent()
                 .withSelector(selector)
@@ -213,26 +202,6 @@ public class NdpReplyComponent {
                 .build();
     }
 
-    private void pushNdpRReplyFlowRule(DeviceId deviceId, MacAddress deviceMac, Ip6Address deviceIp){         //Create entries to generate NDP NA from the NDP NS packets
-        log.info("Adding ndp RS -> RA rules on {}...", deviceId);
-
-        String tableId = "IngressPipeImpl.ndp_r_reply_table";
-
-        PiCriterion match = PiCriterion.builder()
-                .matchExact(PiMatchFieldId.of("0"), 0)
-                .build();
-
-        PiTableAction action = PiAction.builder()
-                .withId(PiActionId.of("IngressPipeImpl.ndp_rs_to_ra"))
-                .withParameter(new PiActionParam(PiActionParamId.of("my_router_mac"), deviceMac.toBytes()))
-                .withParameter(new PiActionParam(PiActionParamId.of("my_router_ipv6"), deviceIp.toOctets()))
-                .build();
-
-        FlowRule myNDPRouterRule = Utils.buildFlowRule(
-                deviceId, appId, tableId, match, action);
-
-        flowRuleService.applyFlowRules(myNDPRouterRule);
-    }
     /**
      * Listener of device events.
      */
