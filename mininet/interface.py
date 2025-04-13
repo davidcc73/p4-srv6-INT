@@ -1,6 +1,7 @@
 
 import os
 import time
+import constants
 from mininet.cli import CLI
 from datetime import datetime, timezone
 
@@ -18,7 +19,7 @@ export_file_MEDIUM = "MEDIUM"
 export_file_HIGH = "HIGH"
 export_file_HIGH_EMERGENCY = "HIGH+EMERGENCY"
 
-host_IPs  = {"h1": "10.0.1.1/24", "h2": "10.0.2.2/24", "h3": "10.0.5.1/24", "h4": "10.0.1.2/24"}
+host_IPs  = constants.host_IPs
 intervals = {"Message": 0.1, "Audio": 0.1, "Video": 0.001, "Emergency": 0.001}       #seconds, used to update the other dictionaries
 sizes     = {"Message": 262, "Audio": 420, "Video": 874, "Emergency": 483}           #bytes
 
@@ -145,7 +146,7 @@ def create_Emergency_flow(src_host, dst_IP, flow_label, dport, dscp, file_result
 
 
 def low_load_test(net, routing):
-    global export_file_LOW
+    global export_file_LOW, host_IPs
 
     # Get the current time in FORMAT RFC3339
     rfc3339_time = datetime.now(timezone.utc).isoformat()
@@ -192,7 +193,7 @@ def low_load_test(net, routing):
     print(CYAN + "Low Load Test finished at:" + str(rfc3339_time) + END)
 
 def medium_load_test(net, routing):
-    global export_file_MEDIUM
+    global export_file_MEDIUM, host_IPs
     dport = 443
 
     # Get the current time in FORMAT RFC3339
@@ -274,7 +275,7 @@ def medium_load_test(net, routing):
     print(CYAN + "Medium Load Test finished at:" + str(rfc3339_time) + END)
 
 def high_load_test(net, routing):
-    global export_file_HIGH
+    global export_file_HIGH, host_IPs
     dport = 443
 
     # Get the current time in FORMAT RFC3339
@@ -396,7 +397,7 @@ def high_load_test(net, routing):
     print(CYAN + "High Load Test finished at:" + str(rfc3339_time) + END)
 
 def high_emergency_load_test(net, routing):
-    global export_file_HIGH_EMERGENCY
+    global export_file_HIGH_EMERGENCY, host_IPs
     dport = 443
 
     # Get the current time in FORMAT RFC3339
