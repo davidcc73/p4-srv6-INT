@@ -5,16 +5,16 @@ Flow label must be between 0-4, if not, the packet will not be routed
 python3 /INT/receive/receive.py --duration 20
 
 # At h1_1 terminal run with real ips (xterm h1_1 h2_1):  
-h1_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 0  --s 262 --c 1000 --i 0.1
+h1_1 python3 /INT/send/send.py --dst_ip h2_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 0  --s 262 --c 1000 --i 0.1
 
 # At h1_1 terminal run with real ips (xterm h1_1 h3_1):  
-h1_1 python3 /INT/send/send.py --ip h3_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 34 --s 420 --c 1000 --i 0.1
+h1_1 python3 /INT/send/send.py --dst_ip h3_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 34 --s 420 --c 1000 --i 0.1
 
 # At h3_1 terminal run with real ips (xterm h2_1 h3_1):  
-h3_1 python3 /INT/send/send.py --ip h2_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 35 --s 874 --c 1000 --i 0.7
+h3_1 python3 /INT/send/send.py --dst_ip h2_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 35 --s 874 --c 1000 --i 0.7
 
 # At h2_1 terminal run with real ips (xterm h2_1 h7_1):  
-h2_1 python3 /INT/send/send.py --ip h7_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 46 --s 483 --c 1000 --i 0.05
+h2_1 python3 /INT/send/send.py --dst_ip h7_1 --l4 udp --port 443 --flow_label 2 --m INTH1 --dscp 46 --s 483 --c 1000 --i 0.05
 
 
 # That exports results

@@ -49,3 +49,4 @@ sudo tc qdisc show dev r1-eth1
 
 #Bandwith (Mbps)
 sudo tc class show dev r1-eth1
+

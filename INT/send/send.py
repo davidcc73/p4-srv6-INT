@@ -1,23 +1,23 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 import argparse
 import csv
+from datetime import datetime
 import fcntl
 import os
 import sys
 import socket
 import random
-from time import sleep
-from datetime import datetime
-
-
-from scapy.all import sendp, get_if_list, get_if_hwaddr
+import time  # Add time module for sleep
+import ipaddress
+from scapy.all import sendp, get_if_list, get_if_addr, get_if_hwaddr
 from scapy.all import Ether, IPv6, UDP, TCP
 from scapy.all import srp, ICMPv6ND_NS
 
+
+args = None
+
 # Define the directory path inside the container
 result_directory = "/INT/results"
-my_IP = None
-args = None
 
 def get_if():
     ifs = get_if_list()
@@ -47,6 +47,17 @@ def get_ipv6_addr(hostname):
         print("Error getting IPv6 address:", e)
         sys.exit(1)
 
+def get_ipv6_address(iface):
+    with open('/proc/net/if_inet6', 'r') as f:
+        for line in f:
+            parts = line.strip().split()
+            if parts[-1] == iface:
+                hex_ip = parts[0]
+                # Convert hex string to an IPv6 address using ipaddress module
+                ipv6_obj = ipaddress.IPv6Address(int(hex_ip, 16))
+                return str(ipv6_obj)
+    return None
+
 # Check if the specified packet size is enough to include all the headers
 def check_header_size():
     global args
@@ -63,7 +74,8 @@ def check_header_size():
 
     return header_size
 
-def send_packet(args, pkt_ETHE, payload_space, iface, addr):
+def send_packet(args, pkt_ETHE, payload_space, iface, addr, src_ip):
+
     global my_IP
     results = {
         'first_timestamp': None,
@@ -71,7 +83,7 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
     }
 
     #prev_timestamp = None
-    l3_layer = IPv6(dst=addr, tc=args.dscp << 2, fl=args.flow_label)
+    l3_layer = IPv6(src=src_ip, dst=addr, fl=args.flow_label , tc=args.dscp << 2)
 
     # Construct l4 layer, TCP or UDP
     if args.l4 == 'tcp':
@@ -115,14 +127,17 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
             print(f"Interval since last packet: {interval:.6f} seconds, thr expected: {args.i:.6f} seconds")
         '''
 
+        #pkt.show2()
+
         pre_timestamp = datetime.now()
         try:
             # Send the constructed packet
             sendp(pkt, iface=iface, inter=0, loop=0, verbose=False)
             #sendpfast(pkt, iface=iface, file_cache=True, pps=0, loop=0)
+            print(f"({src_ip}, {args.dst_ip}, {args.flow_label}) Packet {i + 1} sent")
         except Exception as e:
             results['failed_packets'] += 1
-            print(f"Packet {i + 1} failed to send: {e}")
+            print(f"({src_ip}, {args.dst_ip}, {args.flow_label}) Packet {i + 1} failed to send: {e}")
 
         pkt_sending_time = datetime.now() - pre_timestamp
         pkt_sending_time_seconds = pkt_sending_time.total_seconds()
@@ -134,64 +149,9 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr):
         # Sleep for specified interval - the time it took to send the packet, must be subtracted
         rounded_number = round(args.i - pkt_sending_time_seconds)
         t = max(rounded_number, 0)
-        sleep(t)
+        time.sleep(t)
     
     return results
-
-def parse_args():
-    global args
-
-    parser = argparse.ArgumentParser(description='sender parser')
-    parser.add_argument('--c', help='number of probe packets',
-                        type=int, action="store", required=False,
-                        default=1)
-    
-    #parser.add_argument('--ip_src', help='src ip',
-    #                    type=str, action="store", required=True)
-    
-    parser.add_argument('--ip_dst', help='dst ip',
-                        type=str, action="store", required=True)
-    
-    parser.add_argument('--port', help="dest port", type=int,
-                        action="store", required=True)
-    
-    parser.add_argument('--l4', help="layer 4 proto (tcp or udp)",
-                        type=str, action="store", required=True)
-    
-    parser.add_argument('--m', help="message", type=str,
-                        action='store', required=False, default="")
-    
-    parser.add_argument('--dscp', help="DSCP value", type=int,
-                        action='store', required=False, default=0)
-    
-    parser.add_argument('--flow_label', help="flow_label value", type=int,
-                        action='store', required=False, default=0)
-    
-    parser.add_argument('--i', help="interval to send packets (second)", type=float,
-                        action='store', required=False, default=1.0)
-        
-    parser.add_argument('--s', help="packet's total size in bytes", type=int,
-                        action='store', required=True)
-    
-
-
-    # Non-mandatory flag
-    parser.add_argument('--export', help='File to export results', 
-                        type=str, action='store', required=False, default=None)
-    
-    # Group of flags that are mandatory if --enable-feature is used
-    parser.add_argument('--me', help='Name of the host running the script', 
-                        type=str, action='store', required=False, default=None)
-    parser.add_argument('--iteration', help='Current test iteration number', 
-                        type=int, action='store', required=False, default=None)
-    
-    
-    args = parser.parse_args()
-    if args.export is not None:
-        if not args.me:
-            parser.error('--me is required when --export is used')
-        if not args.iteration:
-            parser.error('--iteration is required when --export is used')
 
 def export_results(results):
     # Write in the CSV file a line with the following format: 
@@ -226,12 +186,12 @@ def export_results(results):
                 
                 # If file does not exist, write the header row
                 if not file_exists:
-                    header = ["Iteration", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (seconds-Unix Epoch)", "Nº pkt out of order", "Out of order packets"]
+                    header = ["Iteration", "Host", "IP Source", "IP Destination", "Flow Label", "Is", "Number", "Timestamp (seconds-Unix Epoch)", "Nº pkt out of order", "Out of order packets", "DSCP", "Avg Jitter (Nanoseconds)"]
                     writer.writerow(header)
                 
                 # Prepare the data line
                 timestamp_first_sent = results['first_timestamp']
-                line = [args.iteration, my_IP, args.ip_dst, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent]
+                line = [args.iteration, args.me, my_IP, args.dst_ip, args.flow_label, "sender", num_packets_successefuly_sent, timestamp_first_sent, None, None, args.dscp, None]
                 
                 # Write data
                 writer.writerow(line)
@@ -241,29 +201,85 @@ def export_results(results):
             fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 
+def parse_args():
+    global args
+    parser = argparse.ArgumentParser()
+
+    parser = argparse.ArgumentParser(description='sender parser')
+    parser.add_argument('--c', help='number of probe packets',
+                        type=int, action="store", required=False,
+                        default=1)
+    
+    parser.add_argument('--dst_ip', help='dst ip',
+                        type=str, action="store", required=True)
+    
+    parser.add_argument('--flow_label', help="flow label", type=int,
+                        action="store", required=True)
+    
+    parser.add_argument('--port', help="dest port", type=int,
+                        action="store", required=True)
+    
+    parser.add_argument('--l4', help="layer 4 proto (tcp or udp)",
+                        type=str, action="store", required=True)
+    
+    parser.add_argument('--m', help="message", type=str,
+                        action='store', required=False, default="")
+    
+    parser.add_argument('--dscp', help="DSCP value", type=int,
+                        action='store', required=False, default=0)
+    
+    parser.add_argument('--i', help="interval to send packets (second)", type=float,
+                        action='store', required=False, default=1.0)
+        
+    parser.add_argument('--s', help="packet's total size in bytes", type=int,
+                        action='store', required=True)
+    
+
+
+    # Non-mandatory flag
+    parser.add_argument('--export', help='File to export results', 
+                        type=str, action='store', required=False, default=None)
+    
+    # Group of flags that are mandatory if --enable-feature is used
+    parser.add_argument('--me', help='Name of the host running the script', 
+                        type=str, action='store', required=False, default=None)
+    parser.add_argument('--iteration', help='Current test iteration number', 
+                        type=int, action='store', required=False, default=None)
+    
+    
+    args = parser.parse_args()
+    if args.export is not None:
+        if not args.me:
+            parser.error('--me is required when --export is used')
+        if not args.iteration:
+            parser.error('--iteration is required when --export is used')
+
 def main():
     global args
     parse_args()
 
-    addr_dst = get_ipv6_addr(args.ip_dst)  # Get IPv6 address
-    iface = get_if()
-    print("Iteraration: ", args.iteration)
+    addr_dst = get_ipv6_addr(args.dst_ip)  # Get IPv6 address
 
-    print("sending on interface %s to %s" % (iface, str(addr_dst)))
-    #dst_mac = get_dest_mac(addr_dst, iface)
-    #use generic MAC address, does not matter
-    dst_mac = "00:00:00:00:00:00"
-    pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
+    interval = args.i
+    iface = get_if()
+    src_ip = get_ipv6_address(iface)
+    src_mac = get_if_hwaddr(iface)
+
+    print("Sending packets on interface {} (IP: {}, MAC: {}) to {} every {} seconds".format(iface, src_ip, src_mac, addr_dst, interval))
+    
+    dst_mac = '00:00:00:00:00:01'           #dummy value, currently no support for ARP and get the real MAC address of the destination
+    pkt = Ether(src=src_mac, dst=dst_mac)
 
     header_size = check_header_size()
 
     payload_space = args.s - header_size
 
-    results = send_packet(args, pkt, payload_space, iface, addr_dst)
+    results = send_packet(args, pkt, payload_space, iface, addr_dst, src_ip)
 
     if args.export is not None:
         # Export results
         export_results(results)
+
 
 if __name__ == '__main__':
     main()
