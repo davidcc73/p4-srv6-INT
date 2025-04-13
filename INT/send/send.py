@@ -250,7 +250,9 @@ def main():
     print("Iteraration: ", args.iteration)
 
     print("sending on interface %s to %s" % (iface, str(addr_dst)))
-    dst_mac = get_dest_mac(addr_dst, iface)
+    #dst_mac = get_dest_mac(addr_dst, iface)
+    #use generic MAC address, does not matter
+    dst_mac = "00:00:00:00:00:00"
     pkt = Ether(src=get_if_hwaddr(iface), dst=dst_mac)
 
     header_size = check_header_size()
