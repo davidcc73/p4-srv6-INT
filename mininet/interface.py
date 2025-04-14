@@ -571,7 +571,7 @@ def print_routing_menu():
 def detect_all_hosts(net):
     #Iteratte all hosts, so their source switch send their info to ONOS, on how to forward to them
     print("Make all Hosts be detetced by ONOS")
-    dst_host_ip = '2001:1:1::1'                                          #use as dst IP any host in the network
+    dst_host_ip = '2001:1:1::fe'                                          #use as dst IP any host in the network that does not belong to any host
     for host in net.hosts:
         print(f"Detecting host {host.name}")
         command = f"nohup ping -c 3 -i 0.001 -w 0.001 "+dst_host_ip+" &"      #use as dst IP any host in the network

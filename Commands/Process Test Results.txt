@@ -1,6 +1,6 @@
 
 #--------------------Parse Exported Results, the filename will be used before (_) to create the output file
-sudo python3 INT/process_results.py \
+sudo python3 INT/process_results/process_results.py \
 --f \
 MEDIUM-KShort_raw_results.csv    HIGH-KShort_raw_results.csv      HIGH+EMERGENCY-KShort_raw_results.csv \
 MEDIUM-ECMP_raw_results.csv      HIGH-ECMP_raw_results.csv        HIGH+EMERGENCY-ECMP_raw_results.csv  \

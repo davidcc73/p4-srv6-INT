@@ -336,7 +336,6 @@ def get_avg_stdev_flow_hop_latency(start, end, dscp_condition):
         AND time <= '{end}'
         {dscp_condition}
     """
-
     percentile_result = constants.apply_query(percentile_query)
     p_latency = list(percentile_result.get_points())[0]['p_latency']                #nanoseconds
 
@@ -362,6 +361,8 @@ def get_avg_stdev_flow_hop_latency(start, end, dscp_condition):
         AND time <= '{end}'
         {dscp_condition}
     """
+    percentile_result = constants.apply_query(percentile_query)
+    p_latency = list(percentile_result.get_points())[0]['p_latency']                #nanoseconds
     
     query = f"""
                 SELECT MEAN("latency"), STDDEV("latency")

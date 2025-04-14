@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import csv
 import fcntl
+import pprint
 import queue
 import sys
 import os
@@ -109,11 +110,13 @@ def terminate():
             packet_count = metrics["packet_count"]
             sequence_numbers = metrics["sequence_numbers"]
             metrics["out_of_order_count"] = 0
+            metrics["out_of_order_packets"] = []
             expected_seq = 0
 
             for seq in sequence_numbers:
                 if seq < expected_seq:
                     metrics["out_of_order_count"] += 1
+                    metrics["out_of_order_packets"].append(seq)
                 else:
                     expected_seq = seq
 
@@ -125,7 +128,7 @@ def terminate():
 
 def export_results():
     print("Starting export_results()")
-    global args
+    global args, flows_metrics
     os.makedirs(result_directory, exist_ok=True)
 
     # Define the filename
@@ -160,10 +163,11 @@ def export_results():
                     for flow_key, metrics in flows_metrics.items():
                         src_ip, dst_ip, flow_label = flow_key
                         first_packet_time = metrics["first_packet_time"]
-                        out_of_order_packets = metrics["out_of_order_count"] 
+                        out_of_order_packets = metrics["out_of_order_packets"]
+                        out_of_order_packets_count = metrics["out_of_order_count"] 
                         jitter = metrics["avg_jitter"] * 1000000000
 
-                        line = [args.iteration, args.me, src_ip, dst_ip, flow_label, "receiver", metrics["packet_count"], first_packet_time, len(out_of_order_packets), out_of_order_packets, metrics["DSCP"], jitter]
+                        line = [args.iteration, args.me, src_ip, dst_ip, flow_label, "receiver", metrics["packet_count"], first_packet_time, out_of_order_packets_count, out_of_order_packets, metrics["DSCP"], jitter]
                         
                         # Write data
                         writer.writerow(line)

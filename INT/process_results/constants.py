@@ -1,7 +1,7 @@
 
 # Define the directory path
 import os
-
+import pprint
 from influxdb import InfluxDBClient
 import numpy as np
 
@@ -25,6 +25,7 @@ headers_lines = ["AVG Out of Order Packets (Nº)", "AVG Packet Loss (Nº)", "AVG
 num_values_to_compare_all_tests = len(headers_lines)
 
 result_directory = "results"
+analyzer_directory = "analyzer"
 final_file = "final_results.xlsx"
 current_directory = os.path.dirname(os.path.abspath(__file__)) 
 
@@ -35,7 +36,7 @@ final_file_path = os.path.join(results_path, final_file)
 args = None
 results = {}
 
-num_switches = 5           #switches ids go from 1 to 5
+num_switches = 14           #switches ids go from 1 to 14
 
 # Define DB connection parameters
 host='localhost'
