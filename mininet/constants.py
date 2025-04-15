@@ -1,33 +1,33 @@
 CPU_PORT = 255
 
 network_config = {
-    "INFRA_INFRA": {               # Glass Fiber cable, 10 km
-        "bw": 900,                 # Bandwidth (Mbps)
-        'max_queue': 1000,         # Maximum queue size (packets)
-        "delay": "2ms",            # Delay
-        'jitter': "10ms",          # Jitter
-        'loss': 0,                 # Loss (%)
+    "INFRA_INFRA": {               # OM4 Fiber Cable, 150 m
+        "bw": 100000,              # Bandwidth (Mbps)
+        'max_queue': 1000,         # Assumed Maximum queue size (packets)
+        "delay": "30.6ms",         # Delay
+        'jitter': "5ms",           # Jitter
+        'loss': 0.1,               # Loss (%)
     },
     "INFRA_VEHICULE": {            # 5G cellular towers, 10 km
-        "bw": 900,                 # Bandwidth (Mbps)
-        'max_queue': 1000,         # Maximum queue size (packets)
-        "delay": "2ms",            # Delay
-        'jitter': "10ms",          # Jitter
-        'loss': 0,                 # Loss (%)
+        "bw": 64,                  # Bandwidth (Mbps)
+        'max_queue': 1000,         # Assumed Maximum queue size (packets)
+        "delay": "13ms",           # Delay
+        'jitter': "2.725ms",       # Jitter
+        'loss': 0.1,               # Loss (%)
     },
     "VEHICULE_VEHICULE": {         # 5G between cars, max 100 meters
-        "bw": 900,                 # Bandwidth (Mbps)
-        'max_queue': 1000,         # Maximum queue size (packets)
-        "delay": "2ms",            # Delay
-        'jitter': "10ms",          # Jitter
-        'loss': 0,                 # Loss (%)
+        "bw": 64,                  # Bandwidth (Mbps)
+        'max_queue': 800,          # Assumed Maximum queue size (packets)
+        "delay": "10ms",           # Delay
+        'jitter': "2ms",           # Jitter
+        'loss': 0.1,               # Loss (%)
     },
-    "HOST_VEHICULE": {             # Devices inside the car, 1 meter WiFi
-        "bw": 900,                 # Bandwidth (Mbps)
-        'max_queue': 1000,         # Maximum queue size (packets)
-        "delay": "2ms",            # Delay
-        'jitter': "10ms",          # Jitter
-        'loss': 0,                 # Loss (%)
+    "HOST_VEHICULE": {             # Devices inside the car, 1 meter WiFi6
+        "bw": 88,                  # Bandwidth (Mbps)
+        'max_queue': 1000,         # Assumed Maximum queue size (packets)
+        "delay": "30ms",           # Delay
+        'jitter': "0.179ms",       # Jitter
+        'loss': 0.5,               # Loss (%)
     }
 }
 
