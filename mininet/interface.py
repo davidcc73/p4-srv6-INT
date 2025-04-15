@@ -219,20 +219,32 @@ def medium_load_test(net, routing):
     h2_1 = net.get("h2_1")
     h2_2 = net.get("h2_2")
     h3_1 = net.get("h3_1")
+    h5_1 = net.get("h5_1")
     h7_1 = net.get("h7_1")
+    h7_2 = net.get("h7_2")
+    h7_3 = net.get("h7_3")
     h8_1 = net.get("h8_1")
     h8_2 = net.get("h8_2")
+    h8_3 = net.get("h8_3")
     
     # Get the hosts IPs
     h1_1_IP_and_maks = host_IPs[h1_1.name]
     h3_1_IP_and_maks = host_IPs[h3_1.name]
+    h5_1_IP_and_maks = host_IPs[h5_1.name]
     h7_1_IP_and_maks = host_IPs[h7_1.name]
+    h7_2_IP_and_maks = host_IPs[h7_2.name]
+    h7_3_IP_and_maks = host_IPs[h7_3.name]
     h8_2_IP_and_maks = host_IPs[h8_2.name]
+    h8_3_IP_and_maks = host_IPs[h8_3.name]
     
     h1_1_dst_IP = h1_1_IP_and_maks.split("/")[0]
     h3_1_dst_IP = h3_1_IP_and_maks.split("/")[0]
+    h5_1_dst_IP = h5_1_IP_and_maks.split("/")[0]
     h7_1_dst_IP = h7_1_IP_and_maks.split("/")[0]
+    h7_2_dst_IP = h7_2_IP_and_maks.split("/")[0]
+    h7_3_dst_IP = h7_3_IP_and_maks.split("/")[0]
     h8_2_dst_IP = h8_2_IP_and_maks.split("/")[0]
+    h8_3_dst_IP = h8_3_IP_and_maks.split("/")[0]
 
 
     #See max sleep time for receiver to wait for packets
@@ -250,7 +262,10 @@ def medium_load_test(net, routing):
         receive_packet_script(h1_1, file_results, iteration, max_receiver_timeout)
         receive_packet_script(h3_1, file_results, iteration, max_receiver_timeout)
         receive_packet_script(h7_1, file_results, iteration, max_receiver_timeout)
+        receive_packet_script(h7_2, file_results, iteration, max_receiver_timeout)
+        receive_packet_script(h7_3, file_results, iteration, max_receiver_timeout)
         receive_packet_script(h8_2, file_results, iteration, max_receiver_timeout)
+        receive_packet_script(h8_3, file_results, iteration, max_receiver_timeout)
 
         #---------------------------------------------Senders
         time.sleep(sender_receiver_gap) 
@@ -261,9 +276,12 @@ def medium_load_test(net, routing):
 
         #--------------Start Audio flows
         create_Audio_flow    (h1_2, h7_1_dst_IP, 1, dport, 34, file_results, iteration)   #DSCP 34
+        create_Audio_flow    (h5_1, h7_2_dst_IP, 1, dport, 34, file_results, iteration)   #DSCP 34
 
         #--------------Start Video flows
         create_Video_flow    (h2_2, h8_2_dst_IP, 1, dport, 35,  file_results, iteration)  #DSCP 35
+        create_Video_flow    (h3_1, h8_3_dst_IP, 1, dport, 35,  file_results, iteration)  #DSCP 35
+        create_Video_flow    (h3_1, h7_3_dst_IP, 1, dport, 35,  file_results, iteration)  #DSCP 35
 
         #-------------Keep the test running for a specified duration
         print(f"Waiting for {max_iteration_sleep} seconds")
