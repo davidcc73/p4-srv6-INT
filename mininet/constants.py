@@ -2,7 +2,7 @@ CPU_PORT = 255
 
 network_config = {
     "INFRA_INFRA": {               # OM4 Fiber Cable, 150 m
-        "bw": 100000,              # Bandwidth (Mbps)
+        "bw": 1000,                # Bandwidth (Mbps)
         'max_queue': 1000,         # Assumed Maximum queue size (packets)
         "delay": "30.6ms",         # Delay
         'jitter': "5ms",           # Jitter
