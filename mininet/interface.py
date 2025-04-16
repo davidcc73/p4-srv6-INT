@@ -30,7 +30,7 @@ iteration_sleep  = 0                                                            
 num_iterations = 10
 iteration_duration_seconds = 5 * 60  #5 minutes, the duration of each iteration of the test
 
-sender_receiver_gap = 10             #seconds to wait for the receiver to start before starting the sender
+sender_receiver_gap = 5              #seconds to wait for the receiver to start before starting the sender
 export_results_gap = 5               #seconds to wait for the senders/receivers to finish before exporting the results
 
 def update_times():
@@ -57,8 +57,9 @@ def create_lock_file(lock_filename):
             lock_file.write('') # Write an empty string to the file
 
 def send_packet_script(me, dst_ip, l4, flow_label, dport,  msg, dscp, size, count, interval, export_file, iteration):
+    global iteration_duration_seconds
     
-    command = f"python3 /mininet/tools/send.py --dst_ip {dst_ip} --port {dport} --dscp {dscp} --l4 {l4} --flow_label {flow_label} --m {msg} --s {size} --c {count} --i {interval}"
+    command = f"python3 /mininet/tools/send.py --dst_ip {dst_ip} --port {dport} --dscp {dscp} --l4 {l4} --flow_label {flow_label} --m {msg} --s {size} --c {count} --i {interval} --time_out {iteration_duration_seconds} "
     
     if export_file != None:
         command = command + f" --export {export_file} --me {me.name} --iteration {iteration}"

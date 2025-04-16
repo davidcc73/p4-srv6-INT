@@ -77,6 +77,9 @@ def check_header_size():
 def send_packet(args, pkt_ETHE, payload_space, iface, addr, src_ip):
 
     global my_IP
+
+    start_time = time.time()  # Start timer for timeout
+
     results = {
         'first_timestamp': None,
         'failed_packets': 0
@@ -95,6 +98,11 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr, src_ip):
     my_IP = Base_pkt[IPv6].src
 
     for i in range(args.c):
+        # Check for timeout
+        if time.time() - start_time >= args.time_out:
+            print(f"Timeout reached after {args.time_out} seconds. Exiting loop.")
+            break
+
         # Reset packet
         pkt = Base_pkt
 
@@ -234,7 +242,8 @@ def parse_args():
     parser.add_argument('--s', help="packet's total size in bytes", type=int,
                         action='store', required=True)
     
-
+    parser.add_argument('--time_out', help="timeout in seconds", type=int,
+                        action='store', required=False, default=1)
 
     # Non-mandatory flag
     parser.add_argument('--export', help='File to export results', 
