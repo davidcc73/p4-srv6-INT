@@ -55,6 +55,9 @@ def export_raw_results(OG_file):
 
         # Flow by flow
         for flow in constants.results[iteration]:
+            if flow == "SRv6_Operations":                                #skip the SRv6_Operations data for the current iteration
+                continue
+            
             keys = list(constants.results[iteration][flow].keys())
 
             DSCP = constants.results[iteration][flow]["DSCP"]

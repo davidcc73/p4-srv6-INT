@@ -65,7 +65,6 @@ def apply_query(query):
     except Exception as error:
         # handle the exception
         print("An exception occurred:", error)
-
     return result
 
 def get_all_sorted_DSCP():
@@ -73,6 +72,9 @@ def get_all_sorted_DSCP():
 
     # Cycle through results
     for flow, flow_values in results["1"].items():
+        if flow == "SRv6_Operations":                                #skip the SRv6_Operations data for the current iteration
+                continue
+        
         dscp = flow_values["DSCP"]
         if dscp not in All_DSCP:
             All_DSCP.append(dscp)
@@ -90,6 +92,8 @@ def calulate_std_jitter_per_dscp(current_filename):
     # Group all the avg_jitters by DSCP
     for iteration, iteration_values in results.items():
         for flow, flow_values in iteration_values.items():
+            if flow == "SRv6_Operations":                                #skip the SRv6_Operations data for the current iteration
+                continue
             dscp = flow_values["DSCP"]
             current_avg_jitter = flow_values["receiver"]["extra"]["avg_jitter"]      #get avg_jitter of current jitter
 
