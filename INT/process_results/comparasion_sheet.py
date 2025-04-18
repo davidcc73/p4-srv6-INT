@@ -20,7 +20,7 @@ def get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number, dscp)
         pass_1_occurance = False 
 
     # sheet_to_copy_from, get the line of the cell that contains the variable_name on collumn A and the collumn after it
-    for row in sheet_to_copy_from.iter_rows(min_row=constants.last_line_data + 1, max_row = sheet_to_copy_from.max_row, min_col=1, max_col=1):
+    for row in sheet_to_copy_from.iter_rows(min_row=constants.last_line_raw_data[sheet_to_copy_from_name] + 1, max_row = sheet_to_copy_from.max_row, min_col=1, max_col=1):
         
         cell_e = sheet_to_copy_from[f"E{row[0].row}"]
         value = str(cell_e.value).strip()
@@ -106,20 +106,25 @@ def set_comparasion_formulas(sheet, start_line):
     # Set the formulas to compare the results between the test cases
     for i in range(1, constants.num_values_to_compare_all_tests + 1 - 2):
         #print(sheet[f'A{start_line + i}'].value)
-        sheet[f'D{start_line + i}'] = f'=IFERROR(ROUND((C{start_line + i} - B{start_line + i}) / ABS(B{start_line + i}) * 100, 2), 0)'
+        sheet[f'E{start_line + i}'] = f'=IFERROR(ROUND((C{start_line + i} - B{start_line + i}) / ABS(B{start_line + i}) * 100, 2), 0)'
+        sheet[f'F{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - B{start_line + i}) / ABS(B{start_line + i}) * 100, 2), 0)'
+        sheet[f'G{start_line + i}'] = f'=IFERROR(ROUND((D{start_line + i} - C{start_line + i}) / ABS(C{start_line + i}) * 100, 2), 0)'
 
-def set_copied_values(sheet, start_line, dscp):    
-    print("Seting values copy from other sheets")
+def set_copied_values(sheet, current_test_case, start_line, dscp):    
+    print("Seting values to copy from other sheets")
     
     # Cycle through the variables to compare (lines)
     for variable_number in range(constants.num_values_to_compare_all_tests - 2):
         
         # Cycle through the args.f to copy the values (columns)
-        for i in range(len(constants.args.f)):
+        for i in range(len(constants.algorithms)):
+            curent_algorithm = constants.algorithms[i]
             
             #--------------Collumn C is the second algorithm
             #parse 1st element pre _ in args.f
-            sheet_to_copy_from_name = constants.args.f[i].split("_")[0]
+            sheet_to_copy_from_name = current_test_case + "-" + curent_algorithm
+            print(f"For DSCP:{dscp} copying variable nº {variable_number} from sheet: {sheet_to_copy_from_name}")
+
             line, column = get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number, dscp)
 
             if line is None or column is None:
@@ -139,14 +144,20 @@ def set_scenario_headers(sheet, test_case, start_line):
         # Set the collumn names
         sheet[f'B{start_line}'] = constants.algorithms[0]
         sheet[f'C{start_line}'] = constants.algorithms[1]
-        sheet[f'D{start_line}'] = "Variation (%)"
+        sheet[f'D{start_line}'] = constants.algorithms[2]
+        sheet[f'E{start_line}'] = "Variation 1 (%)"
+        sheet[f'F{start_line}'] = "Variation 2 (%)"
+        sheet[f'G{start_line}'] = "Variation 3 (%)"
 
         # Set collumn names in bold text
         sheet[f'B{start_line}'].font = Font(bold=True)
         sheet[f'C{start_line}'].font = Font(bold=True)
         sheet[f'D{start_line}'].font = Font(bold=True)
+        sheet[f'E{start_line}'].font = Font(bold=True)
+        sheet[f'F{start_line}'].font = Font(bold=True)
+        sheet[f'G{start_line}'].font = Font(bold=True)
 
-def comparasion_area(sheet, start_line, dscp):
+def comparasion_area(sheet, current_test_case, start_line, dscp):
     #as bold text
     if dscp == -1:
         sheet[f'A{start_line}'] = "All DSCP: All Data Flows"
@@ -158,7 +169,7 @@ def comparasion_area(sheet, start_line, dscp):
 
     set_algorithm_headers(sheet, start_line)
     set_comparasion_formulas(sheet, start_line)
-    set_copied_values(sheet, start_line, dscp)
+    set_copied_values(sheet, current_test_case, start_line, dscp)
     sheet.append([""])
 
 def set_Non_to_Emergency_Data_Flows_Comparasion(sheet, start_line):
@@ -207,30 +218,44 @@ def set_Comparison_sheet():
     title = "Load Test Cases"
     sheet[f'A1'] = title
     sheet[f'A1'].font = Font(bold=True)
-    sheet[f'A2'] = f"Variation: From {constants.algorithms[0]} to {constants.algorithms[1]}"
+
+    sheet[f'A2'] = "Variation1: is betwee KShort and ECMP"
+    sheet[f'A3'] = "Variation2: is betwee KShort and ECMP+SRv6"
+    sheet[f'A4'] = "Variation3: is betwee ECMP and ECMP+SRv6"
+
+    sheet[f'A2'].font = Font(bold=True)
+    sheet[f'A3'].font = Font(bold=True)
+    sheet[f'A4'].font = Font(bold=True)
 
     # Empty line
     sheet.append([""])
     
     # Create a block for each test case
-    for test_case in constants.test_cases:
+    for current_test_case in constants.test_cases:
+        print(f"Setting the Comparison sheet for test case: {current_test_case}")
         # Get max line considering the previous test cases
         max_line = sheet.max_row + 2
-        set_scenario_headers(sheet, test_case, max_line)
+        set_scenario_headers(sheet, current_test_case, max_line)
         max_line = sheet.max_row + 1
-        comparasion_area(sheet, max_line, -1)
+        comparasion_area(sheet, current_test_case, max_line, -1)
+
+        has_emergency_dscp = False
 
         for dscp in constants.All_DSCP:
+            if not has_emergency_dscp and dscp >= 40:
+                has_emergency_dscp = True
+            
             max_line = sheet.max_row + 1
+            comparasion_area(sheet, current_test_case, max_line, dscp)
 
-            comparasion_area(sheet, max_line, dscp)
+        # If contains DSCP >= 40, set comparasion for Non to Emergency Data Flows
+        if has_emergency_dscp:
+            sheet.append([""])
+            set_Non_to_Emergency_Data_Flows_Comparasion(sheet, sheet.max_row + 1)
 
         # Insert 2 empty lines
         sheet.append([""])
         sheet.append([""])
-    
-    # Set (Non) to Emergency Data Flows
-    set_Non_to_Emergency_Data_Flows_Comparasion(sheet, sheet.max_row + 1)
 
     # Save the workbook
     workbook.save(constants.final_file_path)

@@ -183,8 +183,9 @@ def write_INT_results(sheet, AVG_flows_latency, STD_flows_latency, AVG_hop_laten
     sheet[f'E{last_line + 3}'] = dscp
 
 def set_pkt_loss():
+    # To all sheets set pkt loss in the raw data area for all iterations
 
-    # Configure each sheet
+    # Configure each sheet  
     workbook = load_workbook(constants.final_file_path)
 
     # Set formula for each sheet
@@ -209,8 +210,8 @@ def set_pkt_loss():
             if no_formula_section:
                 continue
 
-            #if cell from collumn A does not contain an IPv4 address, skip
-            if row[0].value is None or "." not in row[0].value:
+            #if cell from collumn A does not contain an IPv6 address, skip
+            if row[0].value is None or ":" not in row[0].value:
                 skip = True
                 continue
             if skip:            #not in the right line of the pair
@@ -218,8 +219,8 @@ def set_pkt_loss():
                 continue
             
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
-            sheet[f'M{row[0].row}'] = f'=H{row[0].row-1}-H{row[0].row}'     
-            sheet[f'N{row[0].row}'] = f'=ROUND((M{row[0].row}/H{row[0].row-1})*100, 2)'
+            sheet[f'M{row[0].row}'] = f'=G{row[0].row-1}-G{row[0].row}'     
+            sheet[f'N{row[0].row}'] = f'=ROUND((M{row[0].row}/G{row[0].row-1})*100, 2)'
 
             skip = True
 
@@ -251,7 +252,7 @@ def set_fist_pkt_delay():
                 continue
 
             #if cell from collumn A does not contain an IPv4 address, skip
-            if row[0].value is None or "." not in row[0].value:
+            if row[0].value is None or ":" not in row[0].value:
                 skip = True
                 continue
             if skip:            #not in the right line of the pair
@@ -262,7 +263,7 @@ def set_fist_pkt_delay():
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
             # The values are 2 Timestamp (seconds-Unix Epoch)
             # subtraction give seconds, we convert to nanoseconds
-            sheet[f'O{row[0].row}'] = f'=ROUND((I{row[0].row}-I{row[0].row-1})*10^9, 2)'     
+            sheet[f'O{row[0].row}'] = f'=ROUND((H{row[0].row}-H{row[0].row-1})*10^9, 2)'     
 
             skip = True
 
@@ -282,6 +283,7 @@ def set_caculation_formulas(dscp):
     # Set formula for each sheet
     for sheet_name in workbook.sheetnames:
         sheet = workbook[sheet_name]
+        last_line_raw_data_sheet = constants.last_line_raw_data[sheet_name]
 
         #Pass the last line with data, and leave 2 empty lines
         last_line = sheet.max_row + 4
@@ -308,11 +310,11 @@ def set_caculation_formulas(dscp):
         sheet[f'E{last_line}'].font = Font(bold=True)
 
         # on the next line for each column, set the average of the column, ignore empty cells
-        sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(E1:E{constants.last_line_data}, {condition}, J1:J{constants.last_line_data}), 2)'
-        sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(E1:E{constants.last_line_data}, {condition}, M1:M{constants.last_line_data}), 2)'
-        sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(E1:E{constants.last_line_data}, {condition}, N1:N{constants.last_line_data}), 2)'
-        sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(E1:E{constants.last_line_data}, {condition}, O1:O{constants.last_line_data}), 2)'
-        sheet[f'B{last_line + 5}'] = f'=ROUND(AVERAGEIF(E1:E{constants.last_line_data}, {condition}, L1:L{constants.last_line_data}), 2)'
+        sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, I1:I{last_line_raw_data_sheet}), 2)'
+        sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, M1:M{last_line_raw_data_sheet}), 2)'
+        sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, N1:N{last_line_raw_data_sheet}), 2)'
+        sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, O1:O{last_line_raw_data_sheet}), 2)'
+        sheet[f'B{last_line + 5}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, K1:K{last_line_raw_data_sheet}), 2)'
         sheet[f'B{last_line + 6}'] = constants.aux_calculated_results[sheet_name][dscp]["std_jitter"]       #array formuals are not working, so we calculated and set the value here
 
         sheet[f'E{last_line + 1}'] = dscp
@@ -460,15 +462,15 @@ def set_compare_non_Emergency_to_Emergency_variation():
         end = constants.args.end[i]
 
         # Define the row range of data to consider
-        row_range = constants.last_line_data
+        row_range = constants.last_line_raw_data[sheet.title]
         after_raw_data = row_range + 2
 
         # Set the formula for the Non-Emergency Flows
-        sheet[f'B{max_line + 3}'] = f'=ROUND(AVERAGEIF(E1:E{row_range}, "<40" , O1:O{row_range}), 2'  
+        sheet[f'B{max_line + 3}'] = f'=ROUND(AVERAGEIF(D1:D{row_range}, "<40" , O1:O{row_range}), 2'  
         sheet[f'B{max_line + 4}'] = f'=ROUND(AVERAGEIFS(B{after_raw_data}:B{max_line}, A{after_raw_data}:A{max_line}, "AVG Flows Latency (nanoseconds)", E{after_raw_data}:E{max_line}, "<40"), 2)'  #NOT IDEAL to do avg of avg, but inflix stores all tags as strings including dscp, making it difficult to apply this logic in a query
 
         # Set the formula for the Emergency Flows
-        sheet[f'C{max_line + 3}'] = f'=ROUND(AVERAGEIF(E1:E{row_range}, ">=40", O1:O{row_range}), 2'
+        sheet[f'C{max_line + 3}'] = f'=ROUND(AVERAGEIF(D1:D{row_range}, ">=40", O1:O{row_range}), 2'
         sheet[f'C{max_line + 4}'] = f'=ROUND(AVERAGEIFS(B{after_raw_data}:B{max_line}, A{after_raw_data}:A{max_line}, "AVG Flows Latency (nanoseconds)", E{after_raw_data}:E{max_line}, ">=40"), 2)'
 
         #Set comparasion formulas, for the AVG 1º Packet Delay and AVG Flow Delay in percentage

@@ -47,7 +47,7 @@ client = InfluxDBClient(host=host, database=dbname)
 algorithms = None
 test_cases = None
 
-last_line_data = 0              #last line of raw data in the file
+last_line_raw_data = {}              #last line of raw data in each sheet
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 filename_with_sizes = os.path.join(script_dir, "multicast_DSCP.json")

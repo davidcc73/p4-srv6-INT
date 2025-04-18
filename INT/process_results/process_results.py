@@ -297,7 +297,8 @@ def main():
     seen = set()
     constants.algorithms = []
     for x in constants.args.f:
-        key = x.split("-")[1].split("_")[0]
+        key = x.split("-", 1)[1]
+        key = key.split("_", 1)[0]
         if key not in seen:
             seen.add(key)
             constants.algorithms.append(key)
