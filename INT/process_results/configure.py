@@ -1,4 +1,6 @@
 from cmath import sqrt
+import os
+import sys
 import constants, comparasion_sheet
 from openpyxl import load_workbook
 from openpyxl.styles import Font
@@ -212,6 +214,7 @@ def set_pkt_loss():
 
             #if cell from collumn A does not contain an IPv6 address, skip
             if row[0].value is None or ":" not in row[0].value:
+
                 skip = True
                 continue
             if skip:            #not in the right line of the pair
@@ -489,7 +492,7 @@ def configure_final_file():
     # Raw data area
     set_pkt_loss()
     set_fist_pkt_delay()
-
+    
     # Calculations area for each dscp 
     set_caculation_section(-1)             #All Flows
     for dscp in constants.All_DSCP:        #Each DSCP
@@ -497,3 +500,4 @@ def configure_final_file():
 
     set_compare_non_Emergency_to_Emergency_variation()
     comparasion_sheet.set_Comparison_sheet()            #Configure Comparasion sheet
+    

@@ -45,7 +45,7 @@ dbname='int'
 client = InfluxDBClient(host=host, database=dbname)
 
 algorithms = None
-test_cases = None
+test_scenarios = None
 
 last_line_raw_data = {}              #last line of raw data in each sheet
 

@@ -303,14 +303,14 @@ def main():
             seen.add(key)
             constants.algorithms.append(key)
 
-    # No duplicated test_cases values
+    # No duplicated test_scenarios values
     seen = set()
-    constants.test_cases = []
+    constants.test_scenarios = []
     for x in constants.args.f:
         key = x.split("-")[0]
         if key not in seen:
             seen.add(key)
-            constants.test_cases.append(key)
+            constants.test_scenarios.append(key)
 
     #constants.DSCP_IPs = read_json(constants.filename_with_sizes)
     #print("Packet DSCP Multicast IPs read:\n",constants.DSCP_IPs)
