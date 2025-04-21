@@ -318,69 +318,62 @@ def set_fist_pkt_delay():
     # Save the workbook
     workbook.save(constants.final_file_path)
 
-def set_caculation_formulas(dscp):
+def set_caculation_formulas(workbook, sheet_name, dscp, scenario_DSCPs):
+
     if dscp == -1:
         title = "Calculations For All Flows"
-        condition = "\">0\""
     else:
         title = f"Calculations For Flows with DSCP = {dscp}"
-        condition = dscp
-    # Configure each sheet
-    workbook = load_workbook(constants.final_file_path)
 
-    # Set formula for each sheet
-    for sheet_name in workbook.sheetnames:
-        sheet = workbook[sheet_name]
-        last_line_raw_data_sheet = constants.last_line_raw_data[sheet_name]
+    sheet = workbook[sheet_name]
+    last_line_raw_data_sheet = constants.last_line_raw_data[sheet_name]
 
-        #Pass the last line with data, and leave 2 empty lines
-        last_line = sheet.max_row + 4
+    #Pass the last line with data, and leave 2 empty lines
+    last_line = sheet.max_row + 4
 
-        #Set new headers
-        sheet[f'A{last_line}'] = title
-        sheet[f'A{last_line + 1}'] = "AVG Out of Order Packets (Nº)"
-        sheet[f'A{last_line + 2}'] = "AVG Packet Loss (Nº)"
-        sheet[f'A{last_line + 3}'] = "AVG Packet Loss (%)"
-        sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay (nanoseconds)"
-        sheet[f'A{last_line + 5}'] = "AVG Flow Jitter (nanoseconds)"
-        sheet[f'A{last_line + 6}'] = "STD Flow Jitter (nanoseconds)"
-        sheet[f'B{last_line}'] = "Values"
-        sheet[f'E{last_line}'] = "DSCP"
+    #Set new headers
+    sheet[f'A{last_line}'] = title
+    sheet[f'A{last_line + 1}'] = "AVG Out of Order Packets (Nº)"
+    sheet[f'A{last_line + 2}'] = "AVG Packet Loss (Nº)"
+    sheet[f'A{last_line + 3}'] = "AVG Packet Loss (%)"
+    sheet[f'A{last_line + 4}'] = "AVG 1º Packet Delay (nanoseconds)"
+    sheet[f'A{last_line + 5}'] = "AVG Flow Jitter (nanoseconds)"
+    sheet[f'A{last_line + 6}'] = "STD Flow Jitter (nanoseconds)"
+    sheet[f'B{last_line}'] = "Values"
+    sheet[f'E{last_line}'] = "DSCP"
 
-        sheet[f'A{last_line}'].font = Font(bold=True)
-        sheet[f'A{last_line + 1}'].font = Font(bold=True)
-        sheet[f'A{last_line + 2}'].font = Font(bold=True)
-        sheet[f'A{last_line + 3}'].font = Font(bold=True)
-        sheet[f'A{last_line + 4}'].font = Font(bold=True)
-        sheet[f'A{last_line + 5}'].font = Font(bold=True)
-        sheet[f'A{last_line + 6}'].font = Font(bold=True)
-        sheet[f'B{last_line}'].font = Font(bold=True)
-        sheet[f'E{last_line}'].font = Font(bold=True)
+    sheet[f'A{last_line}'].font = Font(bold=True)
+    sheet[f'A{last_line + 1}'].font = Font(bold=True)
+    sheet[f'A{last_line + 2}'].font = Font(bold=True)
+    sheet[f'A{last_line + 3}'].font = Font(bold=True)
+    sheet[f'A{last_line + 4}'].font = Font(bold=True)
+    sheet[f'A{last_line + 5}'].font = Font(bold=True)
+    sheet[f'A{last_line + 6}'].font = Font(bold=True)
+    sheet[f'B{last_line}'].font = Font(bold=True)
+    sheet[f'E{last_line}'].font = Font(bold=True)
 
-        sheet[f'E{last_line + 1}'] = dscp
-        sheet[f'E{last_line + 2}'] = dscp
-        sheet[f'E{last_line + 3}'] = dscp
-        sheet[f'E{last_line + 4}'] = dscp
-        sheet[f'E{last_line + 5}'] = dscp
-        sheet[f'E{last_line + 6}'] = dscp
+    sheet[f'E{last_line + 1}'] = dscp
+    sheet[f'E{last_line + 2}'] = dscp
+    sheet[f'E{last_line + 3}'] = dscp
+    sheet[f'E{last_line + 4}'] = dscp
+    sheet[f'E{last_line + 5}'] = dscp
+    sheet[f'E{last_line + 6}'] = dscp
 
 
-        #-----------------------------------------------------------------------------------------------------Calculations
-        avg_collunm_I = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "I")
-        avg_collunm_M = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "M")
-        avg_collunm_N = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "N")
-        avg_collunm_O = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "O")
-        avg_collunm_K = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "K")
+    #-----------------------------------------------------------------------------------------------------Calculations
+    avg_collunm_I = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "I", scenario_DSCPs)
+    avg_collunm_M = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "M", scenario_DSCPs)
+    avg_collunm_N = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "N", scenario_DSCPs)
+    avg_collunm_O = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "O", scenario_DSCPs)
+    avg_collunm_K = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "K", scenario_DSCPs)
 
-        sheet[f'B{last_line + 1}'] = avg_collunm_I
-        sheet[f'B{last_line + 2}'] = avg_collunm_M
-        sheet[f'B{last_line + 3}'] = avg_collunm_N
-        sheet[f'B{last_line + 4}'] = avg_collunm_O
-        sheet[f'B{last_line + 5}'] = avg_collunm_K
-        sheet[f'B{last_line + 6}'] = constants.aux_calculated_results[sheet_name][dscp]["std_jitter"]       #array formuals are not working, so we calculated and set the value here
+    sheet[f'B{last_line + 1}'] = avg_collunm_I
+    sheet[f'B{last_line + 2}'] = avg_collunm_M
+    sheet[f'B{last_line + 3}'] = avg_collunm_N
+    sheet[f'B{last_line + 4}'] = avg_collunm_O
+    sheet[f'B{last_line + 5}'] = avg_collunm_K
+    sheet[f'B{last_line + 6}'] = constants.aux_calculated_results[sheet_name][dscp]["std_jitter"]       #array formuals are not working, so we calculated and set the value here
 
-    # Save the workbook
-    workbook.save(constants.final_file_path)
 
 def get_avg_stdev_flow_hop_latency(start, end, dscp_condition):
     ############################################ Get the results from the DB
@@ -435,51 +428,54 @@ def get_avg_stdev_flow_hop_latency(start, end, dscp_condition):
 
     return AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency
 
-def set_INT_results(dscp):
-    # For each sheet and respectice file, see the time interval given, get the values from the DB, and set the values in the sheet
-    
+def set_INT_results(workbook, sheet_name, dscp, i):
+
+    #can i can not exceed the number of args.f (last one is comparasions)
+    if i >= len(constants.args.f):
+        return
+
     if dscp == -1:
         dscp_condition = ""
     else:
         dscp_condition = f"AND dscp = \'{dscp}\'"
+    
+    print(f"Processing sheet {sheet_name},\t index {i},\t for dscp {dscp}")
+    sheet = workbook[sheet_name]
 
+    # Get the start and end times
+    start = constants.args.start[i]
+    end = constants.args.end[i]
+
+    # Add pair to the dictionary
+    constants.start_end_times[sheet_name] = (start, end)
+
+    #get the flow and hop latency, for the given dscp, that includes all flows and switches
+    AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency = get_avg_stdev_flow_hop_latency(start, end, dscp_condition)
+
+    # % of packets that went to each individual switch (switch_id)
+    switch_data = get_byte_sum(start, end, dscp, dscp_condition)
+    switch_data = calculate_percentages(start, end, switch_data, dscp, dscp_condition)
+    switch_data = get_mean_standard_deviation(switch_data, dscp)
+
+    write_INT_results(sheet, AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency, dscp)
+    write_INT_results_switchID(sheet, switch_data, dscp)
+
+
+def set_caculation_section():
     # Configure each sheet
     workbook = load_workbook(constants.final_file_path)
 
+    # For each sheet and respectice file, see the time interval given, get the values from the DB, and set the values in the sheet
     # Get nº each sheet
-    for i, sheet in enumerate(workbook.sheetnames):
-
-        #can i can not exceed the number of args.f (last one is comparasions)
-        if i >= len(constants.args.f):
-            break
-
-        print(f"Processing sheet {sheet},\t index {i},\t for dscp {dscp}")
-        sheet = workbook[sheet]
-
-        # Get the start and end times
-        start = constants.args.start[i]
-        end = constants.args.end[i]
-
-        # Add pair to the dictionary
-        constants.start_end_times[sheet.title] = (start, end)
-
-        #get the flow and hop latency, for the given dscp, that includes all flows and switches
-        AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency = get_avg_stdev_flow_hop_latency(start, end, dscp_condition)
-
-        # % of packets that went to each individual switch (switch_id)
-        switch_data = get_byte_sum(start, end, dscp, dscp_condition)
-        switch_data = calculate_percentages(start, end, switch_data, dscp, dscp_condition)
-        switch_data = get_mean_standard_deviation(switch_data, dscp)
-
-        write_INT_results(sheet, AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency, dscp)
-        write_INT_results_switchID(sheet, switch_data, dscp)
-
-        # Save the workbook
-        workbook.save(constants.final_file_path)
-
-def set_caculation_section(dscp):
-    set_caculation_formulas(dscp)
-    set_INT_results(dscp)               #technically, also contains another section, but its easier to call it here
+    for i, sheet_name in enumerate(workbook.sheetnames): 
+        scemario = sheet_name.split("-")[0]
+        scenario_DSCPs = constants.DSCP_per_scenario[scemario]
+        for current_dscp in scenario_DSCPs:
+            set_caculation_formulas(workbook, sheet_name, current_dscp, scenario_DSCPs)
+            set_INT_results(workbook, sheet_name, current_dscp, i)               #technically, also contains another section, but its easier to call it here
+    
+    # Save the workbook
+    workbook.save(constants.final_file_path)
 
 def set_compare_non_Emergency_to_Emergency_variation():
     # Configure each sheet
@@ -542,16 +538,13 @@ def set_compare_non_Emergency_to_Emergency_variation():
 
 
 def configure_final_file():
-    constants.get_all_sorted_DSCP()
 
     # Raw data area
     set_pkt_loss()
     set_fist_pkt_delay()
     
     # Calculations area for each dscp 
-    set_caculation_section(-1)             #All Flows
-    for dscp in constants.All_DSCP:        #Each DSCP
-        set_caculation_section(dscp)
+    set_caculation_section()
 
     set_compare_non_Emergency_to_Emergency_variation()
     comparasion_sheet.set_Comparison_sheet()            #Configure Comparasion sheet

@@ -240,7 +240,7 @@ def set_Comparison_sheet():
 
         has_emergency_dscp = False
 
-        for dscp in constants.All_DSCP:
+        for dscp in constants.DSCP_per_scenario[current_test_scenario]:
             if not has_emergency_dscp and dscp >= 40:
                 has_emergency_dscp = True
             

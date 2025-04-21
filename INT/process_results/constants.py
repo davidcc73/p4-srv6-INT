@@ -82,7 +82,13 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 filename_with_sizes = os.path.join(script_dir, "multicast_DSCP.json")
 DSCP_IPs = None
 
-All_DSCP = [] # List with all DSCP values sorted
+DSCP_per_scenario = {               # Dictionary with DSCP values used on each scenario
+    "MEDIUM":[-1, 0, 34, 35],
+    "HIGH":[-1, 0, 34, 35],
+    "HIGH+EMERGENCY":[-1, 0, 34, 35, 46]
+} 
+
+
 start_end_times = {} # Dictionary with start and end times for each scenariọ-algorithm pair
 
 aux_calculated_results = {}         #auxiliar dictionary to store calculated results before writing in the final file
@@ -122,21 +128,7 @@ def get_full_variable_data_from_db(variable, percentile, table, start_time, end_
 
     return full_data
 
-def get_all_sorted_DSCP():
-    global All_DSCP, results
-
-    # Cycle through results
-    for flow, flow_values in results["1"].items():
-        if flow == "SRv6_Operations":                                #skip the SRv6_Operations data for the current iteration
-                continue
-        
-        dscp = flow_values["DSCP"]
-        if dscp not in All_DSCP:
-            All_DSCP.append(dscp)
-    
-    All_DSCP = sorted(All_DSCP)  
-
-def get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, dscp_collumn_letter, dscp_target, data_collumn_letter):
+def get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, dscp_collumn_letter, dscp_target, data_collumn_letter, scenario_DSCPs):
     # Get lines from 2 to last_line_raw_data_sheet
     
     values = []
@@ -146,14 +138,14 @@ def get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, dscp_collumn_l
         data_value = sheet[f'{data_collumn_letter}{i}'].value
 
         # Check if the dscp_cell is not empty, and we are not at wrong variable are
-        if dscp_value not in All_DSCP or data_value is None:  
+        if dscp_value not in scenario_DSCPs or data_value is None:  
             continue
 
         if dscp_target == dscp_value or dscp_target == -1:                    # -1 means all DSCP
             values.append(data_value)   
 
     if len(values) == 0:
-        print(f"Warning: No values found for DSCP {dscp_target} in column {data_collumn_letter}, shhet.title: {sheet.title}")
+        print(f"Warning: No values found for DSCP {dscp_target} in column {data_collumn_letter}, sheet.title: {sheet.title}")
         sys.exit(1)
         
     # Apply percentile
@@ -198,7 +190,9 @@ def calulate_std_jitter_per_dscp(current_filename):
         avg_jitters_percentile_value = np.percentile(avg_jitters, percentile)
         
         # Filter the avg_jitters with the percentile value
-        avg_jitters = avg_jitters[avg_jitters <= avg_jitters_percentile_value]
+        avg_jitters_filtered = avg_jitters[avg_jitters <= avg_jitters_percentile_value]
+        if len(avg_jitters_filtered) > 2:              #Only apply percentile if we have more than 2 values
+            avg_jitters = avg_jitters_filtered
+
         std_jitter = round(np.std(avg_jitters), 2)
-        
         aux_calculated_results[scenario_algorithms][dscp]["std_jitter"] = std_jitter
