@@ -171,17 +171,17 @@ def comparasion_area(sheet, current_test_scenario, start_line, dscp):
     set_copied_values(sheet, current_test_scenario, start_line, dscp)
     sheet.append([""])
 
-def set_Non_to_Emergency_Data_Flows_Comparasion(sheet, start_line):
+def set_Non_to_Emergency_Data_Flows_Comparasion(sheet, current_test_scenario, start_line):
     sheet[f'A{start_line}'] = "For All Data Flows"
     sheet[f'A{start_line + 1}'] = constants.headers_lines[-2]
     sheet[f'A{start_line + 2}'] = constants.headers_lines[-1]
 
-    sheet[f'A{start_line}'].font = Font(bold=True)
+    sheet[f'A{start_line}'].font     = Font(bold=True)
     sheet[f'A{start_line + 1}'].font = Font(bold=True)
     sheet[f'A{start_line + 2}'].font = Font(bold=True)
 
-    for i in range(len(constants.args.f)):
-        sheet_to_copy_from_name = constants.args.f[i].split("_")[0]
+    for i in range(len(constants.algorithms)):
+        sheet_to_copy_from_name = f"{current_test_scenario}-{constants.algorithms[i]}"
 
         line1, column1 = get_line_column_to_copy_from(sheet_to_copy_from_name, 14, -1)
         line2, column2 = get_line_column_to_copy_from(sheet_to_copy_from_name, 15, -1)
@@ -202,10 +202,15 @@ def set_Non_to_Emergency_Data_Flows_Comparasion(sheet, start_line):
         sheet[f'{get_column_letter(2 + i)}{start_line + 1}'] = formula1
         sheet[f'{get_column_letter(2 + i)}{start_line + 2}'] = formula2
 
-    #Comparasions
-    sheet[f'D{start_line + 1}'] = f'=IFERROR(ROUND((C{start_line + 1} - B{start_line + 1}) / ABS(B{start_line + 1}) * 100, 2), 0)'
-    sheet[f'D{start_line + 2}'] = f'=IFERROR(ROUND((C{start_line + 2} - B{start_line + 2}) / ABS(B{start_line + 2}) * 100, 2), 0)'
+    #Comparasions SHOULD BE TAKEN OUT THIS FUNCTION AND THE LOOP THAT IS CONTAINING IT
+    sheet[f'E{start_line + 1}'] = f'=IFERROR(ROUND((C{start_line + 1} - B{start_line + 1}) / ABS(B{start_line + 1}) * 100, 2), 0)'
+    sheet[f'E{start_line + 2}'] = f'=IFERROR(ROUND((C{start_line + 2} - B{start_line + 2}) / ABS(B{start_line + 2}) * 100, 2), 0)'
 
+    sheet[f'F{start_line + 1}'] = f'=IFERROR(ROUND((D{start_line + 1} - B{start_line + 1}) / ABS(B{start_line + 1}) * 100, 2), 0)'
+    sheet[f'F{start_line + 2}'] = f'=IFERROR(ROUND((D{start_line + 2} - B{start_line + 2}) / ABS(B{start_line + 2}) * 100, 2), 0)'
+
+    sheet[f'G{start_line + 1}'] = f'=IFERROR(ROUND((D{start_line + 1} - C{start_line + 1}) / ABS(C{start_line + 1}) * 100, 2), 0)'
+    sheet[f'G{start_line + 2}'] = f'=IFERROR(ROUND((D{start_line + 2} - C{start_line + 2}) / ABS(C{start_line + 2}) * 100, 2), 0)'
 
 def set_Comparison_sheet():
     print("Setting the Comparison sheet")
@@ -250,7 +255,7 @@ def set_Comparison_sheet():
         # If contains DSCP >= 40, set comparasion for Non to Emergency Data Flows
         if has_emergency_dscp:
             sheet.append([""])
-            set_Non_to_Emergency_Data_Flows_Comparasion(sheet, sheet.max_row + 1)
+            set_Non_to_Emergency_Data_Flows_Comparasion(sheet, current_test_scenario, sheet.max_row + 1)
 
         # Insert 2 empty lines
         sheet.append([""])
