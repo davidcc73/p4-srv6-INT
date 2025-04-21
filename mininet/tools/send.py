@@ -142,7 +142,7 @@ def send_packet(args, pkt_ETHE, payload_space, iface, addr, src_ip):
             # Send the constructed packet
             sendp(pkt, iface=iface, inter=0, loop=0, verbose=False)
             #sendpfast(pkt, iface=iface, file_cache=True, pps=0, loop=0)
-            #print(f"({src_ip}, {args.dst_ip}, {args.flow_label}) Packet {i + 1} sent")
+            #print(f"({src_ip}, {args.dst_ip}, {args.flow_label})  Traffic Class:{[pkt[IPv6].tc >> 2]}  Packet {i + 1} sent")
         except Exception as e:
             results['failed_packets'] += 1
             print(f"({src_ip}, {args.dst_ip}, {args.flow_label}) Packet {i + 1} failed to send: {e}")
