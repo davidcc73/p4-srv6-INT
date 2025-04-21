@@ -1,5 +1,4 @@
 import os
-import pprint
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 

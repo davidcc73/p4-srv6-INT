@@ -122,7 +122,7 @@ def set_copied_values(sheet, current_test_scenario, start_line, dscp):
 
             # Get the name of the sheet to copy from
             sheet_to_copy_from_name = current_test_scenario + "-" + curent_algorithm
-            print(f"For DSCP:{dscp} copying variable nº {variable_number} from sheet: {sheet_to_copy_from_name}")
+            print(f"For {current_test_scenario} DSCP:{dscp} copying variable nº {variable_number} from sheet: {sheet_to_copy_from_name}")
 
             line, column = get_line_column_to_copy_from(sheet_to_copy_from_name, variable_number, dscp)
 
@@ -255,8 +255,6 @@ def set_Comparison_sheet():
         # Insert 2 empty lines
         sheet.append([""])
         sheet.append([""])
-
-
 
     # Save the workbook
     workbook.save(constants.final_file_path)

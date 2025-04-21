@@ -1,10 +1,9 @@
 from cmath import sqrt
 import os
 import sys
-import constants, comparasion_sheet
+import constants, comparasion_sheet, graphs
 from openpyxl import load_workbook
 from openpyxl.styles import Font
-
 
 def get_byte_sum(start, end, dscp, dscp_condition):
     # Initialize the result dictionary to store total byte counts per switch ID
@@ -14,12 +13,23 @@ def get_byte_sum(start, end, dscp, dscp_condition):
     # Loop through each unique switch ID
     for switch_id in switch_ids:
         # Formulate the query to get the sum of bytes for the given switch ID and time range
-        query = f"""
+        percentile_query = f"""
+            SELECT PERCENTILE("size", {constants.percentile}) AS p_size
+            FROM "flow_stats"
+            WHERE time >= '{start}'
+            AND time <= '{end}'
+        """
+        percentile_value = constants.apply_query(percentile_query)
+        percentile_value = list(percentile_value.get_points())[0]['p_size']
+
+
+        query = f"""                                    
             SELECT SUM("size") AS total_count
             FROM flow_stats 
             WHERE time >= '{start}' AND time <= '{end}' 
             AND path =~ /(^|-)({switch_id})(-|$|\b)/
             {dscp_condition}
+            AND "size" <= {percentile_value}
         """
 
         result = constants.apply_query(query)  # Assume this returns a dictionary with 'total_count'
@@ -38,6 +48,16 @@ def get_byte_sum(start, end, dscp, dscp_condition):
     return sum
 
 def calculate_percentages(start, end, switch_data, dscp, dscp_condition):
+    percentile_query = f"""
+        SELECT PERCENTILE("latency", {constants.percentile}) AS p_latency
+        FROM "flow_stats"
+        WHERE time >= '{start}'
+        AND time <= '{end}'
+    """
+
+    flow_percentile_value = constants.apply_query(percentile_query)
+    flow_percentile_value = list(flow_percentile_value.get_points())[0]['p_latency']
+
     # Get the total count of packets
     query = f"""
         SELECT COUNT("latency") AS total_count
@@ -45,17 +65,29 @@ def calculate_percentages(start, end, switch_data, dscp, dscp_condition):
         WHERE time >= '{start}' 
         AND time <= '{end}'
         {dscp_condition}
+        AND "latency" <= {flow_percentile_value}
     """
     result = constants.apply_query(query)
     total_count = result.raw["series"][0]["values"][0][1]  # Extract total_count from the result
 
-    # Get the count of packets that went to each switch
+    ############ Get the count of packets that went to each switch
+    percentile_query = f"""
+        SELECT PERCENTILE("latency", {constants.percentile}) AS p_latency
+        FROM "switch_stats"
+        WHERE time >= '{start}'
+        AND time <= '{end}'
+    """
+
+    switch_percentile_value = constants.apply_query(percentile_query)
+    switch_percentile_value = list(switch_percentile_value.get_points())[0]['p_latency']
+
     query = f"""
         SELECT COUNT("latency") AS switch_count
         FROM switch_stats
         WHERE time >= '{start}'
         AND time <= '{end}'
         {dscp_condition}
+        AND "latency" <= {switch_percentile_value}
         GROUP BY switch_id
     """
     result = constants.apply_query(query)
@@ -71,7 +103,6 @@ def calculate_percentages(start, end, switch_data, dscp, dscp_condition):
         switch_count = int(row["values"][0][1])
         switch_data[dscp][switch_id]["Percentage Pkt"] = round((switch_count / total_count) * 100, 2)
 
-    #pprint(switch_data)
     return switch_data
 
 def get_mean_standard_deviation(switch_data, dscp):
@@ -203,7 +234,7 @@ def set_pkt_loss():
 
         no_formula_section = False
 
-        for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
+        for row in sheet.iter_rows(min_row=2, max_row=constants.last_line_raw_data[sheet.title], min_col=1, max_col=3):
             if row[0].value == "Calculations":
                 break
 
@@ -214,16 +245,23 @@ def set_pkt_loss():
 
             #if cell from collumn A does not contain an IPv6 address, skip
             if row[0].value is None or ":" not in row[0].value:
-
                 skip = True
                 continue
             if skip:            #not in the right line of the pair
                 skip = False
                 continue
             
+            # get value from collumn G, line row[0].row-1
+            pkts_received = sheet[f'G{row[0].row-1}'].value
+            pkts_sent = sheet[f'G{row[0].row}'].value
+            
+            if pkts_received is None or pkts_sent is None:      #Skip the SRv6 area
+                continue
+
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
-            sheet[f'M{row[0].row}'] = f'=G{row[0].row-1}-G{row[0].row}'     
-            sheet[f'N{row[0].row}'] = f'=ROUND((M{row[0].row}/G{row[0].row-1})*100, 2)'
+            pkt_loss = pkts_received - pkts_sent
+            sheet[f'M{row[0].row}'] = pkt_loss   
+            sheet[f'N{row[0].row}'] = round((pkt_loss/pkts_sent)*100, 2)
 
             skip = True
 
@@ -245,7 +283,7 @@ def set_fist_pkt_delay():
         no_formula_section = False
         
         # Set collumn L to contain a formula to be the subtraction of values of collum F of the current pair of lines
-        for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=3):
+        for row in sheet.iter_rows(min_row=2, max_row=constants.last_line_raw_data[sheet.title], min_col=1, max_col=3):
             if row[0].value == "Calculations":
                 break
 
@@ -266,7 +304,14 @@ def set_fist_pkt_delay():
             # Set the formula, pkt loss, -1 is sender, 0 is receiver
             # The values are 2 Timestamp (seconds-Unix Epoch)
             # subtraction give seconds, we convert to nanoseconds
-            sheet[f'O{row[0].row}'] = f'=ROUND((H{row[0].row}-H{row[0].row-1})*10^9, 2)'     
+            first_pkt_sent = sheet[f'H{row[0].row-1}'].value
+            first_pkt_received = sheet[f'H{row[0].row}'].value
+
+            if first_pkt_received is None or first_pkt_sent is None:      #Skip the SRv6 area
+                continue
+
+            first_pkt_delay = first_pkt_received - first_pkt_sent
+            sheet[f'O{row[0].row}'] = round(first_pkt_delay*1000000000, 2)  
 
             skip = True
 
@@ -312,20 +357,27 @@ def set_caculation_formulas(dscp):
         sheet[f'B{last_line}'].font = Font(bold=True)
         sheet[f'E{last_line}'].font = Font(bold=True)
 
-        # on the next line for each column, set the average of the column, ignore empty cells
-        sheet[f'B{last_line + 1}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, I1:I{last_line_raw_data_sheet}), 2)'
-        sheet[f'B{last_line + 2}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, M1:M{last_line_raw_data_sheet}), 2)'
-        sheet[f'B{last_line + 3}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, N1:N{last_line_raw_data_sheet}), 2)'
-        sheet[f'B{last_line + 4}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, O1:O{last_line_raw_data_sheet}), 2)'
-        sheet[f'B{last_line + 5}'] = f'=ROUND(AVERAGEIF(D1:D{last_line_raw_data_sheet}, {condition}, K1:K{last_line_raw_data_sheet}), 2)'
-        sheet[f'B{last_line + 6}'] = constants.aux_calculated_results[sheet_name][dscp]["std_jitter"]       #array formuals are not working, so we calculated and set the value here
-
         sheet[f'E{last_line + 1}'] = dscp
         sheet[f'E{last_line + 2}'] = dscp
         sheet[f'E{last_line + 3}'] = dscp
         sheet[f'E{last_line + 4}'] = dscp
         sheet[f'E{last_line + 5}'] = dscp
         sheet[f'E{last_line + 6}'] = dscp
+
+
+        #-----------------------------------------------------------------------------------------------------Calculations
+        avg_collunm_I = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "I")
+        avg_collunm_M = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "M")
+        avg_collunm_N = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "N")
+        avg_collunm_O = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "O")
+        avg_collunm_K = constants.get_collumn_average_per_dscp(sheet, last_line_raw_data_sheet, "D", dscp, "K")
+
+        sheet[f'B{last_line + 1}'] = avg_collunm_I
+        sheet[f'B{last_line + 2}'] = avg_collunm_M
+        sheet[f'B{last_line + 3}'] = avg_collunm_N
+        sheet[f'B{last_line + 4}'] = avg_collunm_O
+        sheet[f'B{last_line + 5}'] = avg_collunm_K
+        sheet[f'B{last_line + 6}'] = constants.aux_calculated_results[sheet_name][dscp]["std_jitter"]       #array formuals are not working, so we calculated and set the value here
 
     # Save the workbook
     workbook.save(constants.final_file_path)
@@ -335,7 +387,7 @@ def get_avg_stdev_flow_hop_latency(start, end, dscp_condition):
     # We need AVG Latency of ALL flows combined (NOT distinguishing between flows)
     # Query to get the 95th percentile latency value, to exclude outliers
     percentile_query = f"""
-        SELECT PERCENTILE("latency", 95) AS p_latency
+        SELECT PERCENTILE("latency", {constants.percentile}) AS p_latency
         FROM flow_stats
         WHERE time >= '{start}'
         AND time <= '{end}'
@@ -360,7 +412,7 @@ def get_avg_stdev_flow_hop_latency(start, end, dscp_condition):
     # We need AVG Latency for processing of ALL packets (NOT distinguishing between switches/flows) 
     # Query to get the 95th percentile latency value, to exclude outliers
     percentile_query = f"""
-        SELECT PERCENTILE("latency", 95) AS p_latency
+        SELECT PERCENTILE("latency", {constants.percentile}) AS p_latency
         FROM switch_stats
         WHERE time >= '{start}'
         AND time <= '{end}'
@@ -407,6 +459,9 @@ def set_INT_results(dscp):
         # Get the start and end times
         start = constants.args.start[i]
         end = constants.args.end[i]
+
+        # Add pair to the dictionary
+        constants.start_end_times[sheet.title] = (start, end)
 
         #get the flow and hop latency, for the given dscp, that includes all flows and switches
         AVG_flows_latency, STD_flows_latency, AVG_hop_latency, STD_hop_latency = get_avg_stdev_flow_hop_latency(start, end, dscp_condition)
@@ -500,4 +555,5 @@ def configure_final_file():
 
     set_compare_non_Emergency_to_Emergency_variation()
     comparasion_sheet.set_Comparison_sheet()            #Configure Comparasion sheet
-    
+    graphs.create_graphs()                              #create the graphs
+

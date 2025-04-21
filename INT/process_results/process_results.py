@@ -4,7 +4,6 @@ import csv
 import json
 import os
 import sys
-import pprint
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
@@ -12,12 +11,13 @@ from openpyxl.utils import get_column_letter
 import constants, export, configure
 
 def adjust_columns_width():
+    print(f"Adjusting columns width for all sheets")
+
     #open the workbook
     workbook = load_workbook(constants.final_file_path)
 
     # Adjust column widths to fit the text
     for sheetname in workbook.sheetnames:
-        print(f"Adjusting columns width for sheet {sheetname}")
         sheet = workbook[sheetname]
         for column_cells in sheet.columns:
             length = max(len(str(cell.value).strip()) for cell in column_cells)
@@ -136,7 +136,6 @@ def read_csv_files(filename):
             read_raw_results(row)
 
     #print("Done reading file")
-    #pprint(constants.results)
 
 def check_files_exist():
     # Check if the directory/files exist
@@ -209,13 +208,6 @@ def read_SRv6_line(line):
     new_content["timestamp"] = timestamp
     new_content["rule"] = rule_elemets
 
-    #print("--------------------------------------------------------")
-    #print(f"Iteration: {iteration}, Timestamp: {timestamp}, Operation: {operation}, Responsible switch: {responsible_switch}")
-    #pprint(rule_elemets)
-    #pprint(resulresultsts)
-    #pprint(new_content)
-
-
     # Add the results to the dictionary
     # At this point the iteration is already in the dictionary
     results_ite = constants.results[iteration]
@@ -227,7 +219,6 @@ def read_SRv6_line(line):
         # Add the operation to the dictionary
         results_ite["SRv6_Operations"].append(new_content)
 
-    #pprint(constants.results)
 
 def read_SRv6_log(file_index):
     analyzer_logs_dir = os.path.join(constants.parent_path, constants.analyzer_directory)
