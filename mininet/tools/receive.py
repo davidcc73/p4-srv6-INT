@@ -69,7 +69,7 @@ def process_packet(pkt):  # Process packets in queue
             seq_number, message = payload.split('-', 1)
             seq_number = int(seq_number)  # Ensure the sequence number is an integer
             flows_metrics[flow_key]["sequence_numbers"].append(seq_number)
-            print(f"Flow {flow_key} - Packet Sequence Number: {seq_number}")
+            #print(f"Flow {flow_key} - Packet Sequence Number: {seq_number}")
         except ValueError:
             print(f"Flow {flow_key} - Error splitting payload: {payload}")
 

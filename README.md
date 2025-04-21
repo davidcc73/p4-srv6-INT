@@ -68,14 +68,15 @@ In any location run:
 
 ```bash
 sudo apt-get install sshpass     #install sshpass to be able to use the make commands
-sudo apt install python3-pip   
-sudo pip3 install scapy          #send/process packets
-sudo apt install mininet         #install mininet at host (makes clean ups easier)
-sudo pip3 install numpy          #to do MCDA
-sudo pip3 install openpyxl       #to export raw CSV results to excel
-sudo pip3 install paramiko       #for the INT Analyzer
-sudo pip install networkx        #to visualize the network flows in the topology in real-time
-sudo pip install matplotlib      #to visualize the network flows in the topology in real-time
+sudo apt install -y python3-pip   
+sudo apt install -y python3-scapy          #send/process packets
+sudo apt install -y mininet         #install mininet at host (makes clean ups easier)
+sudo apt install -y python3-numpy          #to do MCDA
+sudo apt install -y python3-openpyxl       #to export raw CSV results to excel
+sudo apt install -y python3-pandas         #to export graphs results to excel
+sudo apt install -y python3-paramiko       #for the INT Analyzer
+sudo pip install -y networkx        #to visualize the network flows in the topology in real-time
+sudo pip install -y matplotlib      #to visualize the network flows in the topology in real-time
 ```
 In the root of the project run:
 ```bash
