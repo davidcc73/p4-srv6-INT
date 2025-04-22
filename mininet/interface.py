@@ -20,8 +20,8 @@ export_file_HIGH = "HIGH"
 export_file_HIGH_EMERGENCY = "HIGH+EMERGENCY"
 
 host_IPs  = constants.host_IPs
-intervals = {"Message": 0.1, "Audio": 0.1, "Video": 0.02, "Emergency": 0.05}         #seconds, used to update the other dictionaries below 0.02 is unstable
-sizes     = {"Message": 262, "Audio": 420, "Video": 1250, "Emergency": 100}          #bytes coincide with the INT/receive/packet size.json
+intervals = {"Message": 0.1, "Audio": 0.01, "Video": 0.02, "Emergency": 0.02}         #seconds, used to update the other dictionaries below 0.02 is unstable
+sizes     = {"Message": 262, "Audio": 420,  "Video": 1250, "Emergency": 100}          #bytes coincide with the INT/receive/packet size.json
 
 packet_number    = {"Message": 0, "Audio": 0, "Video": 0, "Emergency": 0}            #placeholder values, updated in update_times()
 receiver_timeout = 0                                                                 #placeholder values, updated in update_times(), time receiver will wait for pkts
