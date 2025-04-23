@@ -497,7 +497,7 @@ control IngressPipeImpl (inout parsed_headers_t hdr,
             log_msg("Packet from CPU, forwarding it to port:{}", {hdr.packet_out.egress_port});
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
-            exit;                           //it can probably also be return;
+            exit;                           //finish the Ingress here, it can probably also be return, and have the same effect, but this is more explicit;
         }
         else if(acl.apply().hit){          //Not from CPU and its acl pkt
             log_msg("ACL hit, cloned to CPU, end of processing");
