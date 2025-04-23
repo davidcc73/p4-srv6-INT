@@ -767,6 +767,8 @@ def main():
         
         #sleep for the remaining time of the iteration
         sync_sleep_seconds = args.iterations_timer - (datetime.now() - start_iteration).total_seconds()
+        if sync_sleep_seconds > 0:
+            sync_sleep_seconds = 0
         print(f"Waiting for {sync_sleep_seconds} seconds so be in sync with the next iteration's start")
         sleep(sync_sleep_seconds)
 
