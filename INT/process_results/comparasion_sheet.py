@@ -212,6 +212,25 @@ def set_Non_to_Emergency_Data_Flows_Comparasion(sheet, current_test_scenario, st
     sheet[f'G{start_line + 1}'] = f'=IFERROR(ROUND((D{start_line + 1} - C{start_line + 1}) / ABS(C{start_line + 1}) * 100, 2), 0)'
     sheet[f'G{start_line + 2}'] = f'=IFERROR(ROUND((D{start_line + 2} - C{start_line + 2}) / ABS(C{start_line + 2}) * 100, 2), 0)'
 
+def set_SRv6_area(sheet, current_test_scenario):
+    sheet_target = current_test_scenario + "-ECMP-SRv6"
+    last_line = sheet.max_row
+
+    sheet[f'A{last_line + 1}'] = "SRv6 Rules"
+    sheet[f'A{last_line + 2}'] = "AVG Nº of SRv6 rules Created"
+    sheet[f'A{last_line + 3}'] = "AVG Nº of SRv6 rules Removed"
+    sheet[f'B{last_line + 1}'] = "Values"
+
+    sheet[f'A{last_line + 1}'].font = Font(bold=True) 
+    sheet[f'A{last_line + 2}'].font = Font(bold=True)
+    sheet[f'A{last_line + 3}'].font = Font(bold=True)
+    sheet[f'B{last_line + 1}'].font = Font(bold=True)
+
+    sheet[f'B{last_line + 2}'] = f'=COUNTIF(\'{sheet_target}\'!B1:B{constants.last_line_raw_data[sheet_target]}, \"Created SRv6 rule") / {constants.args.num_iterations}'
+    sheet[f'B{last_line + 3}'] = f'=COUNTIF(\'{sheet_target}\'!B1:B{constants.last_line_raw_data[sheet_target]}, \"Removed SRv6 rule") / {constants.args.num_iterations}'
+
+
+
 def set_Comparison_sheet():
     print("Setting the Comparison sheet")
 
@@ -241,8 +260,6 @@ def set_Comparison_sheet():
         max_line = sheet.max_row + 2
         set_scenario_headers(sheet, current_test_scenario, max_line)
         max_line = sheet.max_row + 1
-        comparasion_area(sheet, current_test_scenario, max_line, -1)
-
         has_emergency_dscp = False
 
         for dscp in constants.DSCP_per_scenario[current_test_scenario]:
@@ -251,6 +268,10 @@ def set_Comparison_sheet():
             
             max_line = sheet.max_row + 1
             comparasion_area(sheet, current_test_scenario, max_line, dscp)
+
+        # Set SRv6 area
+        if constants.args.SRv6_index is not None:
+            set_SRv6_area(sheet, current_test_scenario)
 
         # If contains DSCP >= 40, set comparasion for Non to Emergency Data Flows
         if has_emergency_dscp:
