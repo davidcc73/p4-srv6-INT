@@ -13,30 +13,35 @@ from openpyxl.utils import get_column_letter
 
 import constants
 
-def create_CDF(image_path, data, xlabel, ylabel, x_min, x_max, title):
+def create_CDF(image_path, data, labels, xlabel, ylabel, x_min, x_max, title):
     # Create directory if it doesn't exist
     if not os.path.exists(constants.directory_images):
         os.makedirs(constants.directory_images)
 
-    # Calculate CDF
-    sorted_data = np.sort(data)
-    cdf = np.arange(1, len(data)+1) / len(data)
-
-    # Plot
     plt.figure(figsize=(6, 4))
-    plt.plot(sorted_data, cdf, marker='.', linestyle='solid')
-    plt.title(title, fontsize = 20)
-    plt.xlabel(xlabel, fontsize = 20)
-    plt.ylabel(ylabel, fontsize = 20)
+
+    # Loop through each dataset and plot its CDF
+    for i, dataset in enumerate(data):
+        sorted_data = np.sort(dataset)
+        cdf = np.arange(1, len(dataset) + 1) / len(dataset)
+        plt.plot(sorted_data, cdf, marker='.', linestyle='solid', label=labels[i])
+
+    # Graph formatting
+    plt.title(title, fontsize=20)
+    plt.xlabel(xlabel, fontsize=20)
+    plt.ylabel(ylabel, fontsize=20)
     plt.xlim(x_min, x_max)
-    plt.tick_params(axis='both', which='major', labelsize=14)  
+    plt.tick_params(axis='both', which='major', labelsize=14)
     plt.grid(True)
+    plt.legend(fontsize=14)
     plt.tight_layout()
     plt.savefig(image_path)  # Save the image
     plt.close()  # Close the figure to free up memory
 
+
 def create_CDF_graphs(sheet, datas, title, xlabel, ylabel, variable_name, position_image_x, position_image_y):
-    image_paths = []
+    print(f"Creating CDF with title: {title}...")
+    image_path = constants.images_path + "/" + title + ".png"
 
     # Concatnate all data to get global min and max
     all_data_contatenated = np.concatenate(datas).astype(np.float64)
@@ -45,6 +50,10 @@ def create_CDF_graphs(sheet, datas, title, xlabel, ylabel, variable_name, positi
         return None
     
     x_min, x_max = all_data_contatenated.min(), all_data_contatenated.max()
+    create_CDF(image_path, datas, constants.algorithms, xlabel, ylabel, x_min, x_max, title)
+
+    '''
+    image_paths = []
 
     for index_current_algorithm, current_algorithm_name in enumerate(constants.algorithms):
         image_path = constants.images_path + "/" + current_algorithm_name + "-" + variable_name + ".png"
@@ -82,9 +91,10 @@ def create_CDF_graphs(sheet, datas, title, xlabel, ylabel, variable_name, positi
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
         temp_file_path = temp_file.name
         image_collection.save(temp_file_path)
+    '''
 
     # Create an openpyxl Image object from the temporary file
-    openpyxl_image = Image(temp_file_path)
+    openpyxl_image = Image(image_path)
     openpyxl_image.anchor = f'{get_column_letter(position_image_x)}{position_image_y}'  # Position the image in the sheet
     sheet.add_image(openpyxl_image)
 
@@ -121,7 +131,7 @@ def from_excel_data(sheet, current_scenario, position_image_x, position_image_y)
         title = f"{current_scenario}: {variable_title}"
         res = create_CDF_graphs(sheet, datas, title, x_label, "Probability", variable_name, position_image_x, position_image_y)
         if res is not None:
-            position_image_x += 30      # Move right for each algorithm
+            position_image_x += 10      # Move right for each algorithm
     
     return position_image_x
 
@@ -151,7 +161,7 @@ def from_db_data(sheet, current_scenario, position_image_x, position_image_y):
             title = f"{current_scenario}: {title1}"
             res = create_CDF_graphs(sheet, datas, title, x_label, "Probability", current_variable, position_image_x, position_image_y)
             if res is not None:
-                position_image_x += 30      # Move right for each algorithm
+                position_image_x += 10      # Move right for each algorithm
     
     return position_image_x
 
