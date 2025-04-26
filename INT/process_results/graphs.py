@@ -42,6 +42,8 @@ def create_CDF(image_path, data, labels, xlabel, ylabel, x_min, x_max, title):
 def create_CDF_graphs(sheet, datas, title, xlabel, ylabel, variable_name, position_image_x, position_image_y):
     print(f"Creating CDF with title: {title}...")
     image_path = constants.images_path + "/" + title + ".png"
+    #remove from the path any presnece of ":"
+    image_path = image_path.replace(":", "")
 
     # Concatnate all data to get global min and max
     all_data_contatenated = np.concatenate(datas).astype(np.float64)
