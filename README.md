@@ -152,6 +152,10 @@ Some data is displeyed incorrectly, trust the one printed by the INT collector.
 
 # Implementation
 
+## Testbed
+![Testbed](./images/Project_Testbed.drawio.png "Testbed")
+
+
 ## Database
 The measurements in the DB are the following:
 
